@@ -108,5 +108,13 @@ end
 
 ############################################################
 
+puts "pwd"
+puts `pwd`
+puts "ls"
+puts `ls`
+
+puts "cat .git/config"
+puts `cat .git/config`
+
 format_terraform_code
 format_ruby_code
