@@ -45,14 +45,12 @@ def format_terraform_code
   terraform_directories_in_pr.each do |dir|
     execute "terraform fmt #{dir}"
   end
-  commit_changes "Commit changes made by `terraform fmt`"
 end
 
 def format_ruby_code
   ruby_files_in_pr.each do |file|
     execute "standardrb --fix #{file}"
   end
-  commit_changes "Commit changes made by `standardrb --fix`"
 end
 
 def terraform_directories_in_pr
@@ -118,3 +116,4 @@ puts `cat .git/config`
 
 format_terraform_code
 format_ruby_code
+commit_changes "Commit changes made by code formatters"
