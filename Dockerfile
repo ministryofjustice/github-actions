@@ -4,6 +4,6 @@ RUN gem install octokit standardrb
 
 WORKDIR /app
 
-COPY bin /app/bin/
+COPY bin /app/.github-action-bin
 
-ENTRYPOINT "./bin/format-code.rb"
+ENTRYPOINT "./.github-action-bin/format-code.rb"
