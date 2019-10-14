@@ -10,6 +10,6 @@ push: .built-image
 	docker tag $(IMAGE):$(TAG) $(IMAGE):$(TAG)
 	# docker push $(IMAGE):$(TAG)
 
-.built-image: Dockerfile makefile
+.built-image: Dockerfile makefile bin/* bin/*/*
 	docker build -t $(IMAGE) .
 	touch .built-image
