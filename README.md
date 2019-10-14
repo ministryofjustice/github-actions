@@ -1,15 +1,9 @@
-# Github Action: Code Formatter
+# Github Actions
 
-A Github Action to apply code formatters to PRs, and commit any resulting changes.
+A collection of github actions.
 
-The following formatters will be applied:
-
-* `*.tf` files -> `terraform fmt`
-* `*.rb` files -> `standardrb --fix`
-
-## USAGE
-
-```
-uses: ministryofjustice/github-action-code-formatter@v1
-```
-
+<!-- markdownlint-disable MD013 -->
+| Action       | Description                                              |
+|--------------|----------------------------------------------------------|
+| [code-formatter](code-formatter) | Run various code formatters against a PR, and commit the results |
+<!-- markdownlint-enable MD013 -->
