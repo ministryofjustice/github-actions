@@ -6,3 +6,4 @@ WORKDIR /app
 
 COPY bin /app/bin/
 
+ENTRYPOINT "./bin/format-code.rb"
