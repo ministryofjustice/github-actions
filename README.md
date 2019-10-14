@@ -7,4 +7,9 @@ The following formatters will be applied:
 * `*.tf` files -> `terraform fmt`
 * `*.rb` files -> `standardrb --fix`
 
+## USAGE
+
+```
+uses: ministryofjustice/github-action-code-formatter@v1
+```
 
