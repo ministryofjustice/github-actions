@@ -10,6 +10,6 @@ push: .built-image
 	docker tag $(IMAGE):$(TAG) $(IMAGE):$(TAG)
 	# docker push $(IMAGE):$(TAG)
 
-.built-image: Dockerfile makefile format-code.rb
+.built-image: Dockerfile makefile format-code.rb github.rb
 	docker build -t $(IMAGE) .
 	touch .built-image
