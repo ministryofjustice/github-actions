@@ -28,6 +28,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
+`GITHUB_TOKEN` is provided automatically by github actions. You do
+not need to do anything extra to make it available. Just use the
+content above, exactly as shown.
+
 NB: You do have to duplicate the conditional as shown. Although the
 github documentation states that you can put the conditional at the
 job level, that doesn't work, in this case.
