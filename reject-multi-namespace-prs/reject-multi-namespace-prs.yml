@@ -1,0 +1,6 @@
+name: Reject multi-namespace PRs
+description: Reject a PR if it affects multiple namespaces
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
