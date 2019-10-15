@@ -6,6 +6,11 @@ People don't always remember to delete their branches on merge, so
 this github action does it for you. The action only deletes a branch
 when a PR is merged, not if the PR is closed without merging.
 
+NB: This function is now available as an option on Github.
+Look for the "Merge button" section in [settings](https://github.com/ministryofjustice/github-actions/settings)
+and turn on "Automatically delete head branches." This code is left
+here for reference only.
+
 ## USAGE
 
 Create a file in your repo called `.github/workflows/delete-branch-after-merge.yml` with the
