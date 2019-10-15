@@ -73,3 +73,18 @@ def commit_files(branch, files, commit_message)
   sha_new_commit = github.create_commit(repo, commit_message, sha_new_tree, sha_latest_commit).sha
   github.update_ref(repo, ref, sha_new_commit)
 end
+
+def reject_pr(message)
+  puts "Requesting changes..."
+  puts message
+
+  github.create_pull_request_review(
+    repo,
+    pr_number,
+    {
+      body: message,
+      event: "REQUEST_CHANGES",
+    }
+  )
+  exit 1
+end
