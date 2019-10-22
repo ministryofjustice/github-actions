@@ -7,16 +7,18 @@ require "yaml"
 require File.join(File.dirname(__FILE__), "github")
 
 def malformed_yaml_files
-  yaml_files_in_pr.map { |file|
-    YAML.load File.read(file) if FileTest.exists?(file)
-    nil
-  rescue Psych::SyntaxError
-    file
-  }.compact
+  yaml_files_in_pr.find_all { |file| fails_to_parse?(file) }
 end
 
 def yaml_files_in_pr
   files_in_pr.grep(/\.(yaml|yml)$/)
+end
+
+def fails_to_parse?(file)
+  YAML.safe_load File.read(file) if FileTest.exists?(file)
+  false
+rescue Psych::SyntaxError
+  true
 end
 
 ############################################################
