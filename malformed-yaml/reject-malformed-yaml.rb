@@ -8,7 +8,7 @@ require File.join(File.dirname(__FILE__), "github")
 
 def malformed_yaml_files
   yaml_files_in_pr.map do |file|
-    YAML.load File.read(file)
+    YAML.load File.read(file) if FileTest.exists?(file)
     nil
   rescue Psych::SyntaxError
     file
