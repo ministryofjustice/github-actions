@@ -10,7 +10,9 @@ def format_terraform_code
   terraform_directories_in_pr.each do |dir|
     if FileTest.directory?(dir)
       execute "terraform fmt #{dir}"
-      execute "terraform validate -check-variables=false #{dir}"
+
+      _stdout, _stderr, status = execute "terraform validate -check-variables=false #{dir}"
+      raise "terraform validate failed" unless status.success?
     end
   end
 end
