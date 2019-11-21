@@ -11,8 +11,8 @@ def format_terraform_code
     if FileTest.directory?(dir)
       execute "terraform fmt #{dir}"
 
-      _stdout, _stderr, status = execute "terraform validate -check-variables=false #{dir}"
-      raise "terraform validate failed" unless status.success?
+      _stdout, stderr, status = execute "terraform validate -check-variables=false #{dir}"
+      raise "terraform validate failed:\n#{stderr}" unless status.success?
     end
   end
 end
