@@ -61,7 +61,9 @@ def commit_changes(message)
 end
 
 def modified_files
-  execute("git status --porcelain=1 --untracked-files=no")
+  stdout, _stderr, _status = execute("git status --porcelain=1 --untracked-files=no")
+
+  stdout
     .split("\n")
     .map { |line| line.sub(" M ", "") }
 end
