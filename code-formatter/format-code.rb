@@ -7,7 +7,12 @@ require File.join(File.dirname(__FILE__), "github")
 
 def format_terraform_code
   terraform_directories_in_pr.each do |dir|
-    execute "terraform fmt #{dir}" if FileTest.directory?(dir)
+    if FileTest.directory?(dir)
+      execute "terraform fmt #{dir}"
+
+      _stdout, stderr, status = execute "terraform validate -check-variables=false #{dir}"
+      raise "terraform validate failed:\n#{stderr}" unless status.success?
+    end
   end
 end
 

@@ -1,5 +1,7 @@
 # Shared functions for github actions
 
+require "open3"
+
 def github
   unless ENV.key?("GITHUB_TOKEN")
     raise "No GITHUB_TOKEN env var found. Please make this available via the github actions workflow\nhttps://help.github.com/en/articles/virtual-environments-for-github-actions#github_token-secret"
@@ -34,7 +36,7 @@ def create_blobs(files)
   files.map do |file_name|
     content = File.read(file_name)
     blob_sha = github.create_blob(repo, Base64.encode64(content), "base64")
-    { :path => file_name, :mode => "100644", :type => "blob", :sha => blob_sha }
+    {path: file_name, mode: "100644", type: "blob", sha: blob_sha}
   end
 end
 
@@ -47,7 +49,7 @@ end
 
 def execute(cmd)
   puts "Running: #{cmd}"
-  `#{cmd}`
+  Open3.capture3(cmd)
 end
 
 def commit_changes(message)
@@ -69,7 +71,7 @@ def commit_files(branch, files, commit_message)
   sha_latest_commit = github.ref(repo, ref).object.sha
   sha_base_tree = github.commit(repo, sha_latest_commit).commit.tree.sha
   changes = create_blobs files
-  sha_new_tree = github.create_tree(repo, changes, {:base_tree => sha_base_tree }).sha
+  sha_new_tree = github.create_tree(repo, changes, {base_tree: sha_base_tree}).sha
   sha_new_commit = github.create_commit(repo, commit_message, sha_new_tree, sha_latest_commit).sha
   github.update_ref(repo, ref, sha_new_commit)
 end
