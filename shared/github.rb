@@ -1,5 +1,7 @@
 # Shared functions for github actions
 
+require "open3"
+
 def github
   unless ENV.key?("GITHUB_TOKEN")
     raise "No GITHUB_TOKEN env var found. Please make this available via the github actions workflow\nhttps://help.github.com/en/articles/virtual-environments-for-github-actions#github_token-secret"
@@ -47,7 +49,7 @@ end
 
 def execute(cmd)
   puts "Running: #{cmd}"
-  `#{cmd}`
+  Open3.capture3(cmd)
 end
 
 def commit_changes(message)
