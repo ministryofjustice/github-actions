@@ -1,4 +1,4 @@
-FROM ministryofjustice/cloud-platform-tools:1.4
+FROM ministryofjustice/cloud-platform-tools:1.5
 
 RUN gem install octokit standardrb
 
