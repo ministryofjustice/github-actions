@@ -12,13 +12,13 @@ def format_terraform_code
   end
 end
 
-def format_terraform11
+def format_terraform11(dir)
   execute "terraform fmt #{dir}"
   _stdout, stderr, status = execute "terraform validate -check-variables=false #{dir}"
   raise "terraform validate failed:\n#{stderr}" unless status.success?
 end
 
-def format_terraform12
+def format_terraform12(dir)
   execute "terraform12 fmt #{dir}"
   _stdout, stderr, status = execute "terraform12 init && terraform12 validate #{dir}"
   raise "terraform12 validate failed:\n#{stderr}" unless status.success?
