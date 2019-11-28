@@ -20,7 +20,7 @@ end
 
 def format_terraform12(dir)
   execute "terraform12 fmt #{dir}"
-  _stdout, stderr, status = execute "terraform12 init && terraform12 validate #{dir}"
+  _stdout, stderr, status = execute "cd #{dir} && terraform12 init && terraform12 validate"
   raise "terraform12 validate failed:\n#{stderr}" unless status.success?
 end
 
