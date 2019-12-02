@@ -7,27 +7,8 @@ require File.join(File.dirname(__FILE__), "github")
 
 def format_terraform_code
   terraform_directories_in_pr.each do |dir|
-    terraform11?(dir) && format_terraform11(dir)
-    terraform12?(dir) && format_terraform12(dir)
+    execute "terraform fmt #{dir}"
   end
-end
-
-def format_terraform11(dir)
-  execute "terraform fmt #{dir}"
-  _stdout, stderr, status = execute "terraform validate -check-variables=false #{dir}"
-  raise "terraform validate failed:\n#{stderr}" unless status.success?
-end
-
-def format_terraform12(dir)
-  execute "terraform12 fmt #{dir}"
-end
-
-def terraform11?(dir)
-  FileTest.directory?(dir) && !FileTest.exists?(File.join(dir, "versions.tf"))
-end
-
-def terraform12?(dir)
-  FileTest.directory?(dir) && FileTest.exists?(File.join(dir, "versions.tf"))
 end
 
 def format_ruby_code
