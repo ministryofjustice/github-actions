@@ -10,26 +10,42 @@ class Executor
   end
 end
 
-def github
-  unless ENV.key?("GITHUB_TOKEN")
-    raise "No GITHUB_TOKEN env var found. Please make this available via the github actions workflow\nhttps://help.github.com/en/articles/virtual-environments-for-github-actions#github_token-secret"
+class GithubClient
+  attr_reader :client
+
+  def initialize
+    unless ENV.key?("GITHUB_TOKEN")
+      raise "No GITHUB_TOKEN env var found. Please make this available via the github actions workflow\nhttps://help.github.com/en/articles/virtual-environments-for-github-actions#github_token-secret"
+    end
+
+    client = Octokit::Client.new(access_token: ENV["GITHUB_TOKEN"])
   end
 
-  @client ||= Octokit::Client.new(access_token: ENV["GITHUB_TOKEN"])
+  def event
+    unless ENV.key?("GITHUB_EVENT_PATH")
+      raise "No GITHUB_EVENT_PATH env var found. This script is designed to run via github actions, which will provide the github event via this env var."
+    end
+
+    @evt ||= JSON.parse File.read(ENV["GITHUB_EVENT_PATH"])
+  end
+
+  def repo
+    name = event.dig("repository", "name")
+    owner = event.dig("repository", "owner", "login")
+    [owner, name].join("/")
+  end
+end
+
+def github
+  @client ||= GithubClient.new
 end
 
 def event
-  unless ENV.key?("GITHUB_EVENT_PATH")
-    raise "No GITHUB_EVENT_PATH env var found. This script is designed to run via github actions, which will provide the github event via this env var."
-  end
-
-  @evt ||= JSON.parse File.read(ENV["GITHUB_EVENT_PATH"])
+  github.event
 end
 
 def repo
-  name = event.dig("repository", "name")
-  owner = event.dig("repository", "owner", "login")
-  [owner, name].join("/")
+  github.repo
 end
 
 def pr_number
