@@ -1,5 +1,6 @@
 # Shared functions for github actions
 
+require "json"
 require "open3"
 
 class Executor
