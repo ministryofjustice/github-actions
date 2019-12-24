@@ -35,8 +35,8 @@ class GithubClient
     [owner, name].join("/")
   end
 
-  def pull_request_files
-    client.pull_request_files
+  def pull_request_files(repo, pr_number)
+    client.pull_request_files(repo, pr_number)
   end
 
   def create_blob(repo, base64content, encoding)
