@@ -18,7 +18,7 @@ class GithubClient
       raise "No GITHUB_TOKEN env var found. Please make this available via the github actions workflow\nhttps://help.github.com/en/articles/virtual-environments-for-github-actions#github_token-secret"
     end
 
-    client = Octokit::Client.new(access_token: ENV["GITHUB_TOKEN"])
+    @client = Octokit::Client.new(access_token: ENV["GITHUB_TOKEN"])
   end
 
   def event
@@ -69,7 +69,7 @@ class GithubClient
 end
 
 def github
-  @client ||= GithubClient.new
+  @github_client ||= GithubClient.new
 end
 
 def event
