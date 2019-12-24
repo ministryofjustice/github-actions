@@ -37,6 +37,14 @@ class GithubClient
     end
   end
 
+  def branch
+    event.dig("pull_request", "head", "ref")
+  end
+
+  def pr_number
+    event.dig("pull_request", "number")
+  end
+
   private
 
   def modified_files
@@ -64,14 +72,6 @@ class GithubClient
       blob_sha = client.create_blob(repo, Base64.encode64(content), "base64")
       {path: file_name, mode: mode.to_s(8), type: "blob", sha: blob_sha}
     end
-  end
-
-  def branch
-    event.dig("pull_request", "head", "ref")
-  end
-
-  def pr_number
-    event.dig("pull_request", "number")
   end
 
   def repo

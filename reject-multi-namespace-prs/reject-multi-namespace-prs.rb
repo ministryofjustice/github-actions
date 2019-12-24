@@ -7,8 +7,10 @@ require File.join(File.dirname(__FILE__), "github")
 
 NAMESPACE_REGEX = %r[namespaces.live-1.cloud-platform.service.justice.gov.uk]
 
+gh = GithubClient.new
+
 def namespaces_touched_by_pr
-  files_in_pr
+  gh.files_in_pr
     .grep(NAMESPACE_REGEX)
     .map { |f| File.dirname(f) }
     .map { |f| f.split("/") }
@@ -35,5 +37,5 @@ if namespaces.size > 1
 
   EOF
 
-  reject_pr(message)
+  gh.reject_pr(message)
 end
