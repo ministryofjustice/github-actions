@@ -100,3 +100,5 @@ RSpec.configure do |config|
 end
 
 require "pry-byebug"
+require "./github"
+require "./code_formatter"
