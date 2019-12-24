@@ -2,6 +2,13 @@
 
 require "open3"
 
+class Executor
+  def execute(cmd)
+    puts "Running: #{cmd}"
+    Open3.capture3(cmd)
+  end
+end
+
 def github
   unless ENV.key?("GITHUB_TOKEN")
     raise "No GITHUB_TOKEN env var found. Please make this available via the github actions workflow\nhttps://help.github.com/en/articles/virtual-environments-for-github-actions#github_token-secret"
@@ -48,8 +55,7 @@ def files_in_pr
 end
 
 def execute(cmd)
-  puts "Running: #{cmd}"
-  Open3.capture3(cmd)
+  Executor.new.execute(cmd)
 end
 
 def commit_changes(message)

@@ -1,4 +1,10 @@
 class CodeFormatter
+  attr_reader :executor
+
+  def initialize(args)
+    @executor = args.fetch(:executor) { Executor.new }
+  end
+
   def run
     format_terraform_code
     format_ruby_code
@@ -9,13 +15,13 @@ class CodeFormatter
 
   def format_terraform_code
     terraform_directories_in_pr.each do |dir|
-      execute "terraform fmt #{dir}"
+      executor.execute "terraform fmt #{dir}"
     end
   end
 
   def format_ruby_code
     ruby_files_in_pr.each do |file|
-      execute "standardrb --fix #{file}" if FileTest.exists?(file)
+      executor.execute "standardrb --fix #{file}" if FileTest.exists?(file)
     end
   end
 
