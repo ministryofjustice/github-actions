@@ -34,6 +34,10 @@ class GithubClient
     owner = event.dig("repository", "owner", "login")
     [owner, name].join("/")
   end
+
+  def pull_request_files
+    client.pull_request_files
+  end
 end
 
 def github
