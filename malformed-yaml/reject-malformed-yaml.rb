@@ -40,4 +40,5 @@ if files.any?
   EOF
 
   gh.reject_pr(message)
+  exit 1
 end

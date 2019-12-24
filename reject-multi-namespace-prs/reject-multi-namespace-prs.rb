@@ -38,4 +38,5 @@ if namespaces.size > 1
   EOF
 
   gh.reject_pr(message)
+  exit 1
 end
