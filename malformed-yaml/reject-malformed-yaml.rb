@@ -6,12 +6,14 @@ require "yaml"
 
 require File.join(File.dirname(__FILE__), "github")
 
+gh = GithubClient.new
+
 def malformed_yaml_files
   yaml_files_in_pr.find_all { |file| fails_to_parse?(file) }
 end
 
 def yaml_files_in_pr
-  files_in_pr.grep(/\.(yaml|yml)$/)
+  gh.files_in_pr.grep(/\.(yaml|yml)$/)
 end
 
 def fails_to_parse?(file)
@@ -37,5 +39,6 @@ if files.any?
 
   EOF
 
-  reject_pr(message)
+  gh.reject_pr(message)
+  exit 1
 end
