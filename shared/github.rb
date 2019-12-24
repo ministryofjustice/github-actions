@@ -23,7 +23,7 @@ class GithubClient
   end
 
   def files_in_pr
-    pull_request_files
+    client.pull_request_files(repo, pr_number)
       .map(&:filename)
       .sort
       .uniq
@@ -33,19 +33,11 @@ class GithubClient
     files = modified_files
     if files.any?
       puts "Committing changes to:\n  #{files.join("\n  ")}"
-      commit_files(branch, files, message)
+      commit_files(files, message)
     end
   end
 
   private
-
-  def create_blobs(files)
-    files.map do |file_name|
-      content = File.read(file_name)
-      blob_sha = client.create_blob(repo, Base64.encode64(content), "base64")
-      {path: file_name, mode: "100644", type: "blob", sha: blob_sha}
-    end
-  end
 
   def modified_files
     stdout, _stderr, _status = executor.execute("git status --porcelain=1 --untracked-files=no")
@@ -55,14 +47,36 @@ class GithubClient
       .map { |line| line.sub(" M ", "") }
   end
 
-  def commit_files(branch, files, commit_message)
+  def commit_files(files, commit_message)
     ref = "heads/#{branch}"
-    sha_latest_commit = ref(repo, ref).object.sha
-    sha_base_tree = commit(repo, sha_latest_commit).commit.tree.sha
-    changes = create_blobs files
-    sha_new_tree = create_tree(repo, changes, {base_tree: sha_base_tree}).sha
-    sha_new_commit = create_commit(repo, commit_message, sha_new_tree, sha_latest_commit).sha
-    update_ref(repo, ref, sha_new_commit)
+    sha_latest_commit = client.ref(repo, ref).object.sha
+    sha_base_tree = commit(sha_latest_commit).commit.tree.sha
+    changes = create_blobs(files)
+    sha_new_tree = create_tree(changes, {base_tree: sha_base_tree}).sha
+    sha_new_commit = create_commit(commit_message, sha_new_tree, sha_latest_commit).sha
+    update_ref(ref, sha_new_commit)
+  end
+
+  def create_blobs(files)
+    files.map do |file_name|
+      content = File.read(file_name)
+      blob_sha = client.create_blob(repo, Base64.encode64(content), "base64")
+      {path: file_name, mode: "100644", type: "blob", sha: blob_sha}
+    end
+  end
+
+  def branch
+    event.dig("pull_request", "head", "ref")
+  end
+
+  def pr_number
+    event.dig("pull_request", "number")
+  end
+
+  def repo
+    name = event.dig("repository", "name")
+    owner = event.dig("repository", "owner", "login")
+    [owner, name].join("/")
   end
 
   def event
@@ -87,49 +101,23 @@ class GithubClient
     )
   end
 
-  def branch
-    event.dig("pull_request", "head", "ref")
-  end
-
-  def repo
-    name = event.dig("repository", "name")
-    owner = event.dig("repository", "owner", "login")
-    [owner, name].join("/")
-  end
-
-  def pr_number
-    event.dig("pull_request", "number")
-  end
-
-  def pull_request_files
-    client.pull_request_files(repo, pr_number)
-  end
-
   def create_blob(repo, base64content, encoding)
     client.create_blob(repo, base64content, encoding)
   end
 
-  def ref(repo, ref)
-    client.ref(repo, ref)
-  end
-
-  def commit(repo, sha_latest_commit)
+  def commit(sha_latest_commit)
     client.commit(repo, sha_latest_commit)
   end
 
-  def create_tree(repo, changes, hash)
+  def create_tree(changes, hash)
     client.create_tree(repo, changes, hash)
   end
 
-  def create_commit(repo, commit_message, sha_new_tree, sha_latest_commit)
+  def create_commit(commit_message, sha_new_tree, sha_latest_commit)
     client.create_commit(repo, commit_message, sha_new_tree, sha_latest_commit)
   end
 
-  def update_ref(repo, ref, sha_new_commit)
+  def update_ref(ref, sha_new_commit)
     client.update_ref(repo, ref, sha_new_commit)
-  end
-
-  def create_pull_request_review(repo, pr_number, hash)
-    client.create_pull_request_review(repo, pr_number, hash)
   end
 end
