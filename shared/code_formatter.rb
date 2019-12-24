@@ -1,7 +1,7 @@
 class CodeFormatter
   attr_reader :executor
 
-  def initialize(args)
+  def initialize(args = {})
     @executor = args.fetch(:executor) { Executor.new }
   end
 
