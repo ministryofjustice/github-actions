@@ -59,9 +59,10 @@ class GithubClient
 
   def create_blobs(files)
     files.map do |file_name|
+      mode = File.stat(file_name).mode
       content = File.read(file_name)
       blob_sha = client.create_blob(repo, Base64.encode64(content), "base64")
-      {path: file_name, mode: "100644", type: "blob", sha: blob_sha}
+      {path: file_name, mode: mode.to_s(8), type: "blob", sha: blob_sha}
     end
   end
 
