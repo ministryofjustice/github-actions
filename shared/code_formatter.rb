@@ -1,14 +1,15 @@
 class CodeFormatter
-  attr_reader :executor
+  attr_reader :executor, :github_client
 
   def initialize(args = {})
     @executor = args.fetch(:executor) { Executor.new }
+    @github_client = args.fetch(:github_client) { GithubClient.new(executor: executor) }
   end
 
   def run
     format_terraform_code
     format_ruby_code
-    commit_changes "Commit changes made by code formatters"
+    github_client.commit_changes "Commit changes made by code formatters"
   end
 
   private
@@ -33,10 +34,10 @@ class CodeFormatter
   end
 
   def ruby_files_in_pr
-    files_in_pr.grep(/\.rb$/)
+    github_client.files_in_pr.grep(/\.rb$/)
   end
 
   def terraform_files_in_pr
-    files_in_pr.grep(/\.tf$/)
+    github_client.files_in_pr.grep(/\.tf$/)
   end
 end

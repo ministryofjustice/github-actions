@@ -129,31 +129,3 @@ class GithubClient
     client.create_pull_request_review(repo, pr_number, hash)
   end
 end
-
-#############################################################################
-
-def github
-  @github_client ||= GithubClient.new
-end
-
-def event
-  github.event
-end
-
-def repo
-  github.repo
-end
-
-def branch
-  event.dig("pull_request", "head", "ref")
-end
-
-def execute(cmd)
-  Executor.new.execute(cmd)
-end
-
-def reject_pr(message)
-  github.reject_pr(message)
-  exit 1
-end
-
