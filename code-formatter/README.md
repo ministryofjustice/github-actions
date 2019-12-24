@@ -36,6 +36,6 @@ content above, exactly as shown.
 If you want to add a code formatter for another language, you need to:
 
 * Modify the `Dockerfile` to install the code formatting tool
-* Modify `format-code.rb` to
+* Modify `shared/code_formatter.rb` to
   * Identify files in the PR in the relevant language (by filename suffix)
   * Add a method to run the formatter, targeting each file
