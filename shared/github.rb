@@ -87,6 +87,10 @@ class GithubClient
     )
   end
 
+  def branch
+    event.dig("pull_request", "head", "ref")
+  end
+
   def repo
     name = event.dig("repository", "name")
     owner = event.dig("repository", "owner", "login")
