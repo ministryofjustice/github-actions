@@ -37,7 +37,7 @@ class GithubClient
     end
   end
 
-  # private
+  private
 
   def create_blobs(files)
     files.map do |file_name|
