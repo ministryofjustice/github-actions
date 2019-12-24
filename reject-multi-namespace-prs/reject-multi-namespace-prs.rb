@@ -5,7 +5,7 @@ require "octokit"
 
 require File.join(File.dirname(__FILE__), "github")
 
-NAMESPACE_REGEX = %r[namespaces.live-1.cloud-platform.service.justice.gov.uk]
+NAMESPACE_REGEX = %r{namespaces.live-1.cloud-platform.service.justice.gov.uk}
 
 gh = GithubClient.new
 
@@ -26,14 +26,12 @@ namespaces = namespaces_touched_by_pr
 # PRs which touch no namespaces are fine
 # PRs which touch one namespace are fine
 if namespaces.size > 1
-  namespace_list = namespaces.map {|n| "  * #{n}"}.join("\n")
+  namespace_list = namespaces.map { |n| "  * #{n}" }.join("\n")
 
   message = <<~EOF
-  This PR affects multiple namespaces
-
-  #{namespace_list}
-
-  Please submit a separate PR for each namespace.
+    This PR affects multiple namespaces
+     #{namespace_list}
+     Please submit a separate PR for each namespace.
 
   EOF
 

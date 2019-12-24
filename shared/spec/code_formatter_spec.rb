@@ -4,11 +4,12 @@ describe CodeFormatter do
   let(:executor) { double(Executor) }
   let(:github_client) { double(GithubClient, files_in_pr: files, commit_changes: nil) }
 
-  let(:params) { {
-    executor: executor,
-    github_client: github_client,
-  } }
-
+  let(:params) {
+    {
+      executor: executor,
+      github_client: github_client,
+    }
+  }
 
   subject(:cf) { described_class.new(params) }
 
@@ -17,7 +18,7 @@ describe CodeFormatter do
   end
 
   context "when PR updates ruby files" do
-    let(:files) { [ "foo.rb" ] }
+    let(:files) { ["foo.rb"] }
 
     it "formats ruby code" do
       expect(executor).to receive(:execute).with("standardrb --fix foo.rb")
@@ -26,7 +27,7 @@ describe CodeFormatter do
   end
 
   context "when PR updates terraform files" do
-    let(:files) { [ "resources/foo.tf", "anotherdir/bar.tf" ] }
+    let(:files) { ["resources/foo.tf", "anotherdir/bar.tf"] }
 
     it "formats terraform code directories" do
       expect(executor).to receive(:execute).with("terraform fmt resources")
