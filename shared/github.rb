@@ -38,6 +38,34 @@ class GithubClient
   def pull_request_files
     client.pull_request_files
   end
+
+  def create_blob(repo, base64content, encoding)
+    client.create_blob(repo, base64content, encoding)
+  end
+
+  def ref(repo, ref)
+    client.ref(repo, ref)
+  end
+
+  def commit(repo, sha_latest_commit)
+    client.commit(repo, sha_latest_commit)
+  end
+
+  def create_tree(repo, changes, hash)
+    client.create_tree(repo, changes, hash)
+  end
+
+  def create_commit(repo, commit_message, sha_new_tree, sha_latest_commit)
+    client.create_commit(repo, commit_message, sha_new_tree, sha_latest_commit)
+  end
+
+  def update_ref(repo, ref, sha_new_commit)
+    client.update_ref(repo, ref, sha_new_commit)
+  end
+
+  def create_pull_request_review(repo, pr_number, hash)
+    client.create_pull_request_review(repo, pr_number, hash)
+  end
 end
 
 def github
