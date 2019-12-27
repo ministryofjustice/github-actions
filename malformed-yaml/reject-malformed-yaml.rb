@@ -6,13 +6,11 @@ require "yaml"
 
 require File.join(File.dirname(__FILE__), "github")
 
-gh = GithubClient.new
-
-def malformed_yaml_files
-  yaml_files_in_pr.find_all { |file| fails_to_parse?(file) }
+def malformed_yaml_files(gh)
+  yaml_files_in_pr(gh).find_all { |file| fails_to_parse?(file) }
 end
 
-def yaml_files_in_pr
+def yaml_files_in_pr(gh)
   gh.files_in_pr.grep(/\.(yaml|yml)$/)
 end
 
@@ -25,7 +23,9 @@ end
 
 ############################################################
 
-files = malformed_yaml_files
+gh = GithubClient.new
+
+files = malformed_yaml_files(gh)
 
 if files.any?
   file_list = files.map { |f| "  * #{f}" }.join("\n")
