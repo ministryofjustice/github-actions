@@ -45,6 +45,20 @@ class GithubClient
     event.dig("pull_request", "number")
   end
 
+  def reject_pr(message)
+    puts "Requesting changes..."
+    puts message
+
+    client.create_pull_request_review(
+      repo,
+      pr_number,
+      {
+        body: message,
+        event: "REQUEST_CHANGES",
+      }
+    )
+  end
+
   private
 
   def modified_files
@@ -86,20 +100,6 @@ class GithubClient
     end
 
     @evt ||= JSON.parse File.read(ENV["GITHUB_EVENT_PATH"])
-  end
-
-  def reject_pr(message)
-    puts "Requesting changes..."
-    puts message
-
-    client.create_pull_request_review(
-      repo,
-      pr_number,
-      {
-        body: message,
-        event: "REQUEST_CHANGES",
-      }
-    )
   end
 
   def create_blob(repo, base64content, encoding)
