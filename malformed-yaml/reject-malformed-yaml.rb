@@ -1,8 +1,9 @@
 #!/usr/bin/env ruby
 
 require "json"
-require "octokit"
 require "yaml"
+require "bundler/setup"
+require "octokit"
 
 require File.join(File.dirname(__FILE__), "github")
 
