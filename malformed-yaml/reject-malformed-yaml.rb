@@ -10,8 +10,15 @@ def malformed_yaml_files(gh)
   yaml_files_in_pr(gh).find_all { |file| fails_to_parse?(file) }
 end
 
+# Attempt to parse all the yaml/yml files in a PR,
+# aside from those with 'secret' in the filename.
+# Files with 'secret' in the name are very often
+# git-crypted, and so would cause this action to
+# fail.
 def yaml_files_in_pr(gh)
-  gh.files_in_pr.grep(/\.(yaml|yml)$/)
+  gh.files_in_pr
+    .grep(/\.(yaml|yml)$/)
+    .reject { |f| f =~ /secret/ }
 end
 
 def fails_to_parse?(file)
