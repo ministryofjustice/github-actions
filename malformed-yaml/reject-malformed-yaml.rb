@@ -18,7 +18,7 @@ end
 def yaml_files_in_pr(gh)
   gh.files_in_pr
     .grep(/\.(yaml|yml)$/)
-    .reject {|f| f =~ /secret/}
+    .reject { |f| f =~ /secret/ }
 end
 
 def fails_to_parse?(file)
