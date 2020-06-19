@@ -9,7 +9,7 @@ NAMESPACE_REGEX = %r{namespaces.live-1.cloud-platform.service.justice.gov.uk}
 
 gh = GithubClient.new
 
-def namespaces_touched_by_pr
+def namespaces_touched_by_pr(gh)
   gh.files_in_pr
     .grep(NAMESPACE_REGEX)
     .map { |f| File.dirname(f) }
@@ -21,7 +21,7 @@ end
 
 ############################################################
 
-namespaces = namespaces_touched_by_pr
+namespaces = namespaces_touched_by_pr(gh)
 
 # PRs which touch no namespaces are fine
 # PRs which touch one namespace are fine
