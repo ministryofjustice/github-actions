@@ -27,8 +27,8 @@ def recurse(obj, pattern, current_path = [], &block)
       yield [path, obj]
     end
   elsif obj.is_a?(Hash)
-    obj.each do |k, v|
-      recurse(v, pattern, current_path + [k], &block)
+    obj.each do |key, value|
+      recurse(value, pattern, current_path + [key], &block)
     end
   end
 end
