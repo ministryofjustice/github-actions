@@ -7,10 +7,12 @@ require 'colorize'
 
 require File.join(File.dirname(__FILE__), "github")
 
+PATTERN = "cluster-admin"
+
 def yaml_files(gh)
   yaml_files_in_pr(gh).each do |file|
     hash = YAML.load_file(file) 
-    pattern = Regexp.new(pattern_text, :nocase)
+    pattern_text = Regexp.new(PATTERN, :nocase)
     recurse(hash, pattern) do |path, value|
       line = "#{path}:\t#{value}"
       line = line.gsub(pattern) {|match| match.green }
