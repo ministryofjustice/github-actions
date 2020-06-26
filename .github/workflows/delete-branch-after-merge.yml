@@ -8,7 +8,7 @@ jobs:
     steps:
       - uses: actions/checkout@master
         if: github.event.pull_request.merged == true
-      - uses: ministryofjustice/github-actions/branch-deleter@master
+      - uses: ministryofjustice/github-actions/branch-deleter@main
         if: github.event.pull_request.merged == true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
