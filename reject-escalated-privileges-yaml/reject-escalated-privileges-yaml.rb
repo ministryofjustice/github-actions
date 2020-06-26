@@ -7,26 +7,25 @@ require "yaml"
 require File.join(File.dirname(__FILE__), "github")
 
 # can expand this list spliting with spaces. e.g %w(cluster-admin root webops)
-STRING_LIST = %w(cluster-admin)
+STRING_LIST = %w[cluster-admin]
 
 def yaml_files(gh)
   yaml_files_in_pr(gh).find_all { |file| return has_privileges(file) }
 end
 
 def has_privileges(file)
-  hash = YAML.load_file(file) 
+  hash = YAML.load_file(file)
   pattern = Regexp.union(STRING_LIST)
   recurse(hash, pattern) do |path, value|
     line = "#{path}:\t#{value}"
-    line = line.gsub(pattern_text) {|match| match }
+    line = line.gsub(pattern_text) { |match| match }
     return
   end
 end
 
-
 def recurse(obj, pattern, current_path = [], &block)
   if obj.is_a?(String)
-    path = current_path.join('.')
+    path = current_path.join(".")
     if obj =~ pattern || path =~ pattern
       yield [path, obj]
     end
@@ -58,18 +57,16 @@ gh = GithubClient.new
 
 privileges_code = yaml_files(gh)
 
-if !privileges_code
+unless privileges_code
   message = <<~EOF
-  The YAML files contain one of the below strings which will grant the user escalated privileges:
+    The YAML files contain one of the below strings which will grant the user escalated privileges:
 
-    #{STRING_LIST}
+      #{STRING_LIST}
 
-    Please correct them and resubmit this PR.
+      Please correct them and resubmit this PR.
 
   EOF
 
   gh.reject_pr(message)
   exit 1
 end
-
-
