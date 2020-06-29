@@ -4,7 +4,6 @@ FROM ministryofjustice/cloud-platform-tools:1.9
 # faraday breaks the current version of octokit
 RUN gem install faraday --version 0.9
 RUN gem install octokit
-RUN gem install colorize
 
 COPY reject-escalated-privileges-yaml.rb /reject-escalated-privileges-yaml.rb
 COPY github.rb /github.rb
