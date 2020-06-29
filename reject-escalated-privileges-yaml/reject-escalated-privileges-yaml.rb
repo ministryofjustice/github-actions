@@ -7,7 +7,7 @@ require "yaml"
 require File.join(File.dirname(__FILE__), "github")
 
 # can expand this list spliting with spaces. e.g %w(cluster-admin root webops)
-STRING_LIST = %w(cluster-admin)
+STRING_LIST = %w[cluster-admin]
 
 # Output the yaml file and the code if any of the strings in the STRING_LIST is
 # present in the files. 
@@ -47,7 +47,7 @@ end
 
 def recurse(obj, pattern, current_path = [], &block)
   if obj.is_a?(String)
-    path = current_path.join('.')
+    path = current_path.join(".")
     if obj =~ pattern || path =~ pattern
       yield [path, obj]
     end
