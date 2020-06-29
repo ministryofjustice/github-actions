@@ -21,7 +21,7 @@ def main(gh)
     hash = YAML.load_file(file)
     recurse(hash, pattern) do |path, value|
       line = "#{path}:\t#{value}"
-      if(pattern.match?(line))
+      if pattern.match?(line)
         message = <<~EOF
           The YAML file below
           
