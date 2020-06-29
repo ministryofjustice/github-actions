@@ -10,38 +10,38 @@ require File.join(File.dirname(__FILE__), "github")
 STRING_LIST = %w[cluster-admin]
 
 # Output the yaml file and the code if any of the strings in the STRING_LIST is
-# present in the files. 
+# present in the files.
 
-# The below code recurse through each of hash and array and pattern match if 
+# The below code recurse through each of hash and array and pattern match if
 # any of the string is present in any of the key or value field.
 
 def main(gh)
-  yaml_files_in_pr(gh).find_all { |file| 
-  hash = YAML.load_file(file)
-  pattern = Regexp.union(STRING_LIST)
-  recurse(hash, pattern) do |path, value|
-    line = "#{path}:\t#{value}"
-    line = line.gsub(pattern) {|match| match }
-    if(!line.nil?)
-      message = <<~EOF
-      The YAML file below
-      
-      #{file}
-      
-      contain the code 
+  yaml_files_in_pr(gh).find_all { |file|
+    hash = YAML.load_file(file)
+    pattern = Regexp.union(STRING_LIST)
+    recurse(hash, pattern) do |path, value|
+      line = "#{path}:\t#{value}"
+      line = line.gsub(pattern) { |match| match }
+      unless line.nil?
+        message = <<~EOF
+          The YAML file below
+          
+          #{file}
+          
+          contain the code 
 
-      #{line}
+          #{line}
 
-      which will grant the user escalated privileges.
+          which will grant the user escalated privileges.
 
-      Please correct them and resubmit this PR.
+          Please correct them and resubmit this PR.
 
-      EOF
-      
-      gh.reject_pr(message)
-      exit 1
+        EOF
+
+        gh.reject_pr(message)
+        exit 1
+      end
     end
-  end
   }
 end
 
@@ -78,5 +78,3 @@ end
 gh = GithubClient.new
 
 main(gh)
-
-
