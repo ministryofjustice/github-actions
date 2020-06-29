@@ -16,13 +16,12 @@ STRING_LIST = %w[cluster-admin]
 # any of the string is present in any of the key or value field.
 
 def main(gh)
+  pattern = Regexp.union(STRING_LIST)
   yaml_files_in_pr(gh).find_all { |file|
     hash = YAML.load_file(file)
-    pattern = Regexp.union(STRING_LIST)
     recurse(hash, pattern) do |path, value|
       line = "#{path}:\t#{value}"
-      line = line.gsub(pattern) { |match| match }
-      unless line.nil?
+      if(pattern.match?(line)
         message = <<~EOF
           The YAML file below
           
