@@ -54,7 +54,7 @@ class GithubClient
       pr_number,
       {
         body: message,
-        event: "REQUEST_CHANGES",
+        event: "REQUEST_CHANGES"
       }
     )
   end
