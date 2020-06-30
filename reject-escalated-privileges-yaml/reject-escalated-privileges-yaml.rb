@@ -18,27 +18,29 @@ STRING_LIST = %w[cluster-admin]
 def main(gh)
   pattern = Regexp.union(STRING_LIST)
   yaml_files_in_pr(gh).find_all { |file|
-    hash = YAML.load_file(file) if FileTest.exists?(file)
-    recurse(hash, pattern) do |path, value|
-      line = "#{path}:\t#{value}"
-      if pattern.match?(line)
-        message = <<~EOF
-          The YAML file below
-          
-          #{file}
-          
-          contain the code 
+    if FileTest.exists?(file)
+      hash = YAML.load_file(file) 
+      recurse(hash, pattern) do |path, value|
+        line = "#{path}:\t#{value}"
+        if pattern.match?(line)
+          message = <<~EOF
+            The YAML file below
+            
+            #{file}
+            
+            contain the code 
 
-          #{line}
+            #{line}
 
-          which will grant the user escalated privileges.
+            which will grant the user escalated privileges.
 
-          Please correct them and resubmit this PR.
+            Please correct them and resubmit this PR.
 
-        EOF
+          EOF
 
-        gh.reject_pr(message)
-        exit 1
+          gh.reject_pr(message)
+          exit 1
+        end
       end
     end
   }
