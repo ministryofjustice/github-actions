@@ -18,7 +18,7 @@ STRING_LIST = %w[cluster-admin]
 def main(gh)
   pattern = Regexp.union(STRING_LIST)
   yaml_files_in_pr(gh).find_all { |file|
-    hash = YAML.load_file(file)
+    hash = YAML.load_file(file) if FileTest.exists?(file)
     recurse(hash, pattern) do |path, value|
       line = "#{path}:\t#{value}"
       if pattern.match?(line)
