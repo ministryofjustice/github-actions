@@ -10,4 +10,5 @@ A collection of github actions.
 | [malformed-yaml](malformed-yaml) | Reject a PR if it contains malformed YAML files |
 | [reject-multi-namespace-prs](reject-multi-namespace-prs) | Reject a PR if it affects multiple namespace folders |
 | [reject-escalated-privileges-yaml](reject-escalated-privileges-yaml) | Reject PR if YAML contains forbidden strings |
+| [sync-gh-pages](sync-gh-pages) | Keep the `gh-pages` branch in sync with `main` |
 <!-- markdownlint-enable MD013 -->
