@@ -1,5 +1,7 @@
 # Sync gh-pages branch
 
+## DEPRECATED: GitHub now allow publishing other branches via GitHub Pages. This action is left here for reference.
+
 GitHub only allows you to publish your "master" or "gh-pages" branch as a GitHub Pages website.
 
 This is a problem if you want to change your repo to use "main" instead of "master" as the default branch.
@@ -21,7 +23,7 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v2
       - run: git checkout -b gh-pages
       - run: git push origin gh-pages --force
 ```

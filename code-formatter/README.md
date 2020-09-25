@@ -21,7 +21,7 @@ jobs:
   format-code:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v2
       - uses: ministryofjustice/github-actions/code-formatter@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

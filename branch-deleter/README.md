@@ -25,9 +25,9 @@ jobs:
   delete-branch-after-merge:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v2
         if: github.event.pull_request.merged == true
-      - uses: ministryofjustice/github-actions/branch-deleter@master
+      - uses: ministryofjustice/github-actions/branch-deleter@main
         if: github.event.pull_request.merged == true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -13,7 +13,7 @@ jobs:
       image: ministryofjustice/cloud-platform-tools:1.4
 
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v2
       - run: gem install octokit
       - run: ruby bin/delete-branch-after-merge.rb
         env:

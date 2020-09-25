@@ -30,8 +30,8 @@ jobs:
   reject-malformed-yaml:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
-      - uses: ministryofjustice/github-actions/malformed-yaml@master
+      - uses: actions/checkout@v2
+      - uses: ministryofjustice/github-actions/malformed-yaml@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
