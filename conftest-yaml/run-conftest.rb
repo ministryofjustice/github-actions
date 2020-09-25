@@ -35,10 +35,10 @@ conftest_options = ENV.fetch("CONFTEST_OPTIONS", "")
 # We want to test all files, rather than exiting on the first failure, so that
 # the user can see all problems reported in the log. So, we collect all the
 # exit statuses of the conftest commands.
-cmd_statuses = yaml_files_in_pr(client).map do |file|
+cmd_statuses = yaml_files_in_pr(client).map { |file|
   cmd = "conftest test -p #{policy_dir} #{conftest_options} #{file}"
   command_status(cmd)
-end
+}
 
 # Fail the action if conftest failed any YAML files
 exit 1 unless cmd_statuses.all?
