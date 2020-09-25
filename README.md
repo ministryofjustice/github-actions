@@ -11,4 +11,7 @@ A collection of github actions.
 | [reject-multi-namespace-prs](reject-multi-namespace-prs) | Reject a PR if it affects multiple namespace folders |
 | [reject-escalated-privileges-yaml](reject-escalated-privileges-yaml) | Reject PR if YAML contains forbidden strings |
 | [sync-gh-pages](sync-gh-pages) | Keep the `gh-pages` branch in sync with `main` |
+| [conftest-yaml](conftest-yaml) | Use [Conftest] to check your YAML against Rego policies |
 <!-- markdownlint-enable MD013 -->
+
+[Conftest]: https://www.conftest.dev/
