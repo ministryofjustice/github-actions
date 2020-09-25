@@ -12,6 +12,7 @@ require File.join(File.dirname(__FILE__), "github")
 def yaml_files_in_pr(gh)
   gh.files_in_pr
     .grep(/\.(yaml|yml)$/)
+    .filter { |f| FileTest.exists?(f) }
     .reject { |f| f =~ /secret/ }
 end
 
