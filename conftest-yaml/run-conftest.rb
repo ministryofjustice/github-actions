@@ -7,7 +7,17 @@ require "octokit"
 require File.join(File.dirname(__FILE__), "github")
 
 def main
+  test_policies
   check_yaml_files
+end
+
+# Run the rego tests for our policies
+def test_policies
+  # Assume rego policies are in the ./policy directory, unless user supplied a
+  # different location
+  policy_dir = ENV.fetch("POLICY_DIR", "policy")
+  cmd = "opa test #{policy_dir}"
+  exit 1 unless command_status(cmd)
 end
 
 # Test all the YAML files in this PR to ensure they comply with our Rego
