@@ -7,6 +7,12 @@ require "octokit"
 require File.join(File.dirname(__FILE__), "github")
 
 def main
+  check_yaml_files
+end
+
+# Test all the YAML files in this PR to ensure they comply with our Rego
+# policies
+def check_yaml_files
   client = GithubClient.new
 
   # Assume rego policies are in the ./policy directory, unless user supplied a
