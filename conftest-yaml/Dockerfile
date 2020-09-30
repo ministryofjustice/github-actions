@@ -13,7 +13,10 @@ RUN wget https://github.com/open-policy-agent/conftest/releases/download/v${CONF
   && mv conftest /usr/local/bin \
   && rm conftest_${CONFTEST_VERSION}_Linux_x86_64.tar.gz
 
-# TODO: use ENV CONFTEST_VERSION=0.21.0 to generalise this
+# Install opa binary
+RUN wget https://openpolicyagent.org/downloads/latest/opa_linux_amd64 \
+  && mv opa_linux_amd64 /usr/local/bin/opa \
+  && chmod +x /usr/local/bin/opa
 
 COPY run-conftest.rb /run-conftest.rb
 COPY github.rb /github.rb

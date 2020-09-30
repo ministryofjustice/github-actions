@@ -37,4 +37,11 @@ variable.
 You can pass additional command-line options to `conftest` in the
 `CONFTEST_OPTIONS` environment variable.
 
+This action also uses [opa] to test your policies by running:
+
+```
+opa test [POLICY_DIR]
+```
+
 [Conftest]: https://www.conftest.dev/
+[opa]: https://www.openpolicyagent.org/docs/latest/#running-opa
