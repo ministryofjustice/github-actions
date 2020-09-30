@@ -1,5 +1,7 @@
 # YAML with escalated privileges
 
+## DEPRECATED: This check is now performed by a [rego policy]
+
 A Github Action to reject a PR if it contains values which will grant users escalated privileges.
 
 Some values of YAML would grant users escalated privileges and if misapplied can affect other environment. This action is designed to detech such values before the corresponding PR is merged.
@@ -39,3 +41,4 @@ jobs:
 not need to do anything extra to make it available. Just use the
 content above, exactly as shown.
 
+[rego policy]:
