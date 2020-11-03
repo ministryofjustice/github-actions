@@ -12,6 +12,8 @@ RUN wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform
 RUN gem install faraday --version 0.9
 RUN gem install octokit standardrb
 
+RUN apk add git
+
 COPY format-code.rb /format-code.rb
 COPY github.rb /github.rb
 COPY code_formatter.rb /code_formatter.rb
