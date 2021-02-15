@@ -49,6 +49,9 @@ class CodeFormatter
   end
 
   def cloudformation_files_in_pr
-    github_client.files_in_pr.grep(/\.template$/)
+    github_client
+      .files_in_pr
+      .grep(/\.template$/)
+      .find_all { |f| File.foreach(f).grep(/AWSTemplateFormatVersion/).any? }     
   end
 end
