@@ -9,7 +9,7 @@ RUN wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform
 
 # Install cloudformation-formatter
 RUN wget https://github.com/awslabs/aws-cloudformation-template-formatter/releases/download/${CFN_FORMATTER_VERSION}/cfn-format-${CFN_FORMATTER_VERSION}_linux-amd64.zip \
-  && unzip -d /usr/local/bin cfn-format-${CFN_FORMATTER_VERSION}_linux-amd64.zip
+  && unzip cfn-format-${CFN_FORMATTER_VERSION}_linux-amd64.zip cfn-format-${CFN_FORMATTER_VERSION}_linux-amd64/cfn-format -d /usr/local/bin -j
 
 # Octokit depends on faraday, and an update to
 # faraday breaks the current version of octokit
