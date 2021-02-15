@@ -9,6 +9,7 @@ class CodeFormatter
   def run
     format_terraform_code
     format_ruby_code
+    format_cloudformation_code
     github_client.commit_changes "Commit changes made by code formatters"
   end
 
@@ -26,6 +27,12 @@ class CodeFormatter
     end
   end
 
+  def format_cloudformation_code
+    cloudformation_files_in_pr.each do |file|
+      executor.execute "cfn-format -w #{file}" if FileTest.exists?(file)
+    end
+  end
+
   def terraform_directories_in_pr
     terraform_files_in_pr
       .map { |f| File.dirname(f) }
@@ -39,5 +46,12 @@ class CodeFormatter
 
   def terraform_files_in_pr
     github_client.files_in_pr.grep(/\.tf$/)
+  end
+
+  def cloudformation_files_in_pr
+    github_client
+      .files_in_pr
+      .grep(/\.template$/)
+      .find_all { |f| File.foreach(f).grep(/AWSTemplateFormatVersion/).any? }
   end
 end
