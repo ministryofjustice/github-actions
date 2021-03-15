@@ -1,7 +1,7 @@
 FROM ruby:2.6-alpine
 
 ENV \
-  TERRAFORM_VERSION=0.12.17
+  TERRAFORM_VERSION=0.13.6
 ENV CFN_FORMATTER_VERSION=v1.1.2-1
 # Install terraform
 RUN wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip \
