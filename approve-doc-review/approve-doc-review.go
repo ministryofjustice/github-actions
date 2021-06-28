@@ -1,6 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"io/ioutil"
+	"log"
+)
 
 // Idea:
 // Create a gh action that does..
@@ -11,6 +15,13 @@ import "fmt"
 // - if the changes are <= 1 and the pr owner is ministryofjustice/webops
 // - approve the pr
 
+const fileName = "changes"
+
 func main() {
-	fmt.Println("stated")
+	_, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		log.Fatalln("File wasn't found:", err)
+	} else {
+		fmt.Println("File was found")
+	}
 }
