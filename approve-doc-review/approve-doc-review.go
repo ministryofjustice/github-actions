@@ -2,9 +2,11 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"log"
 	"os"
+	"strings"
+
+	ghaction "github.com/sethvargo/go-githubactions"
 )
 
 // Idea:
@@ -21,7 +23,6 @@ import (
 const fileName = "changes"
 
 func main() {
-	// read the file
 	file, err := os.Open(fileName)
 	if err != nil {
 		log.Fatalf("Failed to open %s: %s", fileName, err)
@@ -31,15 +32,26 @@ func main() {
 	scanner.Split(bufio.ScanLines)
 
 	var text []string
+	var numOfAdds int
 	for scanner.Scan() {
-		text = append(text, scanner.Text())
+		if strings.HasPrefix(scanner.Text(), "+") && !strings.HasPrefix(scanner.Text(), "+++") {
+			numOfAdds++
+			text = append(text, scanner.Text())
+		}
 	}
 
 	file.Close()
 
 	for _, line := range text {
-		fmt.Println(line)
+		if !strings.HasPrefix(line, "+last_reviewed_on") {
+			ghaction.SetOutput("review_pr", "false")
+			log.Println("This PR contains more than review changes. A human must intervene.")
+			// Exit softly as to not fail the GitHub action.
+			os.Exit(0)
+		}
 	}
-	// for every line that starts with a + and not +++
-	// check to see if that line starts with last_reviewed_on:
+
+	if numOfAdds >= 1 {
+		ghaction.SetOutput("review_pr", "true")
+	}
 }
