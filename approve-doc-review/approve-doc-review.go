@@ -45,13 +45,17 @@ func main() {
 	for _, line := range text {
 		if !strings.HasPrefix(line, "+last_reviewed_on") {
 			ghaction.SetOutput("review_pr", "false")
-			log.Println("This PR contains more than review changes. A human must intervene.")
+			log.Println("This PR contains more than review changes. A human must intervene. Changes in this PR:", text)
 			// Exit softly as to not fail the GitHub action.
 			os.Exit(0)
 		}
 	}
 
 	if numOfAdds >= 1 {
+		log.Println("This PR only contains reviews, so the check will pass.")
 		ghaction.SetOutput("review_pr", "true")
+	} else {
+		log.Println("This PR contains no additions, so the check will fail.")
+		ghaction.SetOutput("review_pr", "false")
 	}
 }
