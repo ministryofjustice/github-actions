@@ -16,6 +16,7 @@ import (
 // - contains only changes containing the term "last_reviewed_on"
 // - the author/owner of the PR is in the "ministryofjustice/WebOps" team.
 func main() {
+	// team and orgOwner are the GitHub team and organisation that we're using to validate the user.
 	team := "WebOps"
 	orgOwner := "ministryofjustice"
 	// fileName is the file created by a GitHub action, it contains the output of a git diff.
@@ -39,7 +40,7 @@ func main() {
 	// the GH action to error here so we just log the error and take no action.
 	userAllowed, err := check.IsUserInWebOps(team, orgOwner, token, prOwner)
 	if err != nil {
-		log.Println("Unable to check if the user is valid.")
+		log.Println("Unable to check if the user is valid.", err)
 	}
 
 	// Conditional check to see if we should pass or fail the step. We don't want a hard fail so we set
