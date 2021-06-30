@@ -4,6 +4,7 @@ package check
 
 import (
 	"bufio"
+	"errors"
 	"log"
 	"os"
 	"strings"
@@ -29,6 +30,9 @@ func ParsePR(fileName string) (bool, error) {
 	scanner.Split(bufio.ScanLines)
 
 	for scanner.Scan() {
+		if strings.HasPrefix(scanner.Text(), "-") && !strings.HasPrefix(scanner.Text(), "---") {
+			text = append(text, scanner.Text())
+		}
 		if strings.HasPrefix(scanner.Text(), "+") && !strings.HasPrefix(scanner.Text(), "+++") {
 			numOfAdds++
 			text = append(text, scanner.Text())
@@ -37,10 +41,12 @@ func ParsePR(fileName string) (bool, error) {
 
 	file.Close()
 
-	// If the text collection contains anything other than `+last_reviewed_on`, it'll fail.
+	// If the text collection contains anything other than `+/-last_reviewed_on`, it'll fail.
 	for _, line := range text {
-		if !strings.HasPrefix(line, "+last_reviewed_on") {
-			return false, nil
+		if strings.HasPrefix(line, "+last_reviewed_on") || strings.HasPrefix(line, "-last_reviewed_on") {
+			continue
+		} else {
+			return false, errors.New("Change found that isn't a review date: " + line)
 		}
 	}
 
