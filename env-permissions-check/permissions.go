@@ -70,9 +70,13 @@ func main() {
 		log.Println("Unable to fetch userID", err)
 	}
 
-	userTeams := getUserTeams(token, prOwner)
+	for team := range namespaceTeams {
+		valid, _ := isUserValid(team, token, userID, orgID)
+		fmt.Println(valid)
+	}
+	// valid, _ = getUserTeams(token, prOwner)
 
-	fmt.Println(userTeams, namespaces)
+	fmt.Println(namespaceTeams)
 
 	// Get the namespace team name i.e. the name of the team in the rbac file
 	// Get a collection of teams the users in
@@ -229,30 +233,50 @@ func getNamespaces(fileName string) (map[string]int, error) {
 	}
 
 	return namespaces, nil
-
-	// get all pr file changes
-	// grep the namespace name
-	// grep the rbac file within the namespace name
-	// return the team name
-
 }
 
-func getUserTeams(token, prOwner string) []string {
+func isUserValid(team, token string, user *github.User, org *github.Organization) (bool, error) {
 	// Setting up GitHub client.
-	// ctx := context.Background()
-	// ts := oauth2.StaticTokenSource(
-	// 	&oauth2.Token{AccessToken: token},
-	// )
+	ctx := context.Background()
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: token},
+	)
 
-	// tc := oauth2.NewClient(ctx, ts)
+	tc := oauth2.NewClient(ctx, ts)
 
-	// _ = github.NewClient(tc)
+	client := github.NewClient(tc)
 
-	// We have the username
-	// we need all teams the user's in
-	// grab the user id
-	// perform a lookup for all teams the users in. Add to collection.
-	// return collection.
-	return nil
+	opts := &github.ListOptions{}
 
+	var teamId int64
+	for {
+		teams, resp, err := client.Teams.ListTeams(ctx, "ministryofjustice", opts)
+		if err != nil {
+			return false, err
+		}
+		for _, t := range teams {
+			if t.GetName() == team {
+				teamId = t.GetID()
+				break
+			}
+		}
+		if resp.NextPage == 0 {
+			break
+		}
+		opts.Page = resp.NextPage
+	}
+
+	teamOpts := &github.TeamListTeamMembersOptions{}
+	teamMembers, _, err := client.Teams.ListTeamMembersByID(ctx, *org.ID, teamId, teamOpts)
+	if err != nil {
+		return false, err
+	}
+
+	// Loop the collection of team members and check to see if the prOwner is a member.
+	for _, v := range teamMembers {
+		if int64(*v.ID) == int64(*user.ID) {
+			return true, nil
+		}
+	}
+	return false, nil
 }
