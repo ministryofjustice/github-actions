@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/google/go-github/v35/github"
 	"golang.org/x/oauth2"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 type Rbac struct {
@@ -63,6 +64,10 @@ func main() {
 	if err != nil {
 		log.Println("Unable to fetch userID", err)
 	}
+
+	orgID, err := getOrgID(token)
+	if err != nil {
+		log.Println("Unable to fetch userID", err)
 	}
 
 	userTeams := getUserTeams(token, prOwner)
@@ -75,7 +80,26 @@ func main() {
 	// else; fail
 }
 
-func getTeamName(token, namespace string) (string, error) {
+func getOrgID(token string) (*github.Organization, error) {
+	orgOwner := "ministryofjustice"
+	ctx := context.Background()
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: token},
+	)
+
+	tc := oauth2.NewClient(ctx, ts)
+
+	client := github.NewClient(tc)
+
+	// Fetch the orgOwner user ID.
+	org, _, err := client.Organizations.Get(ctx, orgOwner)
+	if err != nil {
+		return nil, err
+	}
+
+	return org, nil
+}
+
 func getUserID(prOwner, token string) (*github.User, error) {
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
