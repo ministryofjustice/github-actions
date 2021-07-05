@@ -58,6 +58,11 @@ func main() {
 			}
 		}
 	}
+
+	userID, err := getUserID(prOwner, token)
+	if err != nil {
+		log.Println("Unable to fetch userID", err)
+	}
 	}
 
 	userTeams := getUserTeams(token, prOwner)
@@ -71,6 +76,25 @@ func main() {
 }
 
 func getTeamName(token, namespace string) (string, error) {
+func getUserID(prOwner, token string) (*github.User, error) {
+	ctx := context.Background()
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: token},
+	)
+
+	tc := oauth2.NewClient(ctx, ts)
+
+	client := github.NewClient(tc)
+
+	// Fetch the user's GitHub user ID.
+	user, _, err := client.Users.Get(ctx, prOwner)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func getOrigin(namespace string, ctx context.Context, client *github.Client, opts *github.RepositoryContentGetOptions) (string, error) {
 	secondaryCluster := "live"
 	primaryCluster := "live-1"
