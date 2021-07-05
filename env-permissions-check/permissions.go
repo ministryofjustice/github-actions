@@ -22,14 +22,22 @@ type Subjects struct {
 }
 
 func main() {
-	token := os.Getenv("GITHUB_OAUTH_TOKEN")
-	prOwner := os.Getenv("PR_OWNER")
+	var (
+		fileName = "files"
+		token    = os.Getenv("GITHUB_OAUTH_TOKEN")
+		prOwner  = os.Getenv("PR_OWNER")
+		branch   = os.Getenv("BRANCH")
+		// valid    = false
+	)
+
 	if os.Getenv("GITHUB_OAUTH_TOKEN") == "" || os.Getenv("PR_OWNER") == "" {
 		log.Fatalln("you must have the GITHUB_OAUTH_TOKEN and PR_OWNER env var set.")
 	}
-	fileName := "files"
 
-	namespaces, _ := getNamespaces(fileName)
+	_, err := os.Stat(fileName)
+	if os.IsNotExist(err) {
+		log.Println("File doesn't exist. Passing.")
+	}
 
 	teamNames := make(map[string]int)
 	for ns := range namespaces {
