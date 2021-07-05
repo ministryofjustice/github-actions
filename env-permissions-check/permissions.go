@@ -40,6 +40,10 @@ func main() {
 	}
 
 	teamNames := make(map[string]int)
+	namespaces, err := getNamespaces(fileName)
+	if err != nil {
+		log.Fatalln("Unable to fetch namespace:", err)
+	}
 	for ns := range namespaces {
 		team, _ := getTeamName(token, ns)
 		fmt.Println(team)
