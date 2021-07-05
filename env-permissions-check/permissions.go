@@ -53,6 +53,33 @@ func main() {
 }
 
 func getTeamName(token, namespace string) (string, error) {
+func getOrigin(namespace string, ctx context.Context, client *github.Client, opts *github.RepositoryContentGetOptions) (string, error) {
+	secondaryCluster := "live"
+	primaryCluster := "live-1"
+
+	cluster := primaryCluster
+	path := "namespaces/" + cluster + ".cloud-platform.service.justice.gov.uk/" + namespace + "/01-rbac.yaml"
+
+	_, _, resp, err := client.Repositories.GetContents(ctx, "ministryofjustice", "cloud-platform-environments", path, opts)
+	if err != nil {
+		return "", err
+	}
+
+	if resp.StatusCode == 200 {
+		return cluster, nil
+	} else {
+		cluster = secondaryCluster
+		_, _, resp, err := client.Repositories.GetContents(ctx, "ministryofjustice", "cloud-platform-environments", path, opts)
+		if err != nil {
+			return "", err
+		}
+		if resp.StatusCode == 200 {
+			return cluster, nil
+		}
+	}
+
+	return "none", nil
+}
 	// call the github api for the namespace passed to get yaml
 	// parse the yaml and get subject name
 	// strip the name so it appears as webops note: this is all lowercase
