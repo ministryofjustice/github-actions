@@ -39,19 +39,25 @@ func main() {
 		log.Println("File doesn't exist. Passing.")
 	}
 
-	teamNames := make(map[string]int)
 	namespaces, err := getNamespaces(fileName)
 	if err != nil {
 		log.Fatalln("Unable to fetch namespace:", err)
 	}
+
+	namespaceTeams := make(map[string]int)
 	for ns := range namespaces {
-		team, _ := getTeamName(token, ns)
-		fmt.Println(team)
-		if teamNames[team] == 0 {
-			teamNames[team] = 1
-		} else {
-			teamNames[team]++
+		teams, err := getTeamName(token, ns, branch)
+		if err != nil {
+			log.Fatalln("Unable to get team names:", err)
 		}
+		for _, team := range teams {
+			if namespaceTeams[team] == 0 {
+				namespaceTeams[team] = 1
+			} else {
+				namespaceTeams[team]++
+			}
+		}
+	}
 	}
 
 	userTeams := getUserTeams(token, prOwner)
@@ -92,6 +98,8 @@ func getOrigin(namespace string, ctx context.Context, client *github.Client, opt
 
 	return "none", nil
 }
+
+func getTeamName(token, namespace, branch string) ([]string, error) {
 	// call the github api for the namespace passed to get yaml
 	// parse the yaml and get subject name
 	// strip the name so it appears as webops note: this is all lowercase
@@ -106,27 +114,52 @@ func getOrigin(namespace string, ctx context.Context, client *github.Client, opt
 	tc := oauth2.NewClient(ctx, ts)
 
 	client := github.NewClient(tc)
-	path := "namespaces/live-1.cloud-platform.service.justice.gov.uk/abundant-namespace-dev/01-rbac.yaml"
-
 	opts := &github.RepositoryContentGetOptions{}
-	// reader, _, err := client.Repositories.DownloadContents(ctx, "ministryofjustice", "cloud-platform-environments", path, opts)
-	fileContent, _, _, err := client.Repositories.GetContents(ctx, "ministryofjustice", "cloud-platform-environments", path, opts)
+	// 3 cases here. Live-1, live if a namespace doesn't yet exist
+
+	// is it live, live-1 or doesn't it exist
+	// Find out if it's live-1, live or in the PR.
+	origin, err := getOrigin(namespace, ctx, client, opts)
 	if err != nil {
 		log.Println(err)
 	}
 
-	cont, err := fileContent.GetContent()
+	// if the namespace doesn't exist yet, check the pr.
+	if origin == "none" {
+		opts := &github.RepositoryContentGetOptions{
+			Ref: branch,
+		}
+		origin, err = getOrigin(namespace, ctx, client, opts)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	path := "namespaces/" + origin + ".cloud-platform.service.justice.gov.uk/" + namespace + "/01-rbac.yaml"
+	file, _, _, err := client.Repositories.GetContents(ctx, "ministryofjustice", "cloud-platform-environments", path, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	cont, err := file.GetContent()
+	if err != nil {
+		return nil, err
+	}
 
 	fullName := Rbac{}
 
 	err = yaml.Unmarshal([]byte(cont), &fullName)
 	if err != nil {
-		log.Println(err)
+		return nil, err
 	}
 
-	fmt.Printf("--- t:\n%v\n\n", fullName)
+	var namespaceTeams []string
+	for _, name := range fullName.Subjects {
+		str := strings.SplitAfter(string(name.Name), ":")
+		namespaceTeams = append(namespaceTeams, str[1])
+	}
 
-	return "", nil
+	return namespaceTeams, nil
 }
 
 func getNamespaces(fileName string) (map[string]int, error) {
