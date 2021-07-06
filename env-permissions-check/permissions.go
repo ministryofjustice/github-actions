@@ -65,7 +65,6 @@ func main() {
 		log.Println("Unable to fetch userID", err)
 	}
 
-	orgID, err := getOrgID(token)
 	valid, team, err := isUserValid(namespaceTeams, token, userID)
 	if err != nil {
 		log.Println(err)
@@ -82,34 +81,6 @@ func main() {
 		log.Println("\n The user:", userID.GetName(), "\n can't be found in teams:", namespaceTeams)
 		ghaction.SetOutput("review_pr", "false")
 	}
-	// valid, _ = getUserTeams(token, prOwner)
-
-	fmt.Println(namespaceTeams)
-
-	// Get the namespace team name i.e. the name of the team in the rbac file
-	// Get a collection of teams the users in
-	// For each item in the collection, if it matches with the above rbac team name; pass
-	// else; fail
-}
-
-func getOrgID(token string) (*github.Organization, error) {
-	orgOwner := "ministryofjustice"
-	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-
-	tc := oauth2.NewClient(ctx, ts)
-
-	client := github.NewClient(tc)
-
-	// Fetch the orgOwner user ID.
-	org, _, err := client.Organizations.Get(ctx, orgOwner)
-	if err != nil {
-		return nil, err
-	}
-
-	return org, nil
 }
 
 func getUserID(prOwner, token string) (*github.User, error) {
