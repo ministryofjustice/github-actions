@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v35/github"
+	ghaction "github.com/sethvargo/go-githubactions"
 	"golang.org/x/oauth2"
 	"gopkg.in/yaml.v2"
 )
@@ -28,7 +29,7 @@ func main() {
 		token    = os.Getenv("GITHUB_OAUTH_TOKEN")
 		prOwner  = os.Getenv("PR_OWNER")
 		branch   = os.Getenv("BRANCH")
-		// valid    = false
+		valid    = false
 	)
 
 	if os.Getenv("GITHUB_OAUTH_TOKEN") == "" || os.Getenv("PR_OWNER") == "" {
@@ -38,6 +39,8 @@ func main() {
 	_, err := os.Stat(fileName)
 	if os.IsNotExist(err) {
 		log.Println("File doesn't exist. Passing.")
+		ghaction.SetOutput("review_pr", "true")
+		os.Exit(0)
 	}
 
 	namespaces, err := getNamespaces(fileName)
@@ -60,6 +63,9 @@ func main() {
 		}
 	}
 
+	// Add the WebOps team as admins over all namespaces
+	namespaceTeams["WebOps"] = 1
+
 	userID, err := getUserID(prOwner, token)
 	if err != nil {
 		log.Println("Unable to fetch userID", err)
@@ -69,10 +75,7 @@ func main() {
 	if err != nil {
 		log.Println(err)
 	}
-
-	for team := range namespaceTeams {
-		valid, _ := isUserValid(team, token, userID, orgID)
-		fmt.Println(valid)
+	fmt.Println(team)
 
 	if valid {
 		log.Println("\n The user:", userID.GetName(), "\n is in team:", team)
