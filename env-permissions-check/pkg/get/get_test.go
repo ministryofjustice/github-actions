@@ -9,6 +9,7 @@ import (
 	"testing"
 )
 
+// TestGetUserID attempts to get the user id of a robot user account.
 func TestGetUserID(t *testing.T) {
 	if os.Getenv("TEST_GITHUB_ACCESS") == "" {
 		log.Fatalln("You must have a personal access token set in an env var called 'TEST_GITHUB_ACCESS'")
@@ -31,8 +32,49 @@ func TestGetUserID(t *testing.T) {
 	}
 }
 
-func TestTeamName(t *testing.T) {
+// TestSecondaryTeamName attempts to get a team name from a yaml file in the
+// secondary cluster.
+func TestSecondaryTeamName(t *testing.T) {
 	namespace := "cloud-platform-reports-dev"
+
+	user := config.User{
+		Repo: "cloud-platform-environments",
+		Org:  "ministryofjustice",
+	}
+
+	opt := config.Options{
+		Client: client.GitHubClient(os.Getenv("TEST_GITHUB_ACCESS")),
+		Ctx:    context.Background(),
+	}
+
+	platform := config.Platform{
+		AdminTeam:        "webops",
+		PrimaryCluster:   "live-1",
+		SecondaryCluster: "live",
+	}
+
+	teams, _ := TeamName(namespace, &opt, &user, &platform)
+
+	for _, team := range teams {
+		if team != platform.AdminTeam {
+			t.Errorf("Expecting: %s; got %s", platform.AdminTeam, team)
+		}
+	}
+
+	namespace = "abundant-namespace-dev"
+	teams, _ = TeamName(namespace, &opt, &user, &platform)
+
+	for _, team := range teams {
+		if team != platform.AdminTeam {
+			t.Errorf("Expecting: %s; got %s", platform.AdminTeam, team)
+		}
+	}
+}
+
+// TestPrimaryTeamName attempts to get a team name from a yaml file in the
+// primary cluster.
+func TestPrimaryTeamName(t *testing.T) {
+	namespace := "abundant-namespace-dev"
 
 	user := config.User{
 		Repo: "cloud-platform-environments",
