@@ -1,9 +1,13 @@
+// Package main is expected to run in a GitHub action. It will expect to receive a
+// file in its directory called `files` that contains a space seperated list of
+// MoJ Cloud Platform Kubernetes namespaces changed in a PR. Each namespace contains
+// an rbac file that contains a list of team names. If the PR owner (whoever raised the PR)
+// is a member of that list, the package returns true. If not, it'll return false.
 package main
 
 import (
 	"bufio"
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -14,11 +18,12 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// Rbac type is used to parse a yaml file and a list of subjects in a RoleBinding.
 type Rbac struct {
 	Subjects []Subjects `yaml:"subjects"`
 }
 
-// Subjects
+// Subjects type is a child of Rbac and contains the name of the GitHub team.
 type Subjects struct {
 	Name string `yaml:"name"`
 }
@@ -29,13 +34,17 @@ func main() {
 		token    = os.Getenv("GITHUB_OAUTH_TOKEN")
 		prOwner  = os.Getenv("PR_OWNER")
 		branch   = os.Getenv("BRANCH")
-		valid    = false
 	)
 
+	// Exit hard if the environment variables don't exist. The package requires
+	// a personal access token with ORG permissions.
 	if os.Getenv("GITHUB_OAUTH_TOKEN") == "" || os.Getenv("PR_OWNER") == "" {
 		log.Fatalln("you must have the GITHUB_OAUTH_TOKEN and PR_OWNER env var set.")
 	}
 
+	// On the condition where there is no fileName i.e. it isn't created upstream,
+	// this package should return a pass. By doing this we're assuming the PR contains
+	// changes that don't include rbac files and thus can be reviewed.
 	_, err := os.Stat(fileName)
 	if os.IsNotExist(err) {
 		log.Println("File doesn't exist. Passing.")
@@ -43,11 +52,16 @@ func main() {
 		os.Exit(0)
 	}
 
+	// Parse all namespaces in the fileName variable. Fail if we can't parse because later
+	// functions require this output.
 	namespaces, err := getNamespaces(fileName)
 	if err != nil {
 		log.Fatalln("Unable to fetch namespace:", err)
 	}
 
+	// Call the GitHub API for the rbac team name of each namespace in the namespaces variable.
+	// The teams are stored in a map to ensure we don't duplicate. I found maps are best for
+	// deduplication in Go.
 	namespaceTeams := make(map[string]int)
 	for ns := range namespaces {
 		teams, err := getTeamName(token, ns, branch)
@@ -66,17 +80,20 @@ func main() {
 	// Add the WebOps team as admins over all namespaces
 	namespaceTeams["WebOps"] = 1
 
+	// Convert the PR_OWNER string into a GitHub user ID. This is used later, to compare the
+	// list of users in a team.
 	userID, err := getUserID(prOwner, token)
 	if err != nil {
-		log.Println("Unable to fetch userID", err)
+		log.Fatalln("Unable to fetch userID", err)
 	}
 
+	// Call the GitHub API to confirm if the user exists in the GitHub team name.
 	valid, team, err := isUserValid(namespaceTeams, token, userID)
 	if err != nil {
-		log.Println(err)
+		log.Fatalln("Unable to check if the user is valid:", err)
 	}
-	fmt.Println(team)
 
+	// Send result back to GitHub Action.
 	if valid {
 		log.Println("\n The user:", userID.GetName(), "\n is in team:", team)
 		ghaction.SetOutput("review_pr", "true")
