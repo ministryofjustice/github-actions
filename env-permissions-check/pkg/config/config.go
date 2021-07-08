@@ -21,8 +21,6 @@ type Subjects struct {
 type Options struct {
 	Client *github.Client
 	Ctx    context.Context
-	// FileName defines the file name passed by the GitHub Action.
-	FileName string
 }
 
 // User defines the structure of the user of the PR.
@@ -37,6 +35,8 @@ type User struct {
 	Org string
 	// Path is the file path of the rbac file in a namespace.
 	Path string
+	// ChangedFiles defines the file name passed by the GitHub Action.
+	ChangedFiles string
 }
 
 type Platform struct {

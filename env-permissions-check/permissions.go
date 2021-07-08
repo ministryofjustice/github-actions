@@ -7,6 +7,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 	"os"
 
@@ -18,52 +19,69 @@ import (
 	ghaction "github.com/sethvargo/go-githubactions"
 )
 
+// Default values have been set to ministryofjustice Cloud-Platform specifics.
+var (
+	token            = flag.String("token", os.Getenv("GITHUB_OAUTH_TOKEN"), "Personal access token from GitHub.")
+	branch           = flag.String("branch", os.Getenv("BRANCH"), "Branch of changes in GitHub.")
+	username         = flag.String("user", os.Getenv("PR_OWNER"), "Branch of changes in GitHub.")
+	repo             = flag.String("repository", "cloud-platform-environments", "The repository of the Cloud Platform repository.")
+	org              = flag.String("org", "ministryofjustice", "Name of the orgnanisation i.e. ministryofjustice.")
+	file             = flag.String("file", "files", "File name containing namespaces with changes.")
+	adminTeam        = flag.String("admin", "WebOps", "Admin team looking after repository.")
+	primaryCluster   = flag.String("primary", "live-1", "Name of the primary cluster in use.")
+	secondaryCluster = flag.String("secondary", "live", "Name of the secondary cluster in use.")
+)
+
 func main() {
-	// Exit hard if the environment variables don't exist. The package requires
-	// a personal access token with ORG permissions. PR_OWNER is passed upstream
-	// by a GitHub Action.
-	if os.Getenv("GITHUB_OAUTH_TOKEN") == "" || os.Getenv("PR_OWNER") == "" {
-		log.Fatalln("you must have the GITHUB_OAUTH_TOKEN and PR_OWNER env var set.")
+	flag.Parse()
+
+	// Fail if the relevant flags or environment variables haven't set.
+	// token = a personal access token from GitHub
+	// branch = the branch name of your PR
+	// username = the github username used to create the PR.
+	// All of these values will be passed upstream by a GitHub action.
+	if *token == "" || *branch == "" || *username == "" {
+		log.Fatalln("You need to specify a non-empty value for token, branch and username.")
 	}
 
 	user := config.User{
-		Username: os.Getenv("PR_OWNER"),
-		Branch:   os.Getenv("BRANCH"),
-		Repo:     "cloud-platform-environments",
-		Org:      "ministryofjustice",
+		Username:     *username,
+		Branch:       *branch,
+		Repo:         *repo,
+		Org:          *org,
+		ChangedFiles: *file,
 	}
 
 	opt := config.Options{
-		Client:   client.GitHubClient(os.Getenv("GITHUB_OAUTH_TOKEN")),
-		Ctx:      context.Background(),
-		FileName: "files",
+		Client: client.GitHubClient(*token),
+		Ctx:    context.Background(),
 	}
 
 	platform := config.Platform{
-		AdminTeam:        "WebOps",
-		PrimaryCluster:   "live-1",
-		SecondaryCluster: "live",
+		AdminTeam:        *adminTeam,
+		PrimaryCluster:   *primaryCluster,
+		SecondaryCluster: *secondaryCluster,
 	}
 
-	// On the condition where there is no fileName i.e. it isn't created upstream,
+	// On the condition where there is no file ChangedFiles i.e. it hasn't been created upstream,
 	// this package should return a pass. By doing this we're assuming the PR contains
 	// changes that don't include rbac files and thus can be reviewed.
-	_, err := os.Stat(opt.FileName)
+	_, err := os.Stat(user.ChangedFiles)
 	if os.IsNotExist(err) {
 		log.Println("File doesn't exist. Passing.")
 		ghaction.SetOutput("review_pr", "true")
 		os.Exit(0)
 	}
 
-	// Parse all namespaces in the fileName variable. Fail if we can't parse because later
+	// Parse all namespaces in the ChangedFiles variable. Fail if we can't parse because later
 	// functions require this output.
-	namespaces, err := get.Namespaces(opt.FileName)
+	namespaces, err := get.Namespaces(user.ChangedFiles)
 	if err != nil {
 		log.Fatalln("Unable to fetch namespace:", err)
 	}
 
 	// Call the GitHub API for the rbac team name of each namespace in the namespaces variable.
-	// The teams are stored in a map to ensure we don't duplicate. I found maps are best for
+	// The teams are stored in a map to ensure we don't duplicate. Maps are best for
 	// deduplication in Go.
 	namespaceTeams := make(map[string]int)
 	for ns := range namespaces {
@@ -80,10 +98,10 @@ func main() {
 		}
 	}
 
-	// Add the WebOps team as admins over all namespaces
+	// Add the admin team so they can make changes to any namespace.
 	namespaceTeams[platform.AdminTeam] = 1
 
-	// Convert the PR_OWNER string into a GitHub user ID. This is used later, to compare the
+	// Convert the username string into a GitHub user ID. This is used later, to compare the
 	// list of users in a team.
 	userID, err := get.UserID(&opt, &user)
 	if err != nil {

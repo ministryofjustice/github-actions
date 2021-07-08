@@ -23,46 +23,21 @@ func UserID(opt *config.Options, user *config.User) (*github.User, error) {
 	return userID, nil
 }
 
-func origin(namespace string, opt *config.Options, user *config.User, platform *config.Platform, repoOpts *github.RepositoryContentGetOptions) (string, error) {
-	secondaryCluster := platform.SecondaryCluster
-	primaryCluster := platform.PrimaryCluster
-
-	cluster := primaryCluster
-	user.Path = "namespaces/" + cluster + ".cloud-platform.service.justice.gov.uk/" + namespace + "/01-rbac.yaml"
-
-	_, _, resp, err := opt.Client.Repositories.GetContents(opt.Ctx, user.Org, user.Repo, user.Path, repoOpts)
-	if err != nil {
-		return "", err
-	}
-
-	if resp.StatusCode == 200 {
-		return cluster, nil
-	} else {
-		cluster = secondaryCluster
-		_, _, resp, err := opt.Client.Repositories.GetContents(opt.Ctx, user.Org, user.Repo, user.Path, repoOpts)
-		if err != nil {
-			return "", err
-		}
-		if resp.StatusCode == 200 {
-			return cluster, nil
-		}
-	}
-
-	return "none", nil
-}
-
+// TeamName takes a single namespace, finds out what cluster it belongs to and returns a slice of teams in the rbac
+// file of that namespace. We have three potential cases here:
+// - The namespace exists in the primaryCluster directory structure.
+// - The namespace exists in the secondaryCluster directory structure,
+// - The namespace doesn't yet exist and exists in the pull request.
 func TeamName(namespace string, opt *config.Options, user *config.User, platform *config.Platform) ([]string, error) {
 	repoOpts := &github.RepositoryContentGetOptions{}
-	// 3 cases here. Live-1, live if a namespace doesn't yet exist
 
-	// is it live, live-1 or doesn't it exist
-	// Find out if it's live-1, live or in the PR.
+	// We must first check to see if it exists in the primary or secondary clusters.
 	ori, err := origin(namespace, opt, user, platform, repoOpts)
 	if err != nil {
 		log.Println(err)
 	}
 
-	// if the namespace doesn't exist yet, check the pr.
+	// If the namespace doesn't exist yet, change the repository options to look at the users branch and try again.
 	if ori == "none" {
 		repoOpts = &github.RepositoryContentGetOptions{
 			Ref: user.Branch,
@@ -73,6 +48,7 @@ func TeamName(namespace string, opt *config.Options, user *config.User, platform
 		}
 	}
 
+	// Now we know where the namespace sits we can attempt to get the contents of the rbac file from the GitHub API.
 	user.Path = "namespaces/" + ori + ".cloud-platform.service.justice.gov.uk/" + namespace + "/01-rbac.yaml"
 	file, _, _, err := opt.Client.Repositories.GetContents(opt.Ctx, user.Org, user.Repo, user.Path, repoOpts)
 	if err != nil {
@@ -84,6 +60,7 @@ func TeamName(namespace string, opt *config.Options, user *config.User, platform
 		return nil, err
 	}
 
+	// Parsing the yaml.
 	fullName := config.Rbac{}
 
 	err = yaml.Unmarshal([]byte(cont), &fullName)
@@ -91,6 +68,7 @@ func TeamName(namespace string, opt *config.Options, user *config.User, platform
 		return nil, err
 	}
 
+	// Storing the subject name in a slice.
 	var namespaceTeams []string
 	for _, name := range fullName.Subjects {
 		str := strings.SplitAfter(string(name.Name), ":")
@@ -100,6 +78,41 @@ func TeamName(namespace string, opt *config.Options, user *config.User, platform
 	return namespaceTeams, nil
 }
 
+// origin takes a namespace name and returns the cluster (primary or secondary) it exists on.
+func origin(namespace string, opt *config.Options, user *config.User, platform *config.Platform, repoOpts *github.RepositoryContentGetOptions) (string, error) {
+	secondaryCluster := platform.SecondaryCluster
+	primaryCluster := platform.PrimaryCluster
+
+	cluster := primaryCluster
+	user.Path = "namespaces/" + cluster + ".cloud-platform.service.justice.gov.uk/" + namespace + "/01-rbac.yaml"
+
+	// Try the primary cluster first.
+	_, _, resp, err := opt.Client.Repositories.GetContents(opt.Ctx, user.Org, user.Repo, user.Path, repoOpts)
+	if err != nil {
+		return "", err
+	}
+
+	// If the primary cluster returns 200, the namespace exists on the primary cluster.
+	if resp.StatusCode == 200 {
+		return cluster, nil
+	} else {
+		// If the primary cluster doesn't return a 200, then try the secondary.
+		cluster = secondaryCluster
+		_, _, resp, err := opt.Client.Repositories.GetContents(opt.Ctx, user.Org, user.Repo, user.Path, repoOpts)
+		if err != nil {
+			return "", err
+		}
+		if resp.StatusCode == 200 {
+			return cluster, nil
+		}
+	}
+
+	// If both clusters fail to return a 200, the namespace exists in a PR.
+	return "none", nil
+}
+
+// Namespaces takes a file name containing the namespaces changed in a PR and returns them
+// in a map.
 func Namespaces(fileName string) (map[string]int, error) {
 	namespaces := make(map[string]int)
 
@@ -110,6 +123,7 @@ func Namespaces(fileName string) (map[string]int, error) {
 	scanner := bufio.NewScanner(file)
 	scanner.Split(bufio.ScanWords)
 
+	// To avoid duplication a map was used.
 	for scanner.Scan() {
 		if namespaces[scanner.Text()] == 0 {
 			namespaces[scanner.Text()] = 1
