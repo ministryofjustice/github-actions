@@ -29,20 +29,26 @@ type Subjects struct {
 	Name string `yaml:"name"`
 }
 
-// Options type defines the contents of a github client and a context. This makes
-// it easier to pass between functions.
+// Options defines the contents of a github client, context and other variables.
 type Options struct {
-	Client   *github.Client
-	Ctx      context.Context
+	Client *github.Client
+	Ctx    context.Context
+	// FileName defines the file name passed by the GitHub Action.
 	FileName string
-	Admin    string
-	Org      string
+	// AdminTeam is the admin of the users repository, i.e. can PR in all namespaces.
+	AdminTeam string
 }
 
+// User defines the structure of the user of the PR.
 type User struct {
-	PrOwner string
-	Branch  string
-	Repo    string
+	// Username is the creator of the PR, passed by a GitHub Action.
+	Username string
+	// Branch is the git branch the users PR lives on.
+	Branch string
+	// Repo contains the string value of the repository this is executed against.
+	Repo string
+	// Org is the Organisation the repository/Repo lives in.
+	Org string
 }
 
 func main() {
@@ -53,20 +59,18 @@ func main() {
 		log.Fatalln("you must have the GITHUB_OAUTH_TOKEN and PR_OWNER env var set.")
 	}
 
-	var token = os.Getenv("GITHUB_OAUTH_TOKEN")
-
 	user := User{
-		PrOwner: os.Getenv("PR_OWNER"),
-		Branch:  os.Getenv("BRANCH"),
-		Repo:    "cloud-platform-environments",
+		Username: os.Getenv("PR_OWNER"),
+		Branch:   os.Getenv("BRANCH"),
+		Repo:     "cloud-platform-environments",
+		Org:      "ministryofjustice",
 	}
 
 	opt := Options{
-		Client:   client.GitHubClient(token),
-		Ctx:      context.Background(),
-		FileName: "files",
-		Admin:    "WebOps",
-		Org:      "ministryofjustice",
+		Client:    client.GitHubClient(os.Getenv("GITHUB_OAUTH_TOKEN")),
+		Ctx:       context.Background(),
+		FileName:  "files",
+		AdminTeam: "WebOps",
 	}
 
 	// On the condition where there is no fileName i.e. it isn't created upstream,
@@ -105,7 +109,7 @@ func main() {
 	}
 
 	// Add the WebOps team as admins over all namespaces
-	namespaceTeams[opt.Admin] = 1
+	namespaceTeams[opt.AdminTeam] = 1
 
 	// Convert the PR_OWNER string into a GitHub user ID. This is used later, to compare the
 	// list of users in a team.
@@ -115,7 +119,7 @@ func main() {
 	}
 
 	// Call the GitHub API to confirm if the user exists in the GitHub team name.
-	valid, team, err := isUserValid(namespaceTeams, userID, &opt)
+	valid, team, err := isUserValid(namespaceTeams, userID, &opt, &user)
 	if err != nil {
 		log.Fatalln("Unable to check if the user is valid:", err)
 	}
@@ -131,7 +135,7 @@ func main() {
 }
 
 func getUserID(opt *Options, user *User) (*github.User, error) {
-	userID, _, err := opt.Client.Users.Get(opt.Ctx, user.PrOwner)
+	userID, _, err := opt.Client.Users.Get(opt.Ctx, user.Username)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +150,7 @@ func getOrigin(namespace string, opt *Options, user *User, repoOpts *github.Repo
 	cluster := primaryCluster
 	path := "namespaces/" + cluster + ".cloud-platform.service.justice.gov.uk/" + namespace + "/01-rbac.yaml"
 
-	_, _, resp, err := opt.Client.Repositories.GetContents(opt.Ctx, opt.Org, user.Repo, path, repoOpts)
+	_, _, resp, err := opt.Client.Repositories.GetContents(opt.Ctx, user.Org, user.Repo, path, repoOpts)
 	if err != nil {
 		return "", err
 	}
@@ -155,7 +159,7 @@ func getOrigin(namespace string, opt *Options, user *User, repoOpts *github.Repo
 		return cluster, nil
 	} else {
 		cluster = secondaryCluster
-		_, _, resp, err := opt.Client.Repositories.GetContents(opt.Ctx, opt.Org, user.Repo, path, repoOpts)
+		_, _, resp, err := opt.Client.Repositories.GetContents(opt.Ctx, user.Org, user.Repo, path, repoOpts)
 		if err != nil {
 			return "", err
 		}
@@ -190,7 +194,7 @@ func getTeamName(namespace string, opt *Options, user *User) ([]string, error) {
 	}
 
 	path := "namespaces/" + origin + ".cloud-platform.service.justice.gov.uk/" + namespace + "/01-rbac.yaml"
-	file, _, _, err := opt.Client.Repositories.GetContents(opt.Ctx, opt.Org, user.Repo, path, repoOpts)
+	file, _, _, err := opt.Client.Repositories.GetContents(opt.Ctx, user.Org, user.Repo, path, repoOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -237,15 +241,15 @@ func getNamespaces(fileName string) (map[string]int, error) {
 	return namespaces, nil
 }
 
-func isUserValid(namespaceTeams map[string]int, user *github.User, opt *Options) (bool, string, error) {
+func isUserValid(namespaceTeams map[string]int, githubUser *github.User, opt *Options, user *User) (bool, string, error) {
 	teamOpts := &github.TeamListTeamMembersOptions{}
 	for team := range namespaceTeams {
-		members, _, err := opt.Client.Teams.ListTeamMembersBySlug(opt.Ctx, opt.Org, team, teamOpts)
+		members, _, err := opt.Client.Teams.ListTeamMembersBySlug(opt.Ctx, user.Org, team, teamOpts)
 		if err != nil {
 			return false, "", nil
 		}
 		for _, member := range members {
-			if member.GetID() == user.GetID() {
+			if member.GetID() == githubUser.GetID() {
 				return true, team, nil
 			}
 		}
