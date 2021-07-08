@@ -1,3 +1,4 @@
+// Package get is a getter package for all GitHub API calls
 package get
 
 import (
@@ -11,6 +12,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// UserID takes an Options and User data type from the caller and returns
+// the users GitHub user object.
 func UserID(opt *config.Options, user *config.User) (*github.User, error) {
 	userID, _, err := opt.Client.Users.Get(opt.Ctx, user.Username)
 	if err != nil {
@@ -20,14 +23,14 @@ func UserID(opt *config.Options, user *config.User) (*github.User, error) {
 	return userID, nil
 }
 
-func origin(namespace string, opt *config.Options, user *config.User, repoOpts *github.RepositoryContentGetOptions) (string, error) {
-	secondaryCluster := "live"
-	primaryCluster := "live-1"
+func origin(namespace string, opt *config.Options, user *config.User, platform *config.Platform, repoOpts *github.RepositoryContentGetOptions) (string, error) {
+	secondaryCluster := platform.SecondaryCluster
+	primaryCluster := platform.PrimaryCluster
 
 	cluster := primaryCluster
-	path := "namespaces/" + cluster + ".cloud-platform.service.justice.gov.uk/" + namespace + "/01-rbac.yaml"
+	user.Path = "namespaces/" + cluster + ".cloud-platform.service.justice.gov.uk/" + namespace + "/01-rbac.yaml"
 
-	_, _, resp, err := opt.Client.Repositories.GetContents(opt.Ctx, user.Org, user.Repo, path, repoOpts)
+	_, _, resp, err := opt.Client.Repositories.GetContents(opt.Ctx, user.Org, user.Repo, user.Path, repoOpts)
 	if err != nil {
 		return "", err
 	}
@@ -36,7 +39,7 @@ func origin(namespace string, opt *config.Options, user *config.User, repoOpts *
 		return cluster, nil
 	} else {
 		cluster = secondaryCluster
-		_, _, resp, err := opt.Client.Repositories.GetContents(opt.Ctx, user.Org, user.Repo, path, repoOpts)
+		_, _, resp, err := opt.Client.Repositories.GetContents(opt.Ctx, user.Org, user.Repo, user.Path, repoOpts)
 		if err != nil {
 			return "", err
 		}
@@ -48,30 +51,30 @@ func origin(namespace string, opt *config.Options, user *config.User, repoOpts *
 	return "none", nil
 }
 
-func TeamName(namespace string, opt *config.Options, user *config.User) ([]string, error) {
+func TeamName(namespace string, opt *config.Options, user *config.User, platform *config.Platform) ([]string, error) {
 	repoOpts := &github.RepositoryContentGetOptions{}
 	// 3 cases here. Live-1, live if a namespace doesn't yet exist
 
 	// is it live, live-1 or doesn't it exist
 	// Find out if it's live-1, live or in the PR.
-	o, err := origin(namespace, opt, user, repoOpts)
+	ori, err := origin(namespace, opt, user, platform, repoOpts)
 	if err != nil {
 		log.Println(err)
 	}
 
 	// if the namespace doesn't exist yet, check the pr.
-	if o == "none" {
+	if ori == "none" {
 		repoOpts = &github.RepositoryContentGetOptions{
 			Ref: user.Branch,
 		}
-		o, err = origin(namespace, opt, user, repoOpts)
+		ori, err = origin(namespace, opt, user, platform, repoOpts)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	path := "namespaces/" + o + ".cloud-platform.service.justice.gov.uk/" + namespace + "/01-rbac.yaml"
-	file, _, _, err := opt.Client.Repositories.GetContents(opt.Ctx, user.Org, user.Repo, path, repoOpts)
+	user.Path = "namespaces/" + ori + ".cloud-platform.service.justice.gov.uk/" + namespace + "/01-rbac.yaml"
+	file, _, _, err := opt.Client.Repositories.GetContents(opt.Ctx, user.Org, user.Repo, user.Path, repoOpts)
 	if err != nil {
 		return nil, err
 	}
