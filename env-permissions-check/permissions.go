@@ -12,9 +12,10 @@ import (
 	"os"
 	"strings"
 
+	"rbac-check/pkg/client"
+
 	"github.com/google/go-github/v35/github"
 	ghaction "github.com/sethvargo/go-githubactions"
-	"golang.org/x/oauth2"
 	"gopkg.in/yaml.v2"
 )
 
@@ -35,6 +36,9 @@ func main() {
 		prOwner  = os.Getenv("PR_OWNER")
 		branch   = os.Getenv("BRANCH")
 	)
+
+	ctx := context.Background()
+	client := client.GitHubClient(token, ctx)
 
 	// Exit hard if the environment variables don't exist. The package requires
 	// a personal access token with ORG permissions.
@@ -64,7 +68,7 @@ func main() {
 	// deduplication in Go.
 	namespaceTeams := make(map[string]int)
 	for ns := range namespaces {
-		teams, err := getTeamName(token, ns, branch)
+		teams, err := getTeamName(token, ns, branch, client, ctx)
 		if err != nil {
 			log.Fatalln("Unable to get team names:", err)
 		}
@@ -82,13 +86,13 @@ func main() {
 
 	// Convert the PR_OWNER string into a GitHub user ID. This is used later, to compare the
 	// list of users in a team.
-	userID, err := getUserID(prOwner, token)
+	userID, err := getUserID(prOwner, token, client, ctx)
 	if err != nil {
 		log.Fatalln("Unable to fetch userID", err)
 	}
 
 	// Call the GitHub API to confirm if the user exists in the GitHub team name.
-	valid, team, err := isUserValid(namespaceTeams, token, userID)
+	valid, team, err := isUserValid(namespaceTeams, token, userID, client, ctx)
 	if err != nil {
 		log.Fatalln("Unable to check if the user is valid:", err)
 	}
@@ -103,16 +107,7 @@ func main() {
 	}
 }
 
-func getUserID(prOwner, token string) (*github.User, error) {
-	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-
-	tc := oauth2.NewClient(ctx, ts)
-
-	client := github.NewClient(tc)
-
+func getUserID(prOwner, token string, client *github.Client, ctx context.Context) (*github.User, error) {
 	// Fetch the user's GitHub user ID.
 	user, _, err := client.Users.Get(ctx, prOwner)
 	if err != nil {
@@ -150,21 +145,7 @@ func getOrigin(namespace string, ctx context.Context, client *github.Client, opt
 	return "none", nil
 }
 
-func getTeamName(token, namespace, branch string) ([]string, error) {
-	// call the github api for the namespace passed to get yaml
-	// parse the yaml and get subject name
-	// strip the name so it appears as webops note: this is all lowercase
-	// return it as a string
-
-	// Setting up GitHub client.
-	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-
-	tc := oauth2.NewClient(ctx, ts)
-
-	client := github.NewClient(tc)
+func getTeamName(token, namespace, branch string, client *github.Client, ctx context.Context) ([]string, error) {
 	opts := &github.RepositoryContentGetOptions{}
 	// 3 cases here. Live-1, live if a namespace doesn't yet exist
 
@@ -234,16 +215,7 @@ func getNamespaces(fileName string) (map[string]int, error) {
 	return namespaces, nil
 }
 
-func isUserValid(namespaceTeams map[string]int, token string, user *github.User) (bool, string, error) {
-	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-
-	tc := oauth2.NewClient(ctx, ts)
-
-	client := github.NewClient(tc)
-
+func isUserValid(namespaceTeams map[string]int, token string, user *github.User, client *github.Client, ctx context.Context) (bool, string, error) {
 	opts := &github.TeamListTeamMembersOptions{}
 	for team := range namespaceTeams {
 		teamz, _, err := client.Teams.ListTeamMembersBySlug(ctx, "ministryofjustice", team, opts)
