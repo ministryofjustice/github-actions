@@ -1,3 +1,4 @@
+// Package client implements the github client.
 package client
 
 import (
