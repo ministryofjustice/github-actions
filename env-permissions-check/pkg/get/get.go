@@ -98,6 +98,8 @@ func origin(namespace string, opt *config.Options, user *config.User, platform *
 	} else {
 		// If the primary cluster doesn't return a 200, then try the secondary.
 		cluster = secondaryCluster
+		// We have to set the user path again to pick up the new cluster.
+		user.Path = "namespaces/" + cluster + ".cloud-platform.service.justice.gov.uk/" + namespace + "/01-rbac.yaml"
 		_, _, resp, err := opt.Client.Repositories.GetContents(opt.Ctx, user.Org, user.Repo, user.Path, repoOpts)
 		if err != nil {
 			return "", err
