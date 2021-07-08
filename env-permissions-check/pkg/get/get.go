@@ -87,10 +87,7 @@ func origin(namespace string, opt *config.Options, user *config.User, platform *
 	user.Path = "namespaces/" + cluster + ".cloud-platform.service.justice.gov.uk/" + namespace + "/01-rbac.yaml"
 
 	// Try the primary cluster first.
-	_, _, resp, err := opt.Client.Repositories.GetContents(opt.Ctx, user.Org, user.Repo, user.Path, repoOpts)
-	if err != nil {
-		return "", err
-	}
+	_, _, resp, _ := opt.Client.Repositories.GetContents(opt.Ctx, user.Org, user.Repo, user.Path, repoOpts)
 
 	// If the primary cluster returns 200, the namespace exists on the primary cluster.
 	if resp.StatusCode == 200 {
