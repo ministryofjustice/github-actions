@@ -1,3 +1,4 @@
+// Package config implements internal configuration.
 package config
 
 import (
@@ -22,8 +23,6 @@ type Options struct {
 	Ctx    context.Context
 	// FileName defines the file name passed by the GitHub Action.
 	FileName string
-	// AdminTeam is the admin of the users repository, i.e. can PR in all namespaces.
-	AdminTeam string
 }
 
 // User defines the structure of the user of the PR.
@@ -36,4 +35,15 @@ type User struct {
 	Repo string
 	// Org is the Organisation the repository/Repo lives in.
 	Org string
+	// Path is the file path of the rbac file in a namespace.
+	Path string
+}
+
+type Platform struct {
+	// AdminTeam is the admin of the users repository, i.e. can PR in all namespaces.
+	AdminTeam string
+	// PrimaryCluster is the cluster name where most MoJ Kubernetes namespaces are created.
+	PrimaryCluster string
+	// SecondaryCluster is the cluster name of the backup or future cluster for an MoJ Kubernetes namespace.
+	SecondaryCluster string
 }

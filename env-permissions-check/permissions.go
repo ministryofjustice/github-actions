@@ -1,4 +1,4 @@
-// Package main is expected to run in a GitHub action. It will expect to receive a
+// main is expected to run in a GitHub action. It will expect to receive a
 // file in its directory called `files` that contains a space seperated list of
 // MoJ Cloud Platform Kubernetes namespaces changed in a PR. Each namespace contains
 // an rbac file that contains a list of team names. If the PR owner (whoever raised the PR)
@@ -34,10 +34,15 @@ func main() {
 	}
 
 	opt := config.Options{
-		Client:    client.GitHubClient(os.Getenv("GITHUB_OAUTH_TOKEN")),
-		Ctx:       context.Background(),
-		FileName:  "files",
-		AdminTeam: "WebOps",
+		Client:   client.GitHubClient(os.Getenv("GITHUB_OAUTH_TOKEN")),
+		Ctx:      context.Background(),
+		FileName: "files",
+	}
+
+	platform := config.Platform{
+		AdminTeam:        "WebOps",
+		PrimaryCluster:   "live-1",
+		SecondaryCluster: "live",
 	}
 
 	// On the condition where there is no fileName i.e. it isn't created upstream,
@@ -62,7 +67,7 @@ func main() {
 	// deduplication in Go.
 	namespaceTeams := make(map[string]int)
 	for ns := range namespaces {
-		teams, err := get.TeamName(ns, &opt, &user)
+		teams, err := get.TeamName(ns, &opt, &user, &platform)
 		if err != nil {
 			log.Fatalln("Unable to get team names:", err)
 		}
@@ -76,7 +81,7 @@ func main() {
 	}
 
 	// Add the WebOps team as admins over all namespaces
-	namespaceTeams[opt.AdminTeam] = 1
+	namespaceTeams[platform.AdminTeam] = 1
 
 	// Convert the PR_OWNER string into a GitHub user ID. This is used later, to compare the
 	// list of users in a team.
