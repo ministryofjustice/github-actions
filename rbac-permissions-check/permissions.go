@@ -64,11 +64,11 @@ func main() {
 	}
 
 	// On the condition where there is no file ChangedFiles i.e. it hasn't been created upstream,
-	// this package should return a pass. By doing this we're assuming the PR contains
+	// or the file exists but it's empty this package should return a pass. By doing this we're assuming the PR contains
 	// changes that don't include rbac files and thus can be reviewed.
-	_, err := os.Stat(repo.ChangedFiles)
-	if os.IsNotExist(err) {
-		log.Println("File doesn't exist. Passing.")
+	cont, err := os.Stat(repo.ChangedFiles)
+	if os.IsNotExist(err) || cont.Size() == 0 {
+		log.Println("File doesn't contain any namespace changes. Passing")
 		ghaction.SetOutput("review_pr", "true")
 		os.Exit(0)
 	}
