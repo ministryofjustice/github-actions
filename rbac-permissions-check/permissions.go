@@ -45,11 +45,9 @@ func main() {
 	}
 
 	user := config.User{
-		Username:     *username,
-		Branch:       *branch,
-		Repo:         *repo,
-		Org:          *org,
-		ChangedFiles: *file,
+		PrimaryCluster:   *primaryCluster,
+		SecondaryCluster: *secondaryCluster,
+		Username:         *username,
 	}
 
 	opt := config.Options{
@@ -57,16 +55,18 @@ func main() {
 		Ctx:    context.Background(),
 	}
 
-	platform := config.Platform{
-		AdminTeam:        *adminTeam,
-		PrimaryCluster:   *primaryCluster,
-		SecondaryCluster: *secondaryCluster,
+	repo := config.Repository{
+		AdminTeam:    *adminTeam,
+		Branch:       *branch,
+		ChangedFiles: *file,
+		Name:         *repo,
+		Org:          *org,
 	}
 
 	// On the condition where there is no file ChangedFiles i.e. it hasn't been created upstream,
 	// this package should return a pass. By doing this we're assuming the PR contains
 	// changes that don't include rbac files and thus can be reviewed.
-	_, err := os.Stat(user.ChangedFiles)
+	_, err := os.Stat(repo.ChangedFiles)
 	if os.IsNotExist(err) {
 		log.Println("File doesn't exist. Passing.")
 		ghaction.SetOutput("review_pr", "true")
@@ -75,7 +75,7 @@ func main() {
 
 	// Parse all namespaces in the ChangedFiles variable. Fail if we can't parse because later
 	// functions require this output.
-	namespaces, err := get.Namespaces(user.ChangedFiles)
+	user.Namespaces, err = get.Namespaces(repo.ChangedFiles)
 	if err != nil {
 		log.Fatalln("Unable to fetch namespace:", err)
 	}
@@ -84,8 +84,8 @@ func main() {
 	// The teams are stored in a map to ensure we don't duplicate. Maps are best for
 	// deduplication in Go.
 	namespaceTeams := make(map[string]int)
-	for ns := range namespaces {
-		teams, err := get.TeamName(ns, &opt, &user, &platform)
+	for ns := range user.Namespaces {
+		teams, err := get.TeamName(ns, &opt, &user, &repo)
 		if err != nil {
 			log.Fatalln("Unable to get team names:", err)
 		}
@@ -99,27 +99,27 @@ func main() {
 	}
 
 	// Add the admin team so they can make changes to any namespace.
-	namespaceTeams[platform.AdminTeam] = 1
+	namespaceTeams[repo.AdminTeam] = 1
 
 	// Convert the username string into a GitHub user ID. This is used later, to compare the
 	// list of users in a team.
-	userID, err := get.UserID(&opt, &user)
+	user.Id, err = get.UserID(&opt, &user)
 	if err != nil {
 		log.Fatalln("Unable to fetch userID", err)
 	}
 
 	// Call the GitHub API to confirm if the user exists in the GitHub team name.
-	valid, team, err := validate.UserPermissions(namespaceTeams, userID, &opt, &user)
+	valid, team, err := validate.UserPermissions(namespaceTeams, &opt, &user, &repo)
 	if err != nil {
 		log.Fatalln("Unable to check if the user is valid:", err)
 	}
 
 	// Send result back to GitHub Action.
 	if valid {
-		log.Println("\n The user:", userID.GetName(), "\n is in team:", team)
+		log.Println("\n The user:", user.Id.GetName(), "\n is in team:", team)
 		ghaction.SetOutput("review_pr", "true")
 	} else {
-		log.Println("\n The user:", userID.GetName(), "\n can't be found in teams:", namespaceTeams)
+		log.Println("\n The user:", user.Id.GetName(), "\n can't be found in teams:", namespaceTeams)
 		ghaction.SetOutput("review_pr", "false")
 	}
 }

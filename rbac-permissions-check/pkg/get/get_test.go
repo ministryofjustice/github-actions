@@ -38,8 +38,14 @@ func TestSecondaryTeamName(t *testing.T) {
 	namespace := "cloud-platform-reports-dev"
 
 	user := config.User{
-		Repo: "cloud-platform-environments",
-		Org:  "ministryofjustice",
+		PrimaryCluster:   "live-1",
+		SecondaryCluster: "live",
+	}
+
+	repo := config.Repository{
+		AdminTeam: "webops",
+		Name:      "cloud-platform-environments",
+		Org:       "ministryofjustice",
 	}
 
 	opt := config.Options{
@@ -47,26 +53,20 @@ func TestSecondaryTeamName(t *testing.T) {
 		Ctx:    context.Background(),
 	}
 
-	platform := config.Platform{
-		AdminTeam:        "webops",
-		PrimaryCluster:   "live-1",
-		SecondaryCluster: "live",
-	}
-
-	teams, _ := TeamName(namespace, &opt, &user, &platform)
+	teams, _ := TeamName(namespace, &opt, &user, &repo)
 
 	for _, team := range teams {
-		if team != platform.AdminTeam {
-			t.Errorf("Expecting: %s; got %s", platform.AdminTeam, team)
+		if team != repo.AdminTeam {
+			t.Errorf("Expecting: %s; got %s", repo.AdminTeam, team)
 		}
 	}
 
 	namespace = "abundant-namespace-dev"
-	teams, _ = TeamName(namespace, &opt, &user, &platform)
+	teams, _ = TeamName(namespace, &opt, &user, &repo)
 
 	for _, team := range teams {
-		if team != platform.AdminTeam {
-			t.Errorf("Expecting: %s; got %s", platform.AdminTeam, team)
+		if team != repo.AdminTeam {
+			t.Errorf("Expecting: %s; got %s", repo.AdminTeam, team)
 		}
 	}
 }
@@ -77,8 +77,14 @@ func TestPrimaryTeamName(t *testing.T) {
 	namespace := "abundant-namespace-dev"
 
 	user := config.User{
-		Repo: "cloud-platform-environments",
-		Org:  "ministryofjustice",
+		PrimaryCluster:   "live-1",
+		SecondaryCluster: "live",
+	}
+
+	repo := config.Repository{
+		AdminTeam: "webops",
+		Name:      "cloud-platform-environments",
+		Org:       "ministryofjustice",
 	}
 
 	opt := config.Options{
@@ -86,17 +92,11 @@ func TestPrimaryTeamName(t *testing.T) {
 		Ctx:    context.Background(),
 	}
 
-	platform := config.Platform{
-		AdminTeam:        "webops",
-		PrimaryCluster:   "live-1",
-		SecondaryCluster: "live",
-	}
-
-	teams, _ := TeamName(namespace, &opt, &user, &platform)
+	teams, _ := TeamName(namespace, &opt, &user, &repo)
 
 	for _, team := range teams {
-		if team != platform.AdminTeam {
-			t.Errorf("Expecting: %s; got %s", platform.AdminTeam, team)
+		if team != repo.AdminTeam {
+			t.Errorf("Expecting: %s; got %s", repo.AdminTeam, team)
 		}
 	}
 }

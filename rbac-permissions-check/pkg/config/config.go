@@ -27,23 +27,27 @@ type Options struct {
 type User struct {
 	// Username is the creator of the PR, passed by a GitHub Action.
 	Username string
-	// Branch is the git branch the users PR lives on.
-	Branch string
-	// Repo contains the string value of the repository this is executed against.
-	Repo string
-	// Org is the Organisation the repository/Repo lives in.
-	Org string
-	// Path is the file path of the rbac file in a namespace.
-	Path string
-	// ChangedFiles defines the file name passed by the GitHub Action.
-	ChangedFiles string
-}
-
-type Platform struct {
-	// AdminTeam is the admin of the users repository, i.e. can PR in all namespaces.
-	AdminTeam string
+	// Id containst the GitHub user ID of the PR owner.
+	Id *github.User
 	// PrimaryCluster is the cluster name where most MoJ Kubernetes namespaces are created.
 	PrimaryCluster string
 	// SecondaryCluster is the cluster name of the backup or future cluster for an MoJ Kubernetes namespace.
 	SecondaryCluster string
+	// Namespaces contains a map of user namespaces interpolated from ChangedFiles.
+	Namespaces map[string]int
+}
+
+type Repository struct {
+	// AdminTeam is the admin of the users repository, i.e. can PR in all namespaces.
+	AdminTeam string
+	// Branch is the git branch the users PR lives on.
+	Branch string
+	// ChangedFiles defines the file name passed by the GitHub Action.
+	ChangedFiles string
+	// Name contains the string value of the repository this is executed against.
+	Name string
+	// Org is the Organisation the repository/Repo lives in.
+	Org string
+	// Path is the file path of the rbac file in a namespace.
+	Path string
 }

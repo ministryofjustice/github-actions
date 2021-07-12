@@ -28,11 +28,11 @@ func UserID(opt *config.Options, user *config.User) (*github.User, error) {
 // - The namespace exists in the primaryCluster directory structure.
 // - The namespace exists in the secondaryCluster directory structure,
 // - The namespace doesn't yet exist and exists in the pull request.
-func TeamName(namespace string, opt *config.Options, user *config.User, platform *config.Platform) ([]string, error) {
+func TeamName(namespace string, opt *config.Options, user *config.User, repo *config.Repository) ([]string, error) {
 	repoOpts := &github.RepositoryContentGetOptions{}
 
 	// We must first check to see if it exists in the primary or secondary clusters.
-	ori, err := origin(namespace, opt, user, platform, repoOpts)
+	ori, err := origin(namespace, opt, user, repo, repoOpts)
 	if err != nil {
 		log.Println(err)
 	}
@@ -40,17 +40,17 @@ func TeamName(namespace string, opt *config.Options, user *config.User, platform
 	// If the namespace doesn't exist yet, change the repository options to look at the users branch and try again.
 	if ori == "none" {
 		repoOpts = &github.RepositoryContentGetOptions{
-			Ref: user.Branch,
+			Ref: repo.Branch,
 		}
-		ori, err = origin(namespace, opt, user, platform, repoOpts)
+		ori, err = origin(namespace, opt, user, repo, repoOpts)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	// Now we know where the namespace sits we can attempt to get the contents of the rbac file from the GitHub API.
-	user.Path = "namespaces/" + ori + ".cloud-platform.service.justice.gov.uk/" + namespace + "/01-rbac.yaml"
-	file, _, _, err := opt.Client.Repositories.GetContents(opt.Ctx, user.Org, user.Repo, user.Path, repoOpts)
+	repo.Path = "namespaces/" + ori + ".cloud-platform.service.justice.gov.uk/" + namespace + "/01-rbac.yaml"
+	file, _, _, err := opt.Client.Repositories.GetContents(opt.Ctx, repo.Org, repo.Name, repo.Path, repoOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -79,15 +79,15 @@ func TeamName(namespace string, opt *config.Options, user *config.User, platform
 }
 
 // origin takes a namespace name and returns the cluster (primary or secondary) it exists on.
-func origin(namespace string, opt *config.Options, user *config.User, platform *config.Platform, repoOpts *github.RepositoryContentGetOptions) (string, error) {
-	secondaryCluster := platform.SecondaryCluster
-	primaryCluster := platform.PrimaryCluster
+func origin(namespace string, opt *config.Options, user *config.User, repo *config.Repository, repoOpts *github.RepositoryContentGetOptions) (string, error) {
+	secondaryCluster := user.SecondaryCluster
+	primaryCluster := user.PrimaryCluster
 
 	cluster := primaryCluster
-	user.Path = "namespaces/" + cluster + ".cloud-platform.service.justice.gov.uk/" + namespace + "/01-rbac.yaml"
+	repo.Path = "namespaces/" + cluster + ".cloud-platform.service.justice.gov.uk/" + namespace + "/01-rbac.yaml"
 
 	// Try the primary cluster first.
-	_, _, resp, _ := opt.Client.Repositories.GetContents(opt.Ctx, user.Org, user.Repo, user.Path, repoOpts)
+	_, _, resp, _ := opt.Client.Repositories.GetContents(opt.Ctx, repo.Org, repo.Name, repo.Path, repoOpts)
 
 	// If the primary cluster returns 200, the namespace exists on the primary cluster.
 	if resp.StatusCode == 200 {
@@ -96,8 +96,8 @@ func origin(namespace string, opt *config.Options, user *config.User, platform *
 		// If the primary cluster doesn't return a 200, then try the secondary.
 		cluster = secondaryCluster
 		// We have to set the user path again to pick up the new cluster.
-		user.Path = "namespaces/" + cluster + ".cloud-platform.service.justice.gov.uk/" + namespace + "/01-rbac.yaml"
-		_, _, resp, err := opt.Client.Repositories.GetContents(opt.Ctx, user.Org, user.Repo, user.Path, repoOpts)
+		repo.Path = "namespaces/" + cluster + ".cloud-platform.service.justice.gov.uk/" + namespace + "/01-rbac.yaml"
+		_, _, resp, err := opt.Client.Repositories.GetContents(opt.Ctx, repo.Org, repo.Name, repo.Path, repoOpts)
 		if err != nil {
 			return "", err
 		}

@@ -15,9 +15,6 @@ func TestGoodUserPermissions(t *testing.T) {
 		log.Fatalln("You must have a personal access token set in an env var called 'TEST_GITHUB_ACCESS'")
 	}
 
-	teams := make(map[string]int)
-	teams["WebOps"] = 0
-
 	user := config.User{
 		Username: "cloud-platform-moj",
 	}
@@ -27,9 +24,17 @@ func TestGoodUserPermissions(t *testing.T) {
 		Ctx:    context.Background(),
 	}
 
-	userID, _ := get.UserID(&opt, &user)
+	repo := config.Repository{
+		AdminTeam: "WebOps",
+		Org:       "ministryofjustice",
+	}
 
-	valid, team, _ := UserPermissions(teams, userID, &opt, &user)
+	teams := make(map[string]int)
+	teams["WebOps"] = 0
+
+	user.Id, _ = get.UserID(&opt, &user)
+
+	valid, team, _ := UserPermissions(teams, &opt, &user, &repo)
 
 	if !valid && team == "WebOps" {
 		t.Errorf("The cloud-platform-moj bot user should be in the team webops. Want true; got %v", valid)
@@ -49,9 +54,14 @@ func TestBadUserPermissions(t *testing.T) {
 		Ctx:    context.Background(),
 	}
 
-	userID, _ := get.UserID(&opt, &user)
+	repo := config.Repository{
+		AdminTeam: "WebOps",
+		Org:       "ministryofjustice",
+	}
 
-	valid, team, _ := UserPermissions(teams, userID, &opt, &user)
+	user.Id, _ = get.UserID(&opt, &user)
+
+	valid, team, _ := UserPermissions(teams, &opt, &user, &repo)
 
 	if valid && team == "test-webops" {
 		t.Errorf("The cloud-platform-moj bot user isn't team %s. Want true; got %v", team, valid)
