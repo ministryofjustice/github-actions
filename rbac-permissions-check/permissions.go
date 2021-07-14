@@ -117,9 +117,11 @@ func main() {
 	// Send result back to GitHub Action.
 	if valid {
 		log.Println("\n The user:", user.Id.GetName(), "\n is in team:", team)
-		ghaction.SetOutput("review_pr", "true")
+		ghaction.SetOutput("reviewOutput", "true")
 	} else {
 		log.Println("\n The user:", user.Id.GetName(), "\n can't be found in teams:", namespaceTeams)
-		ghaction.SetOutput("review_pr", "false")
+		ghaction.SetOutput("reviewOutput", "false")
+		ghaction.SetOutput("reviewOwner", user.Username)
+		ghaction.SetOutput("reviewTeam", team)
 	}
 }
