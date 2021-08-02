@@ -28,9 +28,6 @@ jobs:
       uses: ministryofjustice/github-actions/terraform-static-analysis@main
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY:  ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        TF_IN_AUTOMATION: true
       with:
         scan_type: changed
         tfsec_exclude: AWS095
@@ -40,6 +37,4 @@ jobs:
 
 `fetch-depth: 0` is required to get a git diff to detect changed files.
 
-`GITHUB_TOKEN` is required to write the results to the pull request.
-
-`AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and TF_IN_AUTOMATION` are required to run Terraform init, this enables TFSec to run tests on called modules as well.
+`GITHUB_TOKEN` is required to write the results to the pull request. This is the built in workflow token created when you start using Actions (see [here](https://docs.github.com/en/actions/reference/authentication-in-a-workflow)) this should have read and write permissions to write to a pull request, this can be found under `Actions` in the repository `Settings`
