@@ -68,11 +68,14 @@ func TeamName(namespace string, opt *config.Options, user *config.User, repo *co
 		return nil, err
 	}
 
-	// Storing the subject name in a slice.
+	// Storing the subject name in a slice. The subject name has to be in the form of "github:*", this is to
+	// protect against different kinds of subject such as ServiceAccount.
 	var namespaceTeams []string
 	for _, name := range fullName.Subjects {
-		str := strings.SplitAfter(string(name.Name), ":")
-		namespaceTeams = append(namespaceTeams, str[1])
+		if strings.Contains(name.Name, "github") {
+			str := strings.SplitAfter(string(name.Name), ":")
+			namespaceTeams = append(namespaceTeams, str[1])
+		}
 	}
 
 	return namespaceTeams, nil
