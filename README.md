@@ -12,6 +12,7 @@ A collection of github actions.
 | [reject-escalated-privileges-yaml](reject-escalated-privileges-yaml) | Reject PR if YAML contains forbidden strings |
 | [sync-gh-pages](sync-gh-pages) | Keep the `gh-pages` branch in sync with `main` |
 | [conftest-yaml](conftest-yaml) | Use [Conftest] to check your YAML against Rego policies |
+| [terraform-static-analysis](terraform-static-analysis) | Runs TFSec, Checkov and TFlint against Terraform |
 <!-- markdownlint-enable MD013 -->
 
 [Conftest]: https://www.conftest.dev/
