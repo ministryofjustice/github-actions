@@ -88,6 +88,8 @@ run_checkov(){
 
 run_tflint(){
   line_break
+  echo "Running tflint --init..."
+  tflint --init --config /.tflint.hcl
   echo "tflint will check the following folders:"
   echo $1
   directories=($1)
@@ -100,11 +102,11 @@ run_tflint(){
     then
       if [[ -n "$INPUT_TFLINT_EXCLUDE" ]]; then
         echo "Excluding the following checks: ${INPUT_TFLINT_EXCLUDE}"
-        tflint --disable-rule="${INPUT_TFLINT_EXCLUDE}" ${terraform_working_dir} 2>&1
+        tflint --config /.tflint.hcl --disable-rule="${INPUT_TFLINT_EXCLUDE}" ${terraform_working_dir} 2>&1
       else
-        tflint ${terraform_working_dir} 2>&1
+        tflint --config /.tflint.hcl ${terraform_working_dir} 2>&1
       fi
-    else 
+    else
       echo "Skipping folder as path name contains *templates*"
     fi
     tflint_exitcode+=$?
@@ -227,9 +229,9 @@ echo "Total of Checkov exit codes: $checkov_exitcode"
 echo "Total of tflint exit codes: $tflint_exitcode"
 
 if [ $tfsec_exitcode -gt 0 ] || [ $checkov_exitcode -gt 0 ] || [ $tflint_exitcode -gt 0 ];then
-  echo "Exiting with error(s)"  
+  echo "Exiting with error(s)"
   exit 1
 else
-  echo "Exiting with no error"  
+  echo "Exiting with no error"
   exit 0
 fi
