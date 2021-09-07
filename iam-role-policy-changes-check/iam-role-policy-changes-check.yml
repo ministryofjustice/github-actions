@@ -1,0 +1,6 @@
+name: Identify PRs that contain IAM Role or Policy changes
+description: identify PRs that contain potential IAM Role or Policy changes in a diff.
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
