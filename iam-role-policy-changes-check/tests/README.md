@@ -1,4 +1,4 @@
-# Testing the auto review pull request process
+# Testing the identify PRs that contain IAM Role and Policy changes - pull request process
 
 ## How to run the tests
 
