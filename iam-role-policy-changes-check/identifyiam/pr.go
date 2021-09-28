@@ -46,11 +46,11 @@ func ParsePR(fileName string) (bool, error) {
 	file.Close()
 
 	// If the text collection contains anything other than `+` `-` in addtion to:
-	// `aws_iam` or `"Effect":` or `"Action":` or `"s3:` or `ec2:` or `"iam:` or `"sqs:``, it'll pass.
+	// `aws_iam` or `"Effect":` or `"Action":` or `"s3:` or `ec2:` or `"iam:` or `"SQS:` or `"sqs:``, it'll pass.
 	        for _, line := range text {
                 if (strings.HasPrefix(line, "+") || strings.HasPrefix(line, "-")) &&
 
-                                                (strings.Contains(line, "aws_iam") || strings.Contains(line, "\"Effect\":") || strings.Contains(line, "\"Action\":") || strings.Contains(line, "\"s3:") || strings.Contains(line, "\"ec2:") || strings.Contains(line, "\"iam:") || strings.Contains(line, "\"SQS:") || strings.Contains(line, "\"sqs:")) {
+                                                (strings.Contains(line, "aws_iam") || strings.Contains(line, "\"Effect\":") || strings.Contains(line, "\"Action\":") || strings.Contains(line, "\"s3:") || strings.Contains(line, "\"ec2:") || strings.Contains(line, "\"IAM") || strings.Contains(line, "\"iam:") || strings.Contains(line, "\"SQS:") || strings.Contains(line, "\"sqs:")) {
                         return false, errors.New("Reviewer to check - Change(s) found that are potentially Iam policy/role related: " + line)
                 } else {
                         continue
