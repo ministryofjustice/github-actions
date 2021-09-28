@@ -1,14 +1,14 @@
 package tests
 
 import (
-	"approve-doc-review/check"
+	"iam-role-policy-changes-check/identify-iam"
 	"testing"
 )
 
 func TestGoodPr(t *testing.T) {
 	goodFile := "good"
 
-	goodTest, _ := check.ParsePR(goodFile)
+	goodTest, _ := identify-iam.ParsePR(goodFile)
 	if goodTest == false {
 		t.Errorf("Parsing the UI failed; want pass, got %t", goodTest)
 	}
@@ -18,7 +18,7 @@ func TestGoodPr(t *testing.T) {
 func TestBadPr(t *testing.T) {
 	badFile := "bad"
 
-	badTest, _ := check.ParsePR(badFile)
+	badTest, _ := identify-iam.ParsePR(badFile)
 	if badTest == true {
 		t.Errorf("Parsing the UI failed; want fail, got %t", badTest)
 	}

@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	ghaction "github.com/sethvargo/go-githubactions"
-	"iam-role-policy-changes-check/check"
+	"iam-role-policy-changes-check/identifyiam"
 	"log"
 )
 
@@ -16,7 +16,7 @@ func main() {
 
 	// prRelevant will return true or false depending on the contents of fileName. We don't want
 	// the GH action to error here so we just log the error and take no action.
-	prRelevant, err := check.ParsePR(*fileName)
+	prRelevant, err := identifyiam.ParsePR(*fileName)
 	if err != nil {
 		log.Println("Unable to parse the PR - ", err)
 	}

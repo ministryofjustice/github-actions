@@ -1,7 +1,7 @@
 // Check is used to perform bool checks on whether a PR
 // contain potential IAM Role and Policy changes/additions 
 // to alert a reviewer to the above content
-package check
+package identifyiam
 
 import (
 	"bufio"
@@ -50,7 +50,7 @@ func ParsePR(fileName string) (bool, error) {
 	        for _, line := range text {
                 if (strings.HasPrefix(line, "+") || strings.HasPrefix(line, "-")) &&
 
-                                                (strings.Contains(line, "aws_iam") || strings.Contains(line, "\"Effect\":") || strings.Contains(line, "\"Action\":") || strings.Contains(line, "\"s3:") || strings.Contains(line, "\"ec2:") || strings.Contains(line, "\"iam:") || strings.Contains(line, "\"sqs:")) {
+                                                (strings.Contains(line, "aws_iam") || strings.Contains(line, "\"Effect\":") || strings.Contains(line, "\"Action\":") || strings.Contains(line, "\"s3:") || strings.Contains(line, "\"ec2:") || strings.Contains(line, "\"iam:") || strings.Contains(line, "\"SQS:") || strings.Contains(line, "\"sqs:")) {
                         return false, errors.New("Reviewer to check - Change(s) found that are potentially Iam policy/role related: " + line)
                 } else {
                         continue
