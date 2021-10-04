@@ -7,16 +7,13 @@ import (
 	"log"
 )
 
-var (
-	fileName = flag.String("filename", "", "Personal access token from GitHub.")
-)
-
 func main() {
 	flag.Parse()
-
+        // fileName is the file created by a GitHub action, it contains the output of a git diff.
+        fileName := "changes"
 	// prRelevant will return true or false depending on the contents of fileName. We don't want
 	// the GH action to error here so we just log the error and take no action.
-	prRelevant, err := identifyiam.ParsePR(*fileName)
+	prRelevant, err := identifyiam.ParsePR(fileName)
 	if err != nil {
 		log.Println("Unable to parse the PR - ", err)
 	}
