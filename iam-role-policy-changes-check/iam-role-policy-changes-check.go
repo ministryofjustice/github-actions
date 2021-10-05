@@ -25,6 +25,6 @@ func main() {
 		 ghaction.SetOutput("review_pr", "true")
 	} else {
 		log.Println("Fail: Attention - Either the PR contains changes that potentially relate to IAM roles or IAM Policies .")
-		ghaction.SetOutput("review_pr", "false")
+		ghaction.SetOutput("review_pr", "true")
 	}
 }
