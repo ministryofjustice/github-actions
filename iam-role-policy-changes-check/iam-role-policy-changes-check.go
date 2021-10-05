@@ -24,7 +24,7 @@ func main() {
 		log.Println("Success: The changes in this PR are not related IAM roles/Policies.")
 		 ghaction.SetOutput("review_pr", "true")
 	} else {
-		log.Fatalln("Fail: Attention - Either the PR contains changes that potentially relate to IAM roles or IAM Policies .")
+		log.Println("Fail: Attention - Either the PR contains changes that potentially relate to IAM roles or IAM Policies .")
 		ghaction.SetOutput("review_pr", "false")
 	}
 }
