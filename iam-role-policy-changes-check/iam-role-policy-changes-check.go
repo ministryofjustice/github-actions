@@ -2,10 +2,9 @@ package main
 
 import (
 	"flag"
+	ghaction "github.com/sethvargo/go-githubactions"
 	"iam-role-policy-changes-check/identifyiam"
 	"log"
-
-	ghaction "github.com/sethvargo/go-githubactions"
 )
 
 func main() {
