@@ -2,9 +2,10 @@ package main
 
 import (
 	"flag"
-	ghaction "github.com/sethvargo/go-githubactions"
 	"iam-role-policy-changes-check/identifyiam"
 	"log"
+
+	ghaction "github.com/sethvargo/go-githubactions"
 )
 
 func main() {
@@ -25,6 +26,6 @@ func main() {
 		 ghaction.SetOutput("review_pr", "true")
 	} else {
 		log.Println("Fail: Attention - Either the PR contains changes that potentially relate to IAM roles or IAM Policies .")
-		ghaction.SetOutput("review_pr", "true")
+		ghaction.SetOutput("review_pr", "false")
 	}
 }
