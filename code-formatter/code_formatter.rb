@@ -40,5 +40,4 @@ class CodeFormatter
   def terraform_files_in_pr
     github_client.files_in_pr.grep(/\.tf$/)
   end
-
 end
