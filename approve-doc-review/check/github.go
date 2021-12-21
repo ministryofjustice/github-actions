@@ -9,14 +9,14 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// IsUserInWebOps takes a GitHub token and a string containing the owner of the
+// IsInGitHubTeam takes a GitHub token and a string containing the owner of the
 // PR. It'll perform a lookup for the following:
 // - The PR owner's GitHub user ID, denoted by the user var.
 // - The org user ID, denoted by org. We could've hard coded this.
 // - The team ID, denoted by teamId.
 // It then performs a lookup and confirms if the user's ID appears in the team ID memebers.
 // If so, this function returns true.
-func IsUserInWebOps(team, orgOwner, token, prOwner string) (bool, error) {
+func IsInGitHubTeam(team, orgOwner, token, prOwner string) (bool, error) {
 	// Setting up GitHub client.
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
