@@ -1,3 +1,7 @@
+# This action has moved here: https://github.com/ministryofjustice/cloud-platform-doc-checker
+
+This directory will remain in case anyone is currently using it, but for future updates etc, please move.
+
 # Approve documentation review
 
 A Github Action to auto approve pull requests that contain only document
