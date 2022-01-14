@@ -15,7 +15,8 @@ RUN wget https://github.com/awslabs/aws-cloudformation-template-formatter/releas
 # Octokit depends on faraday, and an update to
 # faraday breaks the current version of octokit
 RUN gem install faraday --version 0.9
-RUN gem install octokit standardrb
+RUN gem install octokit --version 4.21.0
+RUN gem install standardrb
 
 RUN apk add git
 
