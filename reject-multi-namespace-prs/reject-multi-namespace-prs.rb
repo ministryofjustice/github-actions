@@ -5,7 +5,7 @@ require "octokit"
 
 require File.join(File.dirname(__FILE__), "github")
 
-NAMESPACE_REGEX = %r{namespaces.live-1.cloud-platform.service.justice.gov.uk}
+NAMESPACE_REGEX = %r{namespaces.(live|live-1).cloud-platform.service.justice.gov.uk}
 
 gh = GithubClient.new
 
