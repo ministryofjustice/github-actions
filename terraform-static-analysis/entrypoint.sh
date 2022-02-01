@@ -16,7 +16,7 @@ echo
 if [[ -n "$INPUT_TFSEC_VERSION" ]]; then
   env GO111MODULE=on go install github.com/aquasecurity/tfsec/cmd/tfsec@"${INPUT_TFSEC_VERSION}"
 else
-  env GO111MODULE=on go get -u github.com/aquasecurity/tfsec/cmd/tfsec
+  env GO111MODULE=on go install github.com/aquasecurity/tfsec/cmd/tfsec@latest
 fi
 
 line_break() {
