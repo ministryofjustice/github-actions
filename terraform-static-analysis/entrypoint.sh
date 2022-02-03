@@ -97,7 +97,7 @@ run_tflint(){
     tflint_config="/tflint-configs/tflint.default.hcl"
   fi
   echo "Running tflint --init..."
-  tflint --init --config /.tflint.hcl
+  tflint --init --config $tflint_config
   echo "tflint will check the following folders:"
   echo $1
   directories=($1)
