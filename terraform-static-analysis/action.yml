@@ -23,6 +23,9 @@ inputs:
   tflint_exclude:
     description: 'Provide checks via , without space to exclude from run'
     required: false
+  tflint_config:
+    description: 'Provide a specific config for this run (including the .hcl extension), see the "tflint-configs" folder for available configs'
+    required: false
   tfsec_version:
     description: 'Specify the version of tfsec to install'
     required: false
