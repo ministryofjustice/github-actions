@@ -10,7 +10,7 @@ Changes only (`changed`) - scan only folders with `*.tf` files that have had cha
 
 Single folder (`single`) - standard scan of a given folder.
 
-See the [action.yml](action.yml) for other input options. Global excludes for checks can be added at the action level, or inline exclude comments can be added for each check (see the check's user guide for correct syntax).
+See the [action.yml](action.yml) for other input options. Global excludes for checks can be added at the action level, or inline exclude comments can be added for each check (see the check's user guide for correct syntax). Additional tflint configurations can also be added to the `tflint-configs` directory and then passed with the appropriate input option.
 
 ## Example
 

@@ -15,5 +15,5 @@ RUN pip3 install checkov
 RUN curl https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
 
 COPY entrypoint.sh /entrypoint.sh
-COPY tflint.hcl /.tflint.hcl
+COPY tflint-configs /tflint-configs
 ENTRYPOINT ["/entrypoint.sh"]
