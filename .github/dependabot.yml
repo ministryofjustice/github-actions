@@ -13,3 +13,15 @@ updates:
     directory: "/shared"
     schedule:
       interval: "daily"
+  - package-ecosystem: "gomod"
+    directory: "/approve-doc-review"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "gomod"
+    directory: "/iam-role-policy-changes-check"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "terraform"
+    directory: "/terraform-static-analysis"
+    schedule:
+      interval: "daily"
