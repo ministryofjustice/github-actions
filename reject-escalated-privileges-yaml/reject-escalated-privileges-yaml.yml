@@ -1,6 +1,0 @@
-name: Reject escalated privileges YAML
-description: Reject a PR if it the YAML grant users any escalated privileges
-
-runs:
-  using: 'docker'
-  image: 'Dockerfile'
