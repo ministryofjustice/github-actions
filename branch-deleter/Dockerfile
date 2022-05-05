@@ -1,4 +1,4 @@
-FROM ministryofjustice/cloud-platform-tools:latest
+FROM ministryofjustice/cloud-platform-tools:2.1
 
 RUN gem install octokit
 
