@@ -1,7 +1,10 @@
-FROM ruby:3.1.2-alpine3.15
+FROM ruby:2.7-alpine
 
-ENV CONFTEST_VERSION=0.31.0
+ENV CONFTEST_VERSION=0.21.0
 
+# Octokit depends on faraday, and an update to
+# faraday breaks the current version of octokit
+RUN gem install faraday --version 0.9
 RUN gem install octokit standardrb
 
 # Install conftest binary
