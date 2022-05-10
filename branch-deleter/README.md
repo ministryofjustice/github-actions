@@ -25,7 +25,7 @@ jobs:
   delete-branch-after-merge:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         if: github.event.pull_request.merged == true
       - uses: ministryofjustice/github-actions/branch-deleter@main
         if: github.event.pull_request.merged == true
