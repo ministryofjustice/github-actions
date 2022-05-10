@@ -18,7 +18,7 @@ jobs:
   conftest-yaml:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: ministryofjustice/github-actions/conftest-yaml@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
