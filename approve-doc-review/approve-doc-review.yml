@@ -1,6 +1,0 @@
-name: Approve document review PR
-description: Approve a document review if there is a single diff.
-
-runs:
-  using: 'docker'
-  image: 'Dockerfile'
