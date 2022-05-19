@@ -1,0 +1,50 @@
+name: Terraform static code analysis - reuseable workflow
+
+on:
+  workflow_call:
+    inputs:
+      terraform_working_dir:
+        description: 'define a target folder for the scan'
+        required: false
+        default: '.'
+        type: string
+
+jobs:
+  terraform-static-analysis-scan:
+    name: Terraform static code analysis - reuseable workflow
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      # security best practice: use specific version of public actions (v0.3.0)
+      - name: Hide previous PR comments
+        uses: int128/hide-comment-action@fc037dff7cacd53abfae72113f517b1413f0d8d6
+        if: ${{ github.event_name == 'pull_request' }}
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          authors: ""
+          starts-with: "####"
+
+      - name: Run Analysis
+        uses: ministryofjustice/github-actions/terraform-static-analysis@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          scan_type: single
+          tfsec_exclude: azure-compute-disable-password-authentication
+          checkov_exclude: CKV_GIT_1,CKV_AZURE_93,CKV2_AZURE_12,CKV2_AZURE_10,CKV_SECRET_6,CKV2_AZURE_1,CKV2_AZURE_18
+          terraform_working_dir: ${{ inputs.terraform_working_dir }}
+          tflint_exclude: terraform_required_version
+          tflint_config: tflint.azure.hcl
+
+# Disabling following checks for now.  These can be addressed as a separate ticket.
+# Check: CKV_AZURE_93: "Ensure that managed disks use a specific set of disk encryption sets for the customer-managed key encryption"
+# Check: CKV2_AZURE_12: "Ensure that virtual machines are backed up using Azure Backup"
+# Check: CKV2_AZURE_10: "Ensure that Microsoft Antimalware is configured to automatically updates for Virtual Machines"
+# Check: CKV2_AZURE_1: "Ensure storage for critical data are encrypted with CMKs"
+# Check: CKV2_AZURE_18: "Ensure Azure storage account encryption CMKs are enabled"
+# Check: CKV_SECRET_6: "Base64 High Entropy String"
