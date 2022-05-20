@@ -3,10 +3,32 @@ name: Terraform static code analysis - reuseable workflow
 on:
   workflow_call:
     inputs:
+      scan_type:
+        description: 'full = all tf folders, changed = tf changes, single = single folder'
+        required: false
+        default: "single"
+        type: string
       terraform_working_dir:
-        description: 'define a target folder for the scan'
+        description: 'define a target folder for the scan - does not include sub-folders'
         required: false
         default: '.'
+        type: string
+      tfsec_exclude:
+        description: 'Provide checks via , without space to exclude from run'
+        required: false
+        type: string
+      checkov_exclude:
+        description: 'Provide checks via , without space to exclude from run'
+        required: false
+        type: string
+      tflint_exclude:
+        description: 'Provide checks via , without space to exclude from run'
+        required: false
+        type: string
+      tflint_config:
+        description: 'Provide a specific config for this run (including the .hcl extension), see the "tflint-configs" folder for available configs'
+        required: false
+        default: 'tflint.default.hcl'
         type: string
 
 jobs:
@@ -34,17 +56,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          scan_type: single
-          tfsec_exclude: azure-compute-disable-password-authentication
-          checkov_exclude: CKV_GIT_1,CKV_AZURE_93,CKV2_AZURE_12,CKV2_AZURE_10,CKV_SECRET_6,CKV2_AZURE_1,CKV2_AZURE_18
+          scan_type: ${{ inputs.scan_type }}
+          tfsec_exclude: ${{ inputs.tfsec_exclude }}
+          checkov_exclude: ${{ inputs.checkov_exclude }}
           terraform_working_dir: ${{ inputs.terraform_working_dir }}
-          tflint_exclude: terraform_required_version
-          tflint_config: tflint.azure.hcl
-
-# Disabling following checks for now.  These can be addressed as a separate ticket.
-# Check: CKV_AZURE_93: "Ensure that managed disks use a specific set of disk encryption sets for the customer-managed key encryption"
-# Check: CKV2_AZURE_12: "Ensure that virtual machines are backed up using Azure Backup"
-# Check: CKV2_AZURE_10: "Ensure that Microsoft Antimalware is configured to automatically updates for Virtual Machines"
-# Check: CKV2_AZURE_1: "Ensure storage for critical data are encrypted with CMKs"
-# Check: CKV2_AZURE_18: "Ensure Azure storage account encryption CMKs are enabled"
-# Check: CKV_SECRET_6: "Base64 High Entropy String"
+          tflint_exclude: ${{ inputs.tflint_exclude }}
+          tflint_config: ${{ inputs.tflint_config }}
