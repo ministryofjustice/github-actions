@@ -110,7 +110,9 @@ run_tflint(){
     then
       if [[ -n "$INPUT_TFLINT_EXCLUDE" ]]; then
         echo "Excluding the following checks: ${INPUT_TFLINT_EXCLUDE}"
-        tflint --config $tflint_config --disable-rule="${INPUT_TFLINT_EXCLUDE}" ${terraform_working_dir} 2>&1
+        readarray -d , -t tflint_exclusions <<< $INPUT_TFLINT_EXCLUDE
+        tflint_exclusions_list=( "${tflint_exclusions[@]/#/--disable-rule=}" )
+        tflint --config $tflint_config ${tflint_exclusions_list[@]} ${terraform_working_dir} 2>&1
       else
         tflint --config $tflint_config ${terraform_working_dir} 2>&1
       fi
