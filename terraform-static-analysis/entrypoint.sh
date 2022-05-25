@@ -53,18 +53,14 @@ run_tfsec(){
     line_break
     echo "Running TFSEC in ${directory}"
     terraform_working_dir="/github/workspace/${directory}"
-    if [[ "${directory}" != *"templates"* ]]
-      if [[ -n "$INPUT_TFSEC_EXCLUDE" ]]; then
-        echo "Excluding the following checks: ${INPUT_TFSEC_EXCLUDE}"
-        /go/bin/tfsec ${terraform_working_dir} --no-colour -e "${INPUT_TFSEC_EXCLUDE}" ${INPUT_TFSEC_OUTPUT_FORMAT:+ -f "$INPUT_TFSEC_OUTPUT_FORMAT"} ${INPUT_TFSEC_OUTPUT_FILE:+ --out "$INPUT_TFSEC_OUTPUT_FILE"} 2>&1
-      else
-        /go/bin/tfsec ${terraform_working_dir} --no-colour ${INPUT_TFSEC_OUTPUT_FORMAT:+ -f "$INPUT_TFSEC_OUTPUT_FORMAT"} ${INPUT_TFSEC_OUTPUT_FILE:+ --out "$INPUT_TFSEC_OUTPUT_FILE"} 2>&1
-      fi
-      tfsec_exitcode+=$?
-      echo "tfsec_exitcode=${tfsec_exitcode}"
+    if [[ -n "$INPUT_TFSEC_EXCLUDE" ]]; then
+      echo "Excluding the following checks: ${INPUT_TFSEC_EXCLUDE}"
+      /go/bin/tfsec ${terraform_working_dir} --no-colour -e "${INPUT_TFSEC_EXCLUDE}" ${INPUT_TFSEC_OUTPUT_FORMAT:+ -f "$INPUT_TFSEC_OUTPUT_FORMAT"} ${INPUT_TFSEC_OUTPUT_FILE:+ --out "$INPUT_TFSEC_OUTPUT_FILE"} 2>&1
     else
-      echo "Skipping folder as path name contains *templates*"
+      /go/bin/tfsec ${terraform_working_dir} --no-colour ${INPUT_TFSEC_OUTPUT_FORMAT:+ -f "$INPUT_TFSEC_OUTPUT_FORMAT"} ${INPUT_TFSEC_OUTPUT_FILE:+ --out "$INPUT_TFSEC_OUTPUT_FILE"} 2>&1
     fi
+    tfsec_exitcode+=$?
+    echo "tfsec_exitcode=${tfsec_exitcode}"
   done
   return $tfsec_exitcode
 }
@@ -79,18 +75,14 @@ run_checkov(){
     line_break
     echo "Running Checkov in ${directory}"
     terraform_working_dir="/github/workspace/${directory}"
-    if [[ "${directory}" != *"templates"* ]]
-      if [[ -n "$INPUT_CHECKOV_EXCLUDE" ]]; then
-        echo "Excluding the following checks: ${INPUT_CHECKOV_EXCLUDE}"
-        checkov --quiet -d $terraform_working_dir --skip-check ${INPUT_CHECKOV_EXCLUDE} 2>&1
-      else
-        checkov --quiet -d $terraform_working_dir 2>&1
-      fi
-      checkov_exitcode+=$?
-      echo "checkov_exitcode=${checkov_exitcode}"
+    if [[ -n "$INPUT_CHECKOV_EXCLUDE" ]]; then
+      echo "Excluding the following checks: ${INPUT_CHECKOV_EXCLUDE}"
+      checkov --quiet -d $terraform_working_dir --skip-check ${INPUT_CHECKOV_EXCLUDE} 2>&1
     else
-      echo "Skipping folder as path name contains *templates*"
+      checkov --quiet -d $terraform_working_dir 2>&1
     fi
+    checkov_exitcode+=$?
+    echo "checkov_exitcode=${checkov_exitcode}"
   done
   return $checkov_exitcode
 }
