@@ -1,6 +1,6 @@
 FROM ruby:3.1.2-alpine3.15
 
-ENV TERRAFORM_VERSION=1.1.9
+ENV TERRAFORM_VERSION=1.2.1
 
 ENV CFN_FORMATTER_VERSION=v1.1.2-1
 
@@ -13,6 +13,7 @@ RUN apk add libc6-compat
 RUN wget https://github.com/awslabs/aws-cloudformation-template-formatter/releases/download/${CFN_FORMATTER_VERSION}/cfn-format-${CFN_FORMATTER_VERSION}_linux-amd64.zip \
   && unzip -d /usr/local/bin cfn-format-${CFN_FORMATTER_VERSION}_linux-amd64.zip cfn-format-${CFN_FORMATTER_VERSION}_linux-amd64/cfn-format -j
 
+RUN gem install faraday-retry
 RUN gem install octokit
 RUN gem install standardrb
 
