@@ -11,7 +11,7 @@ class Executor
       puts stdout
     else
       puts stderr
-      raise "Error running: #{cmd}"
+#       raise "Error running: #{cmd}"
     end
   end
 end
