@@ -6,7 +6,14 @@ jobs:
   format-code:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.0.2
+      - uses: actions/checkout@v3
+      - name: GH/Git Issue
+        run: |
+          # FIXME: The owner UID of the GITHUB_WORKSPACE directory may not
+          #        match the container user UID because of the way GitHub
+          #        Actions runner is implemented. Remove this workaround when
+          #        GitHub comes up with a fundamental fix for this problem.
+          git config --global --add safe.directory ${GITHUB_WORKSPACE}
       - uses: ministryofjustice/github-actions/code-formatter@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
