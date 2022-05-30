@@ -6,7 +6,13 @@ require "open3"
 class Executor
   def execute(cmd)
     puts "Running: #{cmd}"
-    Open3.capture3(cmd)
+    stdout, stderr, status = Open3.capture3(cmd)
+    if status.success?
+      puts stdout
+    else
+      puts stderr
+      raise "Error running: #{cmd}"
+    end
   end
 end
 
