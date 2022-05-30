@@ -68,6 +68,12 @@ class GithubClient
   private
 
   def modified_files
+    unless ENV.key?("GITHUB_WORKSPACE")
+          raise "No GITHUB_WORKSPACE env var found"
+    end
+
+#     workspace = ENV["GITHUB_WORKSPACE"]
+    executor.execute "git config --global --add safe.directory '*'"
     stdout, _stderr, _status = executor.execute("git status --porcelain=1 --untracked-files=no")
 
     stdout
