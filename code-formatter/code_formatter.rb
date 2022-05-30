@@ -16,7 +16,7 @@ class CodeFormatter
 
   def format_terraform_code
     terraform_directories_in_pr.each do |dir|
-      executor.execute "terraform fmt #{dir}"
+      executor.execute "terraform fmt -recursive #{dir}"
     end
   end
 
