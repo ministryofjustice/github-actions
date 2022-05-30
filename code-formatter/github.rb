@@ -74,11 +74,11 @@ class GithubClient
 
 #     workspace = ENV["GITHUB_WORKSPACE"]
     executor.execute "git config --global --add safe.directory '*'"
-    stdout, _stderr, _status = executor.execute("git status --porcelain=1 --untracked-files=no")
+#     stdout, _stderr, _status = executor.execute("git status --porcelain=1 --untracked-files=no")
 
-    stdout
-      .split("\n")
-      .map { |line| line.sub(" M ", "") }
+#     stdout
+#       .split("\n")
+#       .map { |line| line.sub(" M ", "") }
   end
 
   def commit_files(files, commit_message)
