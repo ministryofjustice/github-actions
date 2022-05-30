@@ -21,7 +21,7 @@ RUN gem install standardrb
 
 RUN apk add git
 
-RUN git config --global --add safe.directory GITHUB_WORKSPACE
+RUN git config --global --add safe.directory $GITHUB_WORKSPACE
 
 COPY format-code.rb /format-code.rb
 COPY github.rb /github.rb
