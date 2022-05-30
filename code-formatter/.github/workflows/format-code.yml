@@ -17,3 +17,4 @@ jobs:
       - uses: ministryofjustice/github-actions/code-formatter@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_WORKSPACE: ${GITHUB_WORKSPACE}

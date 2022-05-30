@@ -1,5 +1,7 @@
 FROM ruby:2.6-alpine
 
+ARG GITHUB_WORKSPACE=${GITHUB_WORKSPACE}
+
 ENV TERRAFORM_VERSION=0.14.8
 ENV CFN_FORMATTER_VERSION=v1.1.2-1
 # Install terraform
@@ -18,6 +20,8 @@ RUN gem install octokit --version 4.21.0
 RUN gem install standardrb
 
 RUN apk add git
+
+RUN git config --global --add safe.directory $GITHUB_WORKSPACE
 
 COPY format-code.rb /format-code.rb
 COPY github.rb /github.rb
