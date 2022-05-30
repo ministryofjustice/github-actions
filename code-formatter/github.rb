@@ -72,7 +72,7 @@ class GithubClient
       raise "No GITHUB_WORKSPACE env var found"
     end
 
-    workspace = ENV["GITHUB_WORKSPACE"]
+#     workspace = ENV["GITHUB_WORKSPACE"]
     stdout, _stderr, _status = executor.execute("git config --global --add safe.directory '*' && git status --porcelain=1 --untracked-files=no")
 
     stdout
