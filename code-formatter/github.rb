@@ -10,6 +10,7 @@ class Executor
     if status.success?
       puts stdout
     else
+      puts stderr
       raise "Error running: #{cmd}"
     end
   end
