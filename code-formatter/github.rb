@@ -73,7 +73,7 @@ class GithubClient
     end
 
     workspace = ENV["GITHUB_WORKSPACE"]
-    stdout, _stderr, _status = executor.execute("git config --global --add safe.directory #{workspace} && git status --porcelain=1 --untracked-files=no")
+    stdout, _stderr, _status = executor.execute("git config --global --add safe.directory '*' && git status --porcelain=1 --untracked-files=no")
 
     stdout
       .split("\n")
