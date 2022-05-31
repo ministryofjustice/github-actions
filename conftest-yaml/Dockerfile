@@ -1,8 +1,12 @@
-FROM ruby:3.1.2-alpine3.15
+FROM ruby:2.6-alpine
 
 ENV CONFTEST_VERSION=0.32.0
 
-RUN gem install octokit standardrb
+# Octokit depends on faraday, and an update to
+# faraday breaks the current version of octokit
+RUN gem install faraday --version 0.9
+RUN gem install octokit --version 4.21.0
+RUN gem install standardrb
 
 # Install conftest binary
 RUN wget https://github.com/open-policy-agent/conftest/releases/download/v${CONFTEST_VERSION}/conftest_${CONFTEST_VERSION}_Linux_x86_64.tar.gz \
