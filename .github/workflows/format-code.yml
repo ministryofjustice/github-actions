@@ -1,6 +1,7 @@
 on:
-  pull_request:
-    types: [opened, edited, reopened, synchronize]
+  workflow_dispatch:
+  # pull_request:
+  #   types: [opened, edited, reopened, synchronize]
 
 jobs:
   format-code:
