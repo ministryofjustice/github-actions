@@ -7,12 +7,6 @@ class Executor
   def execute(cmd)
     puts "Running: #{cmd}"
     stdout, stderr, status = Open3.capture3(cmd)
-    if status.success?
-      puts stdout
-    # else
-    #   puts stderr
-    #   raise "Error running: #{cmd}"
-    end
   end
 end
 
@@ -68,7 +62,8 @@ class GithubClient
   private
 
   def modified_files
-    _stdout, _stderr, _status = executor.execute("git status --porcelain=1 --untracked-files=no")
+    cmd = "git status --porcelain=1 --untracked-files=no"
+    _stdout, _stderr, _status = Open3.capture3(cmd)
     if _status.success?
       _stdout.split("\n").map { |line| line.sub(" M ", "") }
     else
