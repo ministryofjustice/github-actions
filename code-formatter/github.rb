@@ -69,10 +69,12 @@ class GithubClient
 
   def modified_files
     stdout, _stderr, _status = executor.execute("git status --porcelain=1 --untracked-files=no")
-
-    stdout
-      .split("\n")
-      .map { |line| line.sub(" M ", "") }
+    if status.success?
+      stdout.split("\n").map { |line| line.sub(" M ", "") }
+    else
+      puts stderr
+      raise "Error running: #{cmd}"
+    end
   end
 
   def commit_files(files, commit_message)
