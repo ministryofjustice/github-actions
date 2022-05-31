@@ -8,8 +8,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: ministryofjustice/github-actions/code-formatter@${GITHUB_REF}
-        with:
-          workspace: ${GITHUB_WORKSPACE}
+      - uses: ministryofjustice/github-actions/code-formatter@$GITHUB_REF
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
