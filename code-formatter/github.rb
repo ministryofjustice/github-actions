@@ -63,18 +63,20 @@ class GithubClient
 
   def modified_files
     cmd = 'git config --global --add safe.directory /github/workspace'
-    _stdout1, _stderr1, _status1 = Open3.capture3(cmd)
-     if _status1.success?
+    _stdout0, _stderr0, _status0 = execute.execute(cmd)
+     if _status0.success?
       puts cmd
     else
-       puts _stderr1
+       puts _stderr0
+       raise "Error running: #{cmd}"
     end
+
     cmd = "git status --porcelain=1 --untracked-files=no"
-    _stdout, _stderr, _status = Open3.capture3(cmd)
-    if _status.success?
-      _stdout.split("\n").map { |line| line.sub(" M ", "") }
+    _stdout1, _stderr1, _status1 = execute.execute(cmd)
+    if _status1.success?
+      _stdout1.split("\n").map { |line| line.sub(" M ", "") }
     else
-      puts _stderr
+      puts _stderr1
       raise "Error running: #{cmd}"
     end
   end
