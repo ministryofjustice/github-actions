@@ -9,7 +9,5 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: ministryofjustice/github-actions/code-formatter@main
-        with:
-          workspace: ${GITHUB_WORKSPACE}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
