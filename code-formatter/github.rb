@@ -46,7 +46,7 @@ class GithubClient
   end
 
   def reject_pr(message)
-    puts "Requesting changes..."
+    puts "Requesting changes..."  
     puts message
 
     client.create_pull_request_review(
