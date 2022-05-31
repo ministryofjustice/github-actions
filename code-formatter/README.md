@@ -14,6 +14,7 @@ following contents:
 
 ```
 on:
+  workflow_dispatch:
   pull_request:
     types: [opened, edited, reopened, synchronize]
 
@@ -39,3 +40,7 @@ If you want to add a code formatter for another language, you need to:
 * Modify `shared/code_formatter.rb` to
   * Identify files in the PR in the relevant language (by filename suffix)
   * Add a method to run the formatter, targeting each file
+
+## Update Code-Formatter
+
+Octokit and Faraday are fixed and work together in this version. If update Octokit and Faraday there are breaking changes.
