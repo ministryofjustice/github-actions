@@ -1,14 +1,6 @@
 name: Run code formatters
 description: Apply standard code formats to the files in the pull request
 
-inputs:
-  workspace:  # id of input
-    description: 'git workspace path'
-    required: true
-    default: ''
-
 runs:
   using: 'docker'
   image: 'Dockerfile'
-  args:
-    - ${{ inputs.workspace }}

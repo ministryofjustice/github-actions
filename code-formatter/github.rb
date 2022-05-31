@@ -9,9 +9,9 @@ class Executor
     stdout, stderr, status = Open3.capture3(cmd)
     if status.success?
       puts stdout
-    else
-      puts stderr
-      raise "Error running: #{cmd}"
+    # else
+    #   puts stderr
+    #   raise "Error running: #{cmd}"
     end
   end
 end
