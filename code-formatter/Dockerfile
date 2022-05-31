@@ -15,6 +15,7 @@ RUN wget https://github.com/awslabs/aws-cloudformation-template-formatter/releas
 
 RUN gem install octokit
 RUN gem install standardrb
+RUN gem install faraday-retry
 
 RUN apk add git
 
