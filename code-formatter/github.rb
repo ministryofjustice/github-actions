@@ -65,7 +65,7 @@ class GithubClient
     cmd = 'git config --global --add safe.directory /github/workspace'
     _stdout1, _stderr1, _status1 = Open3.capture3(cmd)
      if _status1.success?
-      puts _stdout1
+      puts cmd
     else
        puts _stderr1
     end
