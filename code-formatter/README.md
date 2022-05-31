@@ -1,8 +1,10 @@
-# Code Formatter
+# PR Code Formatter
 
-A Github Action to apply code formatters to PRs, and commit any resulting changes.
+A Github Action to apply code formatting to file in **PRs only**. CI GH Action will run and automatically commit to the same branch when there is a difference in files in the PR.
 
-The following formatters will be applied:
+Supports Ruby and Terraform file formatting.
+
+Uses these formatters:
 
 * `*.tf` files -> `terraform fmt`
 * `*.rb` files -> `standardrb --fix`
@@ -14,6 +16,7 @@ following contents:
 
 ```
 on:
+  # Run the GH Action when the a PR is open.
   workflow_dispatch:
   pull_request:
     types: [opened, edited, reopened, synchronize]
