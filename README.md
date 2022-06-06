@@ -7,10 +7,8 @@ A collection of github actions.
 <!-- markdownlint-disable MD013 -->
 | Action       | Description                                              |
 |--------------|----------------------------------------------------------|
-| [branch-deleter](branch-deleter) | Delete a branch after its PR is merged |
 | [code-formatter](code-formatter) | Run various code formatters against a PR, and commit the results |
-| [conftest-yaml](conftest-yaml) | Use [Conftest] to check your YAML against Rego policies |
-| [iam-role-policy-changes-check](iam-role-policy-changes-check) |  |
+| [iam-role-policy-changes-check](iam-role-policy-changes-check) | Reject PR if it contains IAM related content |
 | [malformed-yaml](malformed-yaml) | Reject a PR if it contains malformed YAML files |
 | [reject-multi-namespace-prs](reject-multi-namespace-prs) | Reject a PR if it affects multiple namespace folders |
 | [terraform-static-analysis](terraform-static-analysis) | Runs TFSec, Checkov and TFlint against Terraform |
