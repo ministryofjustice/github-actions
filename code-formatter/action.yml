@@ -22,7 +22,9 @@ runs:
         git add --ignore-removal .
         git commit -m "Code-Formatter change/s."
         ls -al
-        echo ${GITHUB_BASE_REF}
+        echo ${GITHUB_HEAD_REF}
+        echo ${GITHUB_REF}
+        echo ${GITHUB_REF_NAME}
         git status
       shell: bash    
         # git push origin HEAD:${GITHUB_REF#refs/heads/}
