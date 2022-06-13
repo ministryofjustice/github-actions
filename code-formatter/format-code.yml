@@ -1,6 +1,0 @@
-name: Run code formatters
-description: Apply standard code formats to the files in the pull request
-
-runs:
-  using: 'docker'
-  image: 'Dockerfile'
