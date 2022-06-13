@@ -1,0 +1,16 @@
+name: 'Code-Formatter'
+desciption: 'Format Ruby, Terraform, YAML, Python, Markdown and JSON file within a PR'
+runs:
+  using: "composite"
+  steps:
+    - run: terraform fmt
+      shell: bash
+    - run: gem install standardrb && standardrb --fix
+      shell: bash
+    - run: pip3 install black && python3 -m black **/*.py
+      shell: bash
+    - run: npm install prettier && npx prettier --print-width=150 --write "**/*.{yml,yaml,md,json}"
+      shell: bash
+    - uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: Code-Formatter change/s.
