@@ -6,6 +6,8 @@ runs:
     - run: terraform fmt
       shell: bash
     - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.0'
     - run: ls -al
       shell: bash
     - run: BUNDLE_GEMFILE=Gemfile bundle install && bundle standardrb --fix
