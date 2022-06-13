@@ -10,8 +10,8 @@ runs:
         repository: https://github.com/ministryofjustice/github-actions
         ref: new-code-formatter
         path: code-formatter
-    env:
-      BUNDLE_GEMFILE: ${{ github.workspace }}/code-formatter/Gemfile        
+    - env:
+        BUNDLE_GEMFILE: ${{ github.workspace }}/code-formatter/Gemfile        
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: '3.0'
