@@ -8,9 +8,14 @@ runs:
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: '3.0'
+    - uses: actions/checkout@v3
+      with:
+        repository: ministryofjustice/github-actions
+        ref: new-code-formatter
+        path: code-formatter            
     - run: ls -al
       shell: bash
-    - run: BUNDLE_GEMFILE=Gemfile bundle install && bundle standardrb --fix
+    - run: BUNDLE_GEMFILE=code-formatter/Gemfile bundle install && bundle standardrb --fix
       shell: bash
     - run: pip3 install black && python3 -m black **/*.py
       shell: bash
