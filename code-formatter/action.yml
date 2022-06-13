@@ -1,9 +1,7 @@
 name: 'Code-Formatter'
 desciption: 'Format Ruby, Terraform, YAML, Python, Markdown and JSON file within a PR'
 runs:
-  using: "composite"
-  env:
-    BUNDLE_GEMFILE: ${{ github.workspace }}/code-formatter/Gemfile   
+  using: "composite"  
   steps:
     - run: terraform fmt
       shell: bash
