@@ -5,16 +5,9 @@ runs:
   steps:
     - run: terraform fmt
       shell: bash
-    - uses: actions/checkout@v3
-      with:
-        repository: ministryofjustice/github-actions
-        ref: new-code-formatter
-        path: code-formatter     
     - uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: '3.0'
-        bundler-cache: true
-    - run: bundle standardrb --fix
+    - run: ls -al
+    - run: BUNDLE_GEMFILE=Gemfile bundle install && bundle standardrb --fix
       shell: bash
     - run: pip3 install black && python3 -m black **/*.py
       shell: bash
