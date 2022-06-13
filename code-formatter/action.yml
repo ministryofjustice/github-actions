@@ -8,21 +8,16 @@ runs:
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: '3.0'
-    - uses: actions/checkout@v3
-      with:
-        repository: ministryofjustice/github-actions
-        ref: new-code-formatter
-        path: code-formatter            
-    - run: ls -al code-formatter
-      shell: bash
-    - run: BUNDLE_GEMFILE=code-formatter/code-formatter/Gemfile bundle install && bundle standardrb --fix
+    - run: bundle init && bundle add standardrb && bundle exec standardrb --fix
       shell: bash
     - run: pip3 install black && python3 -m black **/*.py
       shell: bash
     - run: npm install prettier && npx prettier --print-width=150 --write "**/*.{yml,yaml,md,json}"
       shell: bash
-    - run: rm -rf code-formatter
+    - run: ls -al
+      shell: bash
+    - run: rm -rf Gemfile Gemfile.lock
       shell: bash      
-    - uses: stefanzweifel/git-auto-commit-action@v4
-      with:
-        commit_message: Code-Formatter change/s.
+    # - uses: stefanzweifel/git-auto-commit-action@v4
+    #   with:
+    #     commit_message: Code-Formatter change/s.
