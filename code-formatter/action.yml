@@ -5,7 +5,7 @@ runs:
   steps:
     - run: terraform fmt
       shell: bash
-    - run: gem install standardrb && standardrb --fix
+    - run: gem install standardrb --user-install && standardrb --fix
       shell: bash
     - run: pip3 install black && python3 -m black **/*.py
       shell: bash
