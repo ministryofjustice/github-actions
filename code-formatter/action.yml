@@ -5,11 +5,12 @@ runs:
   steps:
     - run: terraform fmt
       shell: bash
+    - uses: actions/checkout@v3
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: '3.0'
         bundler-cache: true
-    - run: bundle install && bundle standardrb --fix
+    - run: bundle standardrb --fix
       shell: bash
     - run: pip3 install black && python3 -m black **/*.py
       shell: bash
