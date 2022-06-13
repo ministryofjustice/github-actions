@@ -7,6 +7,10 @@ runs:
       with:
         ruby-version: '3.0'
     - run: | 
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git switch ${GITHUB_HEAD_REF}
+        git pull
         terraform fmt -recursive
         bundle init
         bundle add standardrb
@@ -16,9 +20,6 @@ runs:
         npm install prettier
         npx prettier --print-width=150 --write "**/*.{yml,yaml,md,json}"
         rm -rf Gemfile Gemfile.lock package-lock.json package.json node_modules namespaces
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git pull
         git status
         git add --ignore-removal .
         git commit -m "Code-Formatter change/s."
