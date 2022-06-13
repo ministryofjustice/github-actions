@@ -3,36 +3,29 @@ desciption: 'Format Ruby, Terraform, YAML, Python, Markdown and JSON file within
 runs:
   using: "composite"  
   steps:
-    - run: |
-        terraform fmt
-      shell: bash
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: '3.0'
     - run: | 
+        terraform fmt
         bundle init
         bundle add standardrb
         bundle exec standardrb --fix
-      shell: bash
-    - run: |
         pip3 install autopep8
         python3 -m autopep8 --in-place -r .
-      shell: bash
-    - run: |
         npm install prettier
         npx prettier --print-width=150 --write "**/*.{yml,yaml,md,json}"
-      shell: bash
-    - run: ls -al
-      shell: bash
-    - run: rm -rf Gemfile Gemfile.lock package-lock.json package.json node_modules namespaces
-      shell: bash
-    - run: |
+        rm -rf Gemfile Gemfile.lock package-lock.json package.json node_modules namespaces
+        ls -al
         git config user.name github-actions
         git config user.email github-actions@github.com
+        git status
         git add . 
         git commit -m "Code-Formatter change/s."
-        git push origin HEAD:${GITHUB_REF#refs/heads/}
+        ls -al
+        echo ${GITHUB_REF#refs/heads/}
       shell: bash    
+        # git push origin HEAD:${GITHUB_REF#refs/heads/}
     # - uses: stefanzweifel/git-auto-commit-action@v4
     #   with:
     #     commit_message: Code-Formatter change/s.
