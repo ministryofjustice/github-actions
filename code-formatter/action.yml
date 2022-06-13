@@ -10,7 +10,7 @@ runs:
         ruby-version: '3.0'
     - run: bundle init && bundle add standardrb && bundle exec standardrb --fix
       shell: bash
-    - run: pip3 install black && python3 -m black ./**/*.py
+    - run: pip3 install autopep8 && python3 -m autopep8 --in-place -r .
       shell: bash
     - run: npm install prettier && npx prettier --print-width=150 --write "**/*.{yml,yaml,md,json}"
       shell: bash
