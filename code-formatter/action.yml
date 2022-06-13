@@ -7,7 +7,7 @@ runs:
       with:
         ruby-version: '3.0'
     - run: | 
-        terraform fmt
+        terraform fmt -recursive
         bundle init
         bundle add standardrb
         bundle exec standardrb --fix
@@ -22,7 +22,8 @@ runs:
         git add --ignore-removal .
         git commit -m "Code-Formatter change/s."
         ls -al
-        echo ${GITHUB_REF_NAME}
+        echo ${GITHUB_BASE_REF}
+        git status
       shell: bash    
         # git push origin HEAD:${GITHUB_REF#refs/heads/}
     # - uses: stefanzweifel/git-auto-commit-action@v4
