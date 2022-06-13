@@ -16,14 +16,13 @@ runs:
         npm install prettier
         npx prettier --print-width=150 --write "**/*.{yml,yaml,md,json}"
         rm -rf Gemfile Gemfile.lock package-lock.json package.json node_modules namespaces
-        ls -al
         git config user.name github-actions
         git config user.email github-actions@github.com
         git status
-        git add . 
+        git add --ignore-removal .
         git commit -m "Code-Formatter change/s."
         ls -al
-        echo ${GITHUB_REF#refs/heads/}
+        echo ${GITHUB_REF_NAME}
       shell: bash    
         # git push origin HEAD:${GITHUB_REF#refs/heads/}
     # - uses: stefanzweifel/git-auto-commit-action@v4
