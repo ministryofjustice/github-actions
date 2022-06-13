@@ -6,6 +6,12 @@ runs:
     - run: terraform fmt
       shell: bash
     - uses: actions/checkout@v3
+      with:
+        repository: 'https://github.com/ministryofjustice/github-actions'
+        ref: 'new-code-formatter'
+        path: 'code-formatter'
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/code-formatter/Gemfile        
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: '3.0'
