@@ -8,8 +8,7 @@ runs:
         ruby-version: '3.0'
     - run: | 
         echo ${GITHUB_HEAD_REF}
-        git checkout ${GITHUB_HEAD_REF}
-        git pull
+        git switch -c code-formatter
         git status
         git config user.name github-actions
         git config user.email github-actions@github.com
