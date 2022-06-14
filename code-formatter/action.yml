@@ -19,8 +19,10 @@ runs:
         git config user.email 'github-actions[bot]@users.noreply.github.com'
         git fetch origin $GITHUB_BASE_REF --depth=1
         base_branch_sha=${{ github.event.pull_request.base.sha }}
-        branch_sha=${{ github.event.pull_request.head.sha }}
-        git diff-tree -r --no-commit-id --name-only --diff-filter=ACMRT $base_branch_sha $branch_sha > modified_files.txt
+        head_branch_sha=${{ github.event.pull_request.head.sha }}
+        echo $base_branch_sha
+        echo $head_branch_sha
+        git diff-tree -r --no-commit-id --name-only --diff-filter=ACMRT $base_branch_sha $head_branch_sha > modified_files.txt
         chmod 755 modified_files.txt
         while IFS= read -r file
         do
