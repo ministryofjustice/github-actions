@@ -25,6 +25,8 @@ runs:
         git add --ignore-removal .
         git commit -m "Code-Formatter change/s."
         git status
+        git fetch
+        git branch -r
         git checkout ${GITHUB_HEAD_REF}
         git pull
         git merge code-formatter
