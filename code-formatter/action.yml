@@ -17,11 +17,8 @@ runs:
         bundle add standardrb
         git config user.name 'github-actions[bot]'
         git config user.email 'github-actions[bot]@users.noreply.github.com'
-        git fetch origin $GITHUB_BASE_REF --depth=1
         base_branch_sha=${{ github.event.pull_request.base.sha }}
         branch_sha=${{ github.event.pull_request.head.sha }}
-        echo $base_branch_sha
-        echo $branch_sha
         git diff-tree -r --no-commit-id --name-only --diff-filter=ACMRT $base_branch_sha $branch_sha > modified_files.txt
         chmod 755 modified_files.txt
         while IFS= read -r file
@@ -29,16 +26,16 @@ runs:
           echo "$file"
           if [[ $file == *".py"* ]]; then
             echo "It's a python file!"
-            python3 -m autopep8 --in-place -r .
+            python3 -m autopep8 --in-place $file
           elif [[ $file == *".rb"* ]]; then
             echo "It's a ruby file!"
-            bundle exec standardrb --fix
+            bundle exec standardrb --fix $file
           elif [[ $file == *".tf"* ]]; then
             echo "It's a terraform file!"
-            terraform fmt -recursive
+            terraform fmt $file
           elif [[ $file == *".yaml"* || $file == *".yml"* || $file == *".md"* || $file == *".json"* ]]; then
             echo "It's a yml,yaml,md,json file!"
-            npx prettier --print-width=150 --write "**/*.{yml,yaml,md,json}"
+            npx prettier --print-width=150 --write $file
           fi
         done < modified_files.txt
         rm -rf Gemfile Gemfile.lock package-lock.json package.json node_modules namespaces modified_files.txt
