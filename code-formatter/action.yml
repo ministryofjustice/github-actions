@@ -19,6 +19,7 @@ runs:
         git config user.email 'github-actions[bot]@users.noreply.github.com'
         git fetch origin $GITHUB_BASE_REF --depth=50
         base_branch_sha=${{ github.event.pull_request.base.sha }}
+        git fetch origin --depth=50
         head_branch_sha=${{ github.event.pull_request.head.sha }}
         echo $base_branch_sha
         echo $head_branch_sha
