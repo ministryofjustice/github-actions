@@ -19,6 +19,8 @@ runs:
         git config user.email 'github-actions[bot]@users.noreply.github.com'
         base_branch_sha=$(git rev-parse --short "$GITHUB_BASE_REF")
         branch_sha=$(git rev-parse --short ${GITHUB_REF_NAME})
+        echo $base_branch_sha
+        echo $branch_sha
         git diff-tree -r --no-commit-id --name-only --diff-filter=ACMRT $base_branch_sha $branch_sha > modified_files.txt
         chmod 755 modified_files.txt
         while IFS= read -r line
