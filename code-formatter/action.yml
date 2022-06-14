@@ -27,14 +27,14 @@ runs:
         git status
         git fetch
         git branch -r
-        git checkout ${GITHUB_REF}
+        git checkout ${GITHUB_REF_NAME}
         git pull
         git merge code-formatter
         git status
         git push
         git status
       shell: bash    
-    # git push origin HEAD:${GITHUB_REF}
+    # git push origin HEAD:${GITHUB_REF_NAME}
     # - uses: stefanzweifel/git-auto-commit-action@v4
     #   with:
     #     commit_message: Code-Formatter change/s.
