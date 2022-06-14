@@ -5,7 +5,7 @@ runs:
   steps:
     - uses: actions/checkout@v3
       with:
-        repository: ministryofjustice/github-actions
+        repository: ${GITHUB_REPOSITORY}
         ref: ${GITHUB_HEAD_REF}
     - uses: ruby/setup-ruby@v1
       with:
