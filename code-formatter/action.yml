@@ -40,7 +40,7 @@ runs:
             echo "It's a yml,yaml,md,json file!"
             npx prettier --print-width=150 --write "**/*.{yml,yaml,md,json}"
           fi
-        done < "$input"
+        done < modified_files.txt
         rm -rf Gemfile Gemfile.lock package-lock.json package.json node_modules namespaces modified_files.txt
         git ls-files --deleted -z | git update-index --assume-unchanged -z --stdin
         if [ -n "$(git status --porcelain=1 --untracked-files=no)" ]; then
