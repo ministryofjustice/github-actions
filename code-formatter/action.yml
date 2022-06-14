@@ -17,8 +17,8 @@ runs:
         bundle add standardrb
         git config user.name 'github-actions[bot]'
         git config user.email 'github-actions[bot]@users.noreply.github.com'
-        base_branch_sha=$(git rev-parse ${GITHUB_BASE_REF})
-        branch_sha=$(git rev-parse ${GITHUB_REF_NAME})
+        base_branch_sha=$(git rev-parse --short "$GITHUB_BASE_REF")
+        branch_sha=$(git rev-parse --short ${GITHUB_REF_NAME})
         git diff-tree -r --no-commit-id --name-only --diff-filter=ACMRT $base_branch_sha $branch_sha > modified_files.txt
         chmod 755 modified_files.txt
         while IFS= read -r line
@@ -29,7 +29,7 @@ runs:
             python3 -m autopep8 --in-place -r .
           elif [[ $line == *".rb"* ]]; then
             echo "It's a ruby file!"
-            bundle exec standardrb --fix            
+            bundle exec standardrb --fix
           elif [[ $line == *".tf"* ]]; then
             echo "It's a terraform file!"
             terraform fmt -recursive
@@ -47,4 +47,4 @@ runs:
         else
           echo "No Code Formatter changes";
         fi
-      shell: bash 
+      shell: bash
