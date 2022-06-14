@@ -17,8 +17,6 @@ runs:
         bundle add standardrb
         git config user.name 'github-actions[bot]'
         git config user.email 'github-actions[bot]@users.noreply.github.com'
-        git rev-parse --short main
-        git log -1 --format="%H"
         git fetch origin $GITHUB_BASE_REF --depth=1
         base_branch_sha=${{ github.event.pull_request.base.sha }}
         branch_sha=${{ github.event.pull_request.head.sha }}
