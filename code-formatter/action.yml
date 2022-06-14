@@ -3,13 +3,15 @@ desciption: 'Format Ruby, Terraform, YAML, Python, Markdown and JSON file within
 runs:
   using: "composite"  
   steps:
+    - uses: actions/checkout@v3
+      with:
+        repository: ministryofjustice/github-actions
+        ref: ${GITHUB_HEAD_REF}
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: '3.0'
     - run: | 
-        echo ${GITHUB_HEAD_REF}
         git branch -r
-        git checkout -b code-formatter ${GITHUB_HEAD_REF}
         git status
         git config user.name github-actions
         git config user.email github-actions@github.com
@@ -26,15 +28,9 @@ runs:
         git add --ignore-removal .
         git commit -m "Code-Formatter change/s."
         git status
-        git fetch
-        git branch -r
-        git checkout ${GITHUB_HEAD_REF}
-        git pull
-        git merge --no-ff code-formatter
-        git status
         git push
-        git status
-      shell: bash    
+      shell: bash 
+    # git checkout -b code-formatter ${GITHUB_HEAD_REF} 
     # git push origin HEAD:${GITHUB_REF_NAME}
     # - uses: stefanzweifel/git-auto-commit-action@v4
     #   with:
