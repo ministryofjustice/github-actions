@@ -7,10 +7,12 @@ runs:
       with:
         ruby-version: '3.0'
     - run: | 
+        echo ${GITHUB_HEAD_REF}
+        git checkout ${GITHUB_HEAD_REF}
+        git pull
+        git status
         git config user.name github-actions
         git config user.email github-actions@github.com
-        git config pull.ff only
-        git pull origin ${GITHUB_HEAD_REF}
         terraform fmt -recursive
         bundle init
         bundle add standardrb
@@ -24,7 +26,6 @@ runs:
         git add --ignore-removal .
         git commit -m "Code-Formatter change/s."
         git push origin HEAD:${GITHUB_HEAD_REF}
-        echo ${GITHUB_HEAD_REF}
         git status
       shell: bash    
     # - uses: stefanzweifel/git-auto-commit-action@v4
