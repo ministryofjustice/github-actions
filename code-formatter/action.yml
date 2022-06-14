@@ -9,7 +9,6 @@ runs:
     - run: | 
         echo ${GITHUB_HEAD_REF}
         git switch -c code-formatter
-        git fetch
         git status
         git config user.name github-actions
         git config user.email github-actions@github.com
@@ -25,6 +24,11 @@ runs:
         git status
         git add --ignore-removal .
         git commit -m "Code-Formatter change/s."
+        git status
+        git checkout ${GITHUB_HEAD_REF}
+        git pull
+        git merge code-formatter
+        git status
         git push origin HEAD:${GITHUB_HEAD_REF}
         git status
       shell: bash    
