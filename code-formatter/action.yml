@@ -11,8 +11,6 @@ runs:
       with:
         ruby-version: '3.0'
     - run: | 
-        git branch -r
-        git status
         git config user.name 'github-actions[bot]'
         git config user.email 'github-actions[bot]@users.noreply.github.com'
         terraform fmt -recursive
