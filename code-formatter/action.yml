@@ -27,7 +27,7 @@ runs:
         git status
         git fetch
         git branch -r
-        git checkout ${GITHUB_REF_NAME}
+        git checkout pull/${GITHUB_REF_NAME}
         git pull
         git merge code-formatter
         git status
