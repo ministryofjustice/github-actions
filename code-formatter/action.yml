@@ -8,6 +8,7 @@ runs:
         ruby-version: '3.0'
     - run: | 
         echo ${GITHUB_HEAD_REF}
+        git branch -r
         git checkout -b code-formatter ${GITHUB_HEAD_REF}
         git status
         git config user.name github-actions
