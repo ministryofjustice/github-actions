@@ -24,9 +24,13 @@ runs:
         npm install prettier
         npx prettier --print-width=150 --write "**/*.{yml,yaml,md,json}"
         rm -rf Gemfile Gemfile.lock package-lock.json package.json node_modules namespaces
-        git status
-        git add --ignore-removal .
-        git commit -m "Commit changes made by code formatters"
-        git status
-        git push
+        if [ -n "$(git status --porcelain=1 --untracked-files=no)" ]; then
+          git status
+          git add --ignore-removal .
+          git commit -m "Commit changes made by code formatters"
+          git status
+          git push
+        else
+          echo "no changes";
+        fi
       shell: bash 
