@@ -5,7 +5,7 @@ runs:
   steps:
     - uses: actions/checkout@v3
       with:
-        repository: ${GITHUB_REPOSITORY}
+        repository: ${{ github.repository }}
         ref: ${GITHUB_HEAD_REF}
     - uses: ruby/setup-ruby@v1
       with:
