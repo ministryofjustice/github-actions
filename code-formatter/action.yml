@@ -9,6 +9,7 @@ runs:
     - run: | 
         echo ${GITHUB_HEAD_REF}
         git switch -c code-formatter
+        git fetch
         git status
         git config user.name github-actions
         git config user.email github-actions@github.com
