@@ -17,4 +17,39 @@ runs:
         bundle add standardrb
         git config user.name 'github-actions[bot]'
         git config user.email 'github-actions[bot]@users.noreply.github.com'
+        git rev-parse --short main
+        git log -1 --format="%H"
+        git fetch origin $GITHUB_BASE_REF --depth=1
+        base_branch_sha=${{ github.event.pull_request.base.sha }}
+        branch_sha=${{ github.event.pull_request.head.sha }}
+        echo $base_branch_sha
+        echo $branch_sha
+        git diff-tree -r --no-commit-id --name-only --diff-filter=ACMRT $base_branch_sha $branch_sha > modified_files.txt
+        chmod 755 modified_files.txt
+        while IFS= read -r file
+        do
+          echo "$file"
+          if [[ $file == *".py"* ]]; then
+            echo "It's a python file!"
+            python3 -m autopep8 --in-place -r .
+          elif [[ $file == *".rb"* ]]; then
+            echo "It's a ruby file!"
+            bundle exec standardrb --fix
+          elif [[ $file == *".tf"* ]]; then
+            echo "It's a terraform file!"
+            terraform fmt -recursive
+          elif [[ $file == *".yaml"* || $file == *".yml"* || $file == *".md"* || $file == *".json"* ]]; then
+            echo "It's a yml,yaml,md,json file!"
+            npx prettier --print-width=150 --write "**/*.{yml,yaml,md,json}"
+          fi
+        done < "$input"
+        rm -rf Gemfile Gemfile.lock package-lock.json package.json node_modules namespaces modified_files.txt
+        git ls-files --deleted -z | git update-index --assume-unchanged -z --stdin
+        if [ -n "$(git status --porcelain=1 --untracked-files=no)" ]; then
+          git add --ignore-removal .
+          git commit -m "Commit changes made by code formatters"
+          git push
+        else
+          echo "No Code Formatter changes";
+        fi
       shell: bash
