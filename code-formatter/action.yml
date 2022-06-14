@@ -28,6 +28,6 @@ runs:
           git commit -m "Commit changes made by code formatters"
           git push
         else
-          echo "No changes";
+          echo "No Code Formatter changes";
         fi
       shell: bash 
