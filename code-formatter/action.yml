@@ -6,7 +6,7 @@ runs:
     - uses: actions/checkout@v3
       with:
         repository: ${{ github.repository }}
-        ref: ${GITHUB_HEAD_REF}
+        ref: ${{ GITHUB_HEAD_REF }}
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: '3.0'
