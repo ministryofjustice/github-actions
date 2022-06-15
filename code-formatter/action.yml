@@ -13,7 +13,18 @@ runs:
     - run: | 
         npm install prettier
         pip3 install autopep8
-        bundle init
+        FILE=Gemfile
+        if [ -f "$FILE" ]; then
+            echo "$FILE already exists."
+            if grep -q standardrb "$FILE"; then
+                echo "standardrb already exists."
+            else
+                bundle add standardrb
+            fi
+        else 
+            bundle init
+            bundle add standardrb
+        fi
         bundle add standardrb
         git config user.name 'github-actions[bot]'
         git config user.email 'github-actions[bot]@users.noreply.github.com'
