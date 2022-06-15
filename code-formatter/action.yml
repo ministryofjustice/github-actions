@@ -8,8 +8,6 @@ runs:
         repository: ${{ github.repository }}
         ref: ${{ github.head_ref }}
     - uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: '3.0'
     - run: | 
         npm install prettier
         pip3 install autopep8
