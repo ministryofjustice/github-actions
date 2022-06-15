@@ -38,7 +38,13 @@ runs:
             npx prettier --print-width=150 --write $file
           fi
         done < modified_files.txt
-        rm -rf Gemfile Gemfile.lock package-lock.json package.json node_modules namespaces modified_files.txt
+        rm -rf Gemfile 
+        rm -rf Gemfile.lock 
+        rm -rf package-lock.json 
+        rm -rf package.json 
+        rm -rf node_modules 
+        rm -rf namespaces 
+        rm -rf modified_files.txt
         git ls-files --deleted -z | git update-index --assume-unchanged -z --stdin
         if [ -n "$(git status --porcelain=1 --untracked-files=no)" ]; then
           git add --ignore-removal .
