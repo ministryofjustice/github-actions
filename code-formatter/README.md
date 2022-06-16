@@ -2,7 +2,7 @@
 
 A Github Action to apply code formatting to file in **PRs only**. CI GH Action will run and automatically commit to the same branch when there is a difference in files in the PR.
 
-Formats Ruby, Terraform, YAML/YML, Python, Markdown and JSON file within a PR.
+Formats Ruby, Terraform, YAML/YML, Python, Markdown, JSON and html.md.erb files within a PR.
 
 ## USAGE
 
