@@ -17,7 +17,6 @@ runs:
         else
             echo '3.1.0' > .ruby-version
             chmod 755 .ruby-version
-            CREATEDFILE=1
         fi
       shell: bash
     - uses: ruby/setup-ruby@v1
@@ -77,9 +76,7 @@ runs:
         rm -rf node_modules 
         rm -rf namespaces 
         rm -rf modified_files.txt
-        if [[ $CREATEDFILE == 1 ]]; then
-          rm -rf .ruby-version
-        fi
+        rm -rf .ruby-version
         git ls-files --deleted -z | git update-index --assume-unchanged -z --stdin
         if [ -n "$(git status --porcelain=1 --untracked-files=no)" ]; then
           git add --ignore-removal .
