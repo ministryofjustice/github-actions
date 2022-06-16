@@ -56,7 +56,9 @@ runs:
         while IFS= read -r file
         do
           echo "$file"
-          if [[ $file == *".py"* ]]; then
+          if [[ $file == *".github"* ]]; then
+            echo "Cannot format .github/workflow files."
+          elif [[ $file == *".py"* ]]; then
             python3 -m autopep8 --in-place $file
           elif [[ $file == *".rb"* ]]; then
             bundle exec standardrb --fix $file
