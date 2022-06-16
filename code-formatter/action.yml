@@ -64,9 +64,9 @@ runs:
             bundle exec standardrb --fix $file
           elif [[ $file == *".tf"* ]]; then
             terraform fmt $file
-          elif [[ $file == *".md.html.erb" ]]; then
+          elif [[ $file == *".html.md.erb" ]]; then
             bundle exec erblint -a $file
-          elif [[ $file == *".yaml" || $file == *".yml" || $file == *".md" || $file == *".md.html" || $file == *".json" ]]; then
+          elif [[ $file == *".yaml" || $file == *".yml" || $file == *".md" || $file == *".html.md" || $file == *".json" ]]; then
             npx prettier --print-width=150 --write $file
           fi
         done < modified_files.txt
