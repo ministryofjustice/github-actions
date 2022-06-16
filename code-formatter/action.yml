@@ -1,13 +1,13 @@
-name: 'Code-Formatter'
-desciption: 'Format Ruby, Terraform, YAML, Python, Markdown and JSON file within a PR'
+name: "Code-Formatter"
+desciption: "Format Ruby, Terraform, YAML, Python, Markdown and JSON file within a PR"
 runs:
-  using: "composite"  
+  using: "composite"
   steps:
     - uses: actions/checkout@v3
       with:
         repository: ${{ github.repository }}
         ref: ${{ github.head_ref }}
-    - run: | 
+    - run: |
         FILE0=.ruby-version
         FILE1=.tool-versions
         if [ -f "$FILE0" ]; then
@@ -20,7 +20,7 @@ runs:
         fi
       shell: bash
     - uses: ruby/setup-ruby@v1
-    - run: | 
+    - run: |
         npm install prettier
         pip3 install autopep8
         FILE2=Gemfile
@@ -54,7 +54,7 @@ runs:
         [ -n "$(tail -c1 modified_files.txt)" ] && echo >> modified_files.txt
         while IFS= read -r file
         do
-          echo "$file"
+          echo "Checking file: $file"
           if [[ $file == *".github"* ]]; then
             echo "Cannot format .github/workflow files."
           elif [[ $file == *".py"* ]]; then
