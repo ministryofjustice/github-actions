@@ -13,11 +13,11 @@ runs:
         git fetch origin
         branch_name=${{ github.head_ref }}
         if [[ $( git rev-parse --verify origin/$branch_name ) ]]; then
-          true
+          echo "::set-output name=random_number::$((0))"
         else
           echo "Warning: Cannot code-format a forked branch or cannot find the branch!"
           echo $branch_name
-          run:  echo "::set-output name=random_number::$(($RANDOM % 2))"
+          echo "::set-output name=random_number::$((1))"
         fi
       shell: bash
 
