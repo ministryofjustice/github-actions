@@ -17,14 +17,13 @@ runs:
         else
           echo "Warning: Cannot code-format a forked branch or cannot find the branch!"
           echo $branch_name
-          echo "::set-output name=result::$((fail))"
+          run:  echo "::set-output name=random_number::$(($RANDOM % 2))"
         fi
       shell: bash
 
     - name: Finish Script
-      if: steps.branch-exists.outputs.result == 'fail'
       run: |
-        echo "Finished"
+        if [[ ${{ steps.branch-exists.outputs.random_number }} == 0 ]]; then exit 0; fi
       shell: bash
 
     - name: Change branch and set up a ruby version file that may be needed
