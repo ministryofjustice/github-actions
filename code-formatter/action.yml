@@ -7,8 +7,10 @@ runs:
       with:
         repository: ${{ github.repository }}
     - run: |
-        git fetch origin $GITHUB_BASE_REF --depth=50
-        if ! [[ $( git rev-parse --verify ${{ github.head_ref }} ) ]]; then
+        git fetch origin
+        branch_name=${{ github.head_ref }}
+        echo $branch_name
+        if ! [[ $( git rev-parse --verify $branch_name ) ]]; then
           echo "Warning: Cannot code-format a Fork branch in a PR!"
           exit 0
         else
