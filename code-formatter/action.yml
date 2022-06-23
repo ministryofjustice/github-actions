@@ -15,16 +15,16 @@ runs:
           exit 0
         else
           git switch ${{ github.head_ref }}
-        fi
-        FILE0=.ruby-version
-        FILE1=.tool-versions
-        if [ -f "$FILE0" ]; then
-            echo "$FILE0 already exists."
-        elif [ -f "$FILE1" ]; then
-            echo "$FILE1 already exists." 
-        else
-            echo '3.1.0' > .ruby-version
-            chmod 755 .ruby-version
+          FILE0=.ruby-version
+          FILE1=.tool-versions
+          if [ -f "$FILE0" ]; then
+              echo "$FILE0 already exists."
+          elif [ -f "$FILE1" ]; then
+              echo "$FILE1 already exists." 
+          else
+              echo '3.1.0' > .ruby-version
+              chmod 755 .ruby-version
+          fi
         fi
       shell: bash
     - uses: ruby/setup-ruby@v1
