@@ -10,7 +10,7 @@ runs:
         git fetch origin
         branch_name=${{ github.head_ref }}
         echo $branch_name
-        if ! [[ $( git rev-parse --verify $branch_name ) ]]; then
+        if ! [[ $( git rev-parse --verify origin/$branch_name ) ]]; then
           echo "Warning: Cannot code-format a Fork branch in a PR!"
           exit 0
         else
