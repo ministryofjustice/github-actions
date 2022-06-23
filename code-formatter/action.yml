@@ -128,3 +128,4 @@ runs:
       if: steps.branch-exists.outcome != 'success'
       run: |
         true
+      shell: bash
