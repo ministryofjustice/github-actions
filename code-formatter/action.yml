@@ -6,8 +6,13 @@ runs:
     - uses: actions/checkout@v3
       with:
         repository: ${{ github.repository }}
-        ref: ${{ github.head_ref }}
     - run: |
+        if ! [[ $( git rev-parse --verify ${{ github.head_ref }} ) ]]; then
+          echo "Warning: Cannot code-format a Fork branch in a PR!"
+          exit 0
+        else
+          git switch ${{ github.head_ref }}
+        fi
         FILE0=.ruby-version
         FILE1=.tool-versions
         if [ -f "$FILE0" ]; then
