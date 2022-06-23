@@ -9,10 +9,9 @@ runs:
     - run: |
         git fetch origin
         branch_name=${{ github.head_ref }}
-        echo $branch_name
         if ! [[ $( git rev-parse --verify origin/$branch_name ) ]]; then
-          echo "Warning: Cannot code-format a Fork branch in a PR!"
-          exit 0
+          echo "Warning: Cannot code-format a forked branch or cannot find the branch!"
+          echo $branch_name
         else
           git switch ${{ github.head_ref }}
           FILE0=.ruby-version
