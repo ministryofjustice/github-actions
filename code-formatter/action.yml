@@ -17,14 +17,13 @@ runs:
         else
           echo "Warning: Cannot code-format a forked branch or cannot find the branch!"
           echo $branch_name
-          false
         fi
       shell: bash
 
     - name: Finish Script
       if: ${{ failure() }}
       run: |
-        true
+        echo "Finished"
       shell: bash
 
     - name: Change branch and set up a ruby version file that may be needed
