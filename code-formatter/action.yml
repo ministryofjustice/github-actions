@@ -13,16 +13,16 @@ runs:
         git fetch origin
         branch_name=${{ github.head_ref }}
         if [[ $( git rev-parse --verify origin/$branch_name ) ]]; then
-          false
+          true
         else
           echo "Warning: Cannot code-format a forked branch or cannot find the branch!"
           echo $branch_name
-          true
+          false
         fi
       shell: bash
 
     - name: Change branch and set up a ruby version file that may be needed
-      if: steps.branch-exists.outcome != 'success'
+      if: steps.branch-exists.outcome == 'success'
       run: |
         git switch ${{ github.head_ref }}
         FILE0=.ruby-version
@@ -38,10 +38,10 @@ runs:
       shell: bash
 
     - uses: ruby/setup-ruby@v1
-      if: steps.branch-exists.outcome != 'success'
+      if: steps.branch-exists.outcome == 'success'
 
     - name: Install dependencies 
-      if: steps.branch-exists.outcome != 'success'
+      if: steps.branch-exists.outcome == 'success'
       run: |
         npm install prettier
         pip3 install autopep8
@@ -66,7 +66,7 @@ runs:
       shell: bash
 
     - name: Get PR changed files via Git and code format files
-      if: steps.branch-exists.outcome != 'success'
+      if: steps.branch-exists.outcome == 'success'
       run: |
         git config user.name 'github-actions[bot]'
         git config user.email 'github-actions[bot]@users.noreply.github.com'
@@ -99,7 +99,7 @@ runs:
       shell: bash
 
     - name: Remove non needed files from new commit
-      if: steps.branch-exists.outcome != 'success'
+      if: steps.branch-exists.outcome == 'success'
       run: |
         rm -rf Gemfile 
         rm -rf Gemfile.lock 
@@ -112,7 +112,7 @@ runs:
       shell: bash
 
     - name: Commit new files or finish script
-      if: steps.branch-exists.outcome != 'success'
+      if: steps.branch-exists.outcome == 'success'
       run: |
         git ls-files --deleted -z | git update-index --assume-unchanged -z --stdin
         if [ -n "$(git status --porcelain=1 --untracked-files=no)" ]; then
@@ -123,3 +123,8 @@ runs:
           echo "No Code Formatter changes";
         fi
       shell: bash
+
+    - name: Finish Script
+      if: steps.branch-exists.outcome != 'success'
+      run: |
+        true
