@@ -38,6 +38,7 @@ runs:
       shell: bash
 
     - uses: ruby/setup-ruby@v1
+      if: steps.branch-exists.outcome != 'success'
 
     - name: Install dependencies 
       if: steps.branch-exists.outcome != 'success'
@@ -111,7 +112,7 @@ runs:
       shell: bash
 
     - name: Commit new files or finish script
-      if: steps.branch-exists.outcome == 'success'
+      if: steps.branch-exists.outcome != 'success'
       run: |
         git ls-files --deleted -z | git update-index --assume-unchanged -z --stdin
         if [ -n "$(git status --porcelain=1 --untracked-files=no)" ]; then
