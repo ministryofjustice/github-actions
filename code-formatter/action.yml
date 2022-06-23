@@ -7,6 +7,7 @@ runs:
       with:
         repository: ${{ github.repository }}
     - run: |
+        git fetch
         if ! [[ $( git rev-parse --verify ${{ github.head_ref }} ) ]]; then
           echo "Warning: Cannot code-format a Fork branch in a PR!"
           exit 0
