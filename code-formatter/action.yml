@@ -69,7 +69,6 @@ runs:
       shell: bash
 
     - name: Get PR changed files via Git and code format files
-      if: steps.branch-exists.outcome == 'success'
       run: |
         if [[ ${{ steps.branch-exists.outputs.result }} == 0 ]]; 
         then
@@ -105,7 +104,6 @@ runs:
       shell: bash
 
     - name: Remove non needed files from new commit
-      if: steps.branch-exists.outcome == 'success'
       run: |
         if [[ ${{ steps.branch-exists.outputs.result }} == 0 ]]; 
         then        
@@ -121,10 +119,9 @@ runs:
       shell: bash
 
     - name: Commit new files or finish script
-      if [[ ${{ steps.branch-exists.outputs.result }} == 0 ]]; 
-      then
-        if: steps.branch-exists.outcome == 'success'
-        run: |
+      run: |
+        if [[ ${{ steps.branch-exists.outputs.result }} == 0 ]]; 
+        then
           git ls-files --deleted -z | git update-index --assume-unchanged -z --stdin
           if [ -n "$(git status --porcelain=1 --untracked-files=no)" ]; then
             git add --ignore-removal .
