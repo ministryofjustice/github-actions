@@ -21,6 +21,12 @@ runs:
         fi
       shell: bash
 
+    - name: Finish Script
+      if: if: ${{ failure() }}
+      run: |
+        true
+      shell: bash
+
     - name: Change branch and set up a ruby version file that may be needed
       if: steps.branch-exists.outcome == 'success'
       run: |
@@ -122,10 +128,4 @@ runs:
         else
           echo "No Code Formatter changes";
         fi
-      shell: bash
-
-    - name: Finish Script
-      if: steps.branch-exists.outcome != 'success'
-      run: |
-        true
       shell: bash
