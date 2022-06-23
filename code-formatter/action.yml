@@ -22,7 +22,7 @@ runs:
       shell: bash
 
     - name: Finish Script
-      if: if: ${{ failure() }}
+      if: ${{ failure() }}
       run: |
         true
       shell: bash
