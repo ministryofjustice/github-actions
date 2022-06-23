@@ -17,11 +17,12 @@ runs:
         else
           echo "Warning: Cannot code-format a forked branch or cannot find the branch!"
           echo $branch_name
+          echo "::set-output name=result::$((fail))"
         fi
       shell: bash
 
     - name: Finish Script
-      if: ${{ failure() }}
+      if: steps.branch-exists.outputs.result == 'fail'
       run: |
         echo "Finished"
       shell: bash
