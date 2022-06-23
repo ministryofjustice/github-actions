@@ -13,16 +13,16 @@ runs:
         git fetch origin
         branch_name=${{ github.head_ref }}
         if [[ $( git rev-parse --verify origin/$branch_name ) ]]; then
-          echo ""
+          false
         else
           echo "Warning: Cannot code-format a forked branch or cannot find the branch!"
           echo $branch_name
-          false
+          true
         fi
       shell: bash
 
     - name: Change branch and set up a ruby version file that may be needed
-      if: steps.branch-exists.outcome == 'success'
+      if: steps.branch-exists.outcome != 'success'
       run: |
         git switch ${{ github.head_ref }}
         FILE0=.ruby-version
@@ -40,7 +40,7 @@ runs:
     - uses: ruby/setup-ruby@v1
 
     - name: Install dependencies 
-      if: steps.branch-exists.outcome == 'success'
+      if: steps.branch-exists.outcome != 'success'
       run: |
         npm install prettier
         pip3 install autopep8
@@ -65,7 +65,7 @@ runs:
       shell: bash
 
     - name: Get PR changed files via Git and code format files
-      if: steps.branch-exists.outcome == 'success'
+      if: steps.branch-exists.outcome != 'success'
       run: |
         git config user.name 'github-actions[bot]'
         git config user.email 'github-actions[bot]@users.noreply.github.com'
@@ -98,7 +98,7 @@ runs:
       shell: bash
 
     - name: Remove non needed files from new commit
-      if: steps.branch-exists.outcome == 'success'
+      if: steps.branch-exists.outcome != 'success'
       run: |
         rm -rf Gemfile 
         rm -rf Gemfile.lock 
