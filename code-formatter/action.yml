@@ -1,0 +1,136 @@
+name: "Code-Formatter"
+desciption: "Format Ruby, Terraform, YAML/YML, Python, Markdown, JSON and html.md.erb files within a PR"
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v3
+      with:
+        repository: ${{ github.repository }}
+
+    - name: Check Branch exists and is not a fork.
+      id: branch-exists
+      run: |
+        git fetch origin
+        branch_name=${{ github.head_ref }}
+        if [[ $( git rev-parse --verify origin/$branch_name ) ]]; then
+          echo "::set-output name=result::$((0))"
+        else
+          echo "Warning: Cannot code-format a forked branch or cannot find the branch!"
+          echo $branch_name
+          echo "Finished: no Code Formatter changes."
+          echo "::set-output name=result::$((1))"
+        fi
+      shell: bash
+
+    - name: Change branch and set up a ruby version file that may be needed
+      run: |
+        if [[ ${{ steps.branch-exists.outputs.result }} == 0 ]]; 
+        then
+          git switch ${{ github.head_ref }}
+          FILE0=.ruby-version
+          FILE1=.tool-versions
+          if [ -f "$FILE0" ]; then
+            echo "$FILE0 already exists."
+          elif [ -f "$FILE1" ]; then
+            echo "$FILE1 already exists." 
+          else
+            echo '3.1.0' > .ruby-version
+            chmod 755 .ruby-version
+          fi
+        fi
+      shell: bash
+
+    - uses: ruby/setup-ruby@v1
+
+    - name: Install dependencies 
+      run: |
+        if [[ ${{ steps.branch-exists.outputs.result }} == 0 ]]; 
+        then
+          npm install prettier
+          pip3 install autopep8
+          FILE2=Gemfile
+          if [ -f "$FILE2" ]; then
+            echo "$FILE2 already exists."
+            if grep -q standardrb "$FILE2"; then
+              echo "standardrb already exists."
+            else
+              bundle add standardrb
+            fi
+            if grep -q erb_lint "$FILE2"; then
+              echo "erb_lint already exists."
+            else
+              bundle add erb_lint
+            fi
+          else 
+            bundle init
+            bundle add standardrb
+            bundle add erb_lint
+          fi
+        fi
+      shell: bash
+
+    - name: Get PR changed files via Git and code format files
+      run: |
+        if [[ ${{ steps.branch-exists.outputs.result }} == 0 ]]; 
+        then
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git fetch origin $GITHUB_BASE_REF --depth=50
+          base_branch_sha=${{ github.event.pull_request.base.sha }}
+          git fetch origin ${{ github.head_ref }} --depth=50
+          head_branch_sha=${{ github.event.pull_request.head.sha }}
+          echo $base_branch_sha
+          echo $head_branch_sha
+          git diff-tree -r --no-commit-id --name-only --diff-filter=ACMRT $base_branch_sha $head_branch_sha > modified_files.txt
+          chmod 755 modified_files.txt
+          [ -n "$(tail -c1 modified_files.txt)" ] && echo >> modified_files.txt
+          while IFS= read -r file
+          do
+            echo "Checking file: $file"
+            if [[ $file == *".github"* ]]; then
+              echo "Cannot format .github/workflow files."
+            elif [[ $file == *".py"* ]]; then
+              python3 -m autopep8 --in-place $file
+            elif [[ $file == *".rb"* ]]; then
+              bundle exec standardrb --fix $file
+            elif [[ $file == *".tf"* ]]; then
+              terraform fmt $file
+            elif [[ $file == *".html.md.erb" ]]; then
+              bundle exec erblint -a $file
+            elif [[ $file == *".yaml" || $file == *".yml" || $file == *".md" || $file == *".html.md" || $file == *".json" ]]; then
+              npx prettier --print-width=150 --write $file
+            fi
+          done < modified_files.txt
+        fi
+      shell: bash
+
+    - name: Remove non needed files from new commit
+      run: |
+        if [[ ${{ steps.branch-exists.outputs.result }} == 0 ]]; 
+        then        
+          rm -rf Gemfile 
+          rm -rf Gemfile.lock 
+          rm -rf package-lock.json 
+          rm -rf package.json 
+          rm -rf node_modules 
+          rm -rf namespaces 
+          rm -rf modified_files.txt
+          rm -rf .ruby-version
+        fi
+      shell: bash
+
+    - name: Commit new files or finish script
+      run: |
+        if [[ ${{ steps.branch-exists.outputs.result }} == 0 ]]; 
+        then
+          git ls-files --deleted -z | git update-index --assume-unchanged -z --stdin
+          if [ -n "$(git status --porcelain=1 --untracked-files=no)" ]; then
+            git add --ignore-removal .
+            git commit -m "Commit changes made by code formatters"
+            git push
+            echo "Finished: Code Formatter changes applied."
+          else
+            echo "Finished: no Code Formatter changes."
+          fi
+        fi
+      shell: bash
