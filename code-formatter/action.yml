@@ -39,10 +39,13 @@ runs:
             echo "$FILE3 exists."
             if grep 'ruby "' $FILE3; then
               echo "Found ruby version"
+              grep 'ruby "' $FILE3 | sed "s/[^0-9.]*//g" > .ruby-version
+              chmod 755 .ruby-version
             else
               if [ -f "$FILE4" ]; then
                 echo "$FILE4 exists."
                 if tail -5 $FILE4 | grep ruby; then
+                  echo "Found ruby version"
                   tail -5 $FILE4 | grep ruby | sed "s/[^0-9.]*//g" > .ruby-version
                   chmod 755 .ruby-version
                 else
