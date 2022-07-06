@@ -1,5 +1,5 @@
 name: "Code-Formatter"
-desciption: "Format Ruby, Terraform, YAML, Python, Markdown and JSON file within a PR"
+desciption: "Format Ruby, Terraform, YAML/YML, Python, Markdown, JSON and html.md.erb files within a PR"
 runs:
   using: "composite"
   steps:
