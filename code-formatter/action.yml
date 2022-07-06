@@ -24,15 +24,33 @@ runs:
 
     - name: Change branch and set up a ruby version file that may be needed
       run: |
-        if [[ ${{ steps.branch-exists.outputs.result }} == 0 ]]; 
+        if [[ ${{ steps.branch-exists.outputs.result }} == 0 ]];
         then
           git switch ${{ github.head_ref }}
           FILE0=.ruby-version
           FILE1=.tool-versions
+          FILE3=Gemfile
+          FILE4=Gemfile.lock
           if [ -f "$FILE0" ]; then
-            echo "$FILE0 already exists."
+            echo "$FILE0 exists."
           elif [ -f "$FILE1" ]; then
-            echo "$FILE1 already exists." 
+            echo "$FILE1 exists."
+          elif [ -f "$FILE3" ]; then
+            echo "$FILE3 exists."
+            if grep 'ruby "' $FILE3; then
+              echo "Found ruby version"
+            else
+              if [ -f "$FILE4" ]; then
+                echo "$FILE4 exists."
+                if tail -5 $FILE4 | grep ruby; then
+                  tail -5 $FILE4 | grep ruby | sed "s/[^0-9.]*//g" > .ruby-version
+                  chmod 755 .ruby-version
+                else
+                  echo '3.1.0' > .ruby-version
+                  chmod 755 .ruby-version
+                fi
+              fi
+            fi
           else
             echo '3.1.0' > .ruby-version
             chmod 755 .ruby-version
@@ -42,11 +60,11 @@ runs:
 
     - uses: ruby/setup-ruby@v1
 
-    - name: Install dependencies 
+    - name: Install dependencies
       run: |
-        if [[ ${{ steps.branch-exists.outputs.result }} == 0 ]]; 
+        if [[ ${{ steps.branch-exists.outputs.result }} == 0 ]];
         then
-          npm install prettier
+          npm install --location=global prettier
           pip3 install autopep8
           FILE2=Gemfile
           if [ -f "$FILE2" ]; then
@@ -61,7 +79,7 @@ runs:
             else
               bundle add erb_lint
             fi
-          else 
+          else
             bundle init
             bundle add standardrb
             bundle add erb_lint
@@ -71,7 +89,7 @@ runs:
 
     - name: Get PR changed files via Git and code format files
       run: |
-        if [[ ${{ steps.branch-exists.outputs.result }} == 0 ]]; 
+        if [[ ${{ steps.branch-exists.outputs.result }} == 0 ]];
         then
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
@@ -106,14 +124,14 @@ runs:
 
     - name: Remove non needed files from new commit
       run: |
-        if [[ ${{ steps.branch-exists.outputs.result }} == 0 ]]; 
-        then        
-          rm -rf Gemfile 
-          rm -rf Gemfile.lock 
-          rm -rf package-lock.json 
-          rm -rf package.json 
-          rm -rf node_modules 
-          rm -rf namespaces 
+        if [[ ${{ steps.branch-exists.outputs.result }} == 0 ]];
+        then
+          rm -rf Gemfile
+          rm -rf Gemfile.lock
+          rm -rf package-lock.json
+          rm -rf package.json
+          rm -rf node_modules
+          rm -rf namespaces
           rm -rf modified_files.txt
           rm -rf .ruby-version
         fi
@@ -121,7 +139,7 @@ runs:
 
     - name: Commit new files or finish script
       run: |
-        if [[ ${{ steps.branch-exists.outputs.result }} == 0 ]]; 
+        if [[ ${{ steps.branch-exists.outputs.result }} == 0 ]];
         then
           git ls-files --deleted -z | git update-index --assume-unchanged -z --stdin
           if [ -n "$(git status --porcelain=1 --untracked-files=no)" ]; then
