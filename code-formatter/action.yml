@@ -17,6 +17,7 @@ runs:
         else
           echo "Warning: Cannot code-format a forked branch or cannot find the branch!"
           echo $branch_name
+          echo "Finished: no Code Formatter changes."
           echo "::set-output name=result::$((1))"
         fi
       shell: bash
@@ -127,8 +128,9 @@ runs:
             git add --ignore-removal .
             git commit -m "Commit changes made by code formatters"
             git push
+            echo "Finished: Code Formatter changes applied."
           else
-            echo "No Code Formatter changes";
+            echo "Finished: no Code Formatter changes."
           fi
         fi
       shell: bash
