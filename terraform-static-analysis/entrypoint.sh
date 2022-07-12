@@ -32,7 +32,7 @@ declare -i tflint_exitcode=0
 declare -i tfinit_exitcode=0
 
 # Identify which Terraform folders have changes and need scanning
-tf_folders_with_changes=`git diff --no-commit-id --name-only -r @^ | awk '{print $1}' | grep '\.tf' | sed 's#/[^/]*$##' | uniq`
+tf_folders_with_changes=`git diff --no-commit-id --name-only -r @^ | awk '{print $1}' | grep '\.tf' | sed 's#/[^/]*$##' | grep -v '\.tf' | uniq`
 echo
 echo "TF folders with changes"
 echo $tf_folders_with_changes
