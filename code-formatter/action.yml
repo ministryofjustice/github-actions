@@ -116,7 +116,7 @@ runs:
               python3 -m autopep8 --in-place $file
             elif [[ $file == *".rb"* ]]; then
               bundle exec standardrb --fix $file
-            elif [[ $file == *".tf"* ]]; then
+            elif [[ $file == *".tf" ]] || [[ $file == *".tfvars" ]]; then
               terraform fmt $file
             elif [[ $file == *".html.md.erb" ]]; then
               bundle exec erblint -a $file
