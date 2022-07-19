@@ -10,6 +10,8 @@ Create a file in your repo called `.github/workflows/format-code.yml` with the
 following contents:
 
 ```
+name: code-formatter
+
 on:
   pull_request:
     types: [opened, edited, reopened, synchronize]
