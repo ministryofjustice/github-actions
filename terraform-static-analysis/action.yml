@@ -20,6 +20,10 @@ inputs:
   checkov_exclude:
     description: 'Provide checks via , without space to exclude from run'
     required: false
+  checkov_external_modules:
+    description: 'Allow checkov to download external modules'
+    required: false
+    default: false
   tflint_exclude:
     description: 'Provide checks via , without space to exclude from run'
     required: false
