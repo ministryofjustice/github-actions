@@ -63,6 +63,16 @@ runs:
         fi
       shell: bash
 
+    - name: Create blank ruby version file
+      run: |
+        if [[ ${{ steps.branch-exists.outputs.result }} == 1 ]];
+        then
+          echo "Using ruby version 3.1.0"
+          echo '3.1.0' > .ruby-version
+          chmod 755 .ruby-version
+        fi
+      shell: bash
+
     - uses: ruby/setup-ruby@v1
 
     - name: Install dependencies
