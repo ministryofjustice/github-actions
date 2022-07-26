@@ -122,19 +122,23 @@ runs:
           git diff-tree -r --no-commit-id --name-only --diff-filter=ACMRT $base_branch_sha $head_branch_sha > modified_files.txt
           chmod 755 modified_files.txt
           [ -n "$(tail -c1 modified_files.txt)" ] && echo >> modified_files.txt
-          echo ${{ inputs.ignore-files }}
           while IFS= read -r file
           do
             echo "Checking file: $file"
             string=${{ inputs.ignore-files }}
             string_length=${#string}
+            echo $string_length
+            echo $file
+            echo ${{ inputs.ignore-files }}
             if [ $string_length -gt 0 ]; then
+              echo "A"
               IFS=,
               for ignore_file in ${{ inputs.ignore-files }};
               do
+                file_name=$(basename $file)
+                echo $file_name
                 echo $ignore_file
-                echo $file
-                if [[ $file == $ignore_file ]]; then
+                if [[ $file_name == $ignore_file ]]; then
                   echo "Ignore file."
                 else
                   if [[ $file == *".github"* ]]; then
@@ -153,6 +157,7 @@ runs:
                 fi
               done
             else
+              echo "B"
               if [[ $file == *".github"* ]]; then
                 echo "Cannot format .github/workflow files."
               elif [[ $file == *".py"* ]]; then
