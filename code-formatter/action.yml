@@ -126,17 +126,19 @@ runs:
           while IFS= read -r file
           do
             modified_files+=("$file")
+            echo $file
           done < modified_files.txt
-          echo $modified_files
+          
+          echo ${modified_files[@]}
 
           ignore_files=${{ inputs.ignore-files }}
           string_length=${#ignore_files}
           if [ $string_length -gt 0 ]; then
             IFS=,
-            for ignore_file in $ignore_files[@];
+            for ignore_file in $ignore_files;
             do
               echo "File to ignore: $ignore_file"
-              for modified_file in $modified_files[@];
+              for modified_file in $modified_files;
               do
                 file_name=$(basename $modified_file)
                 echo "File in PR: $file_name"
@@ -148,9 +150,9 @@ runs:
             done
           fi
 
-          echo $modified_files
+          echo ${modified_files[@]}
 
-          for modified_file in $modified_files[@];
+          for modified_file in $modified_files;
           do        
             echo "Checking file: $file"
             if [[ $file == *".github"* ]]; then
