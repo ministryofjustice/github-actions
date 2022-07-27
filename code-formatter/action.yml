@@ -126,11 +126,7 @@ runs:
           while IFS= read -r file
           do
             modified_files+=("$file")
-            echo $file
           done < modified_files.txt
-          
-          echo ${modified_files[@]}
-
           ignore_files=${{ inputs.ignore-files }}
           string_length=${#ignore_files}
           if [ $string_length -gt 0 ]; then
@@ -138,6 +134,7 @@ runs:
             for ignore_file in $ignore_files;
             do
               echo "File to ignore: $ignore_file"
+              IFS=
               for modified_file in $modified_files;
               do
                 file_name=$(basename $modified_file)
