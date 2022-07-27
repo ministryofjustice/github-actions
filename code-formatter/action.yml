@@ -122,58 +122,51 @@ runs:
           git diff-tree -r --no-commit-id --name-only --diff-filter=ACMRT $base_branch_sha $head_branch_sha > modified_files.txt
           chmod 755 modified_files.txt
           [ -n "$(tail -c1 modified_files.txt)" ] && echo >> modified_files.txt
+          modified_files=()
           while IFS= read -r file
           do
-            echo "Checking file: $file"
-            ignore_files=${{ inputs.ignore-files }}
-            string_length=${#ignore_files}
-            if [ $string_length -gt 0 ]; then
-              IFS=,
-              for ignore_file in $ignore_files;
+            modified_files+=("$file")
+          done < modified_files.txt
+          echo $modified_files
+
+          ignore_files=${{ inputs.ignore-files }}
+          string_length=${#ignore_files}
+          if [ $string_length -gt 0 ]; then
+            IFS=,
+            for ignore_file in $ignore_files[@];
+            do
+              echo "File to ignore: $ignore_file"
+              for modified_file in $modified_files[@];
               do
-                file_name=$(basename $file)
+                file_name=$(basename $modified_file)
                 echo "File in PR: $file_name"
-                echo "File to ignore: $ignore_file"
                 if [[ $file_name == $ignore_file ]]; then
-                  echo "Ignore file $file_name"
-                  break
-                elif [[ $file == *".github"* ]]; then
-                  echo "Cannot format .github/workflow files."
-                  break
-                elif [[ $file == *".py"* ]]; then
-                  python3 -m autopep8 --in-place $file
-                  break
-                elif [[ $file == *".rb"* ]]; then
-                  bundle exec standardrb --fix $file
-                  break
-                elif [[ $file == *".tf" ]] || [[ $file == *".tfvars" ]]; then
-                  terraform fmt $file
-                  break
-                elif [[ $file == *".html.md.erb" ]]; then
-                  bundle exec erblint -a $file
-                  break
-                elif [[ $file == *".yaml" || $file == *".yml" || $file == *".md" || $file == *".html.md" || $file == *".json" ]]; then
-                  npx prettier --print-width=150 --write $file
-                  break
+                  echo "A"
+                  modified_files=("${modified_files[@]/$ignore_file}")
                 fi
               done
-            else
-              echo "B"
-              if [[ $file == *".github"* ]]; then
-                echo "Cannot format .github/workflow files."
-              elif [[ $file == *".py"* ]]; then
-                python3 -m autopep8 --in-place $file
-              elif [[ $file == *".rb"* ]]; then
-                bundle exec standardrb --fix $file
-              elif [[ $file == *".tf" ]] || [[ $file == *".tfvars" ]]; then
-                terraform fmt $file
-              elif [[ $file == *".html.md.erb" ]]; then
-                bundle exec erblint -a $file
-              elif [[ $file == *".yaml" || $file == *".yml" || $file == *".md" || $file == *".html.md" || $file == *".json" ]]; then
-                npx prettier --print-width=150 --write $file
-              fi
+            done
+          fi
+
+          echo $modified_files
+
+          for modified_file in $modified_files[@];
+          do        
+            echo "Checking file: $file"
+            if [[ $file == *".github"* ]]; then
+              echo "Cannot format .github/workflow files."
+            elif [[ $file == *".py"* ]]; then
+              python3 -m autopep8 --in-place $file
+            elif [[ $file == *".rb"* ]]; then
+              bundle exec standardrb --fix $file
+            elif [[ $file == *".tf" ]] || [[ $file == *".tfvars" ]]; then
+              terraform fmt $file
+            elif [[ $file == *".html.md.erb" ]]; then
+              bundle exec erblint -a $file
+            elif [[ $file == *".yaml" || $file == *".yml" || $file == *".md" || $file == *".html.md" || $file == *".json" ]]; then
+              npx prettier --print-width=150 --write $file
             fi
-          done < modified_files.txt
+          done  
         fi
       shell: bash
 
