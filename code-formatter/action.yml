@@ -137,6 +137,7 @@ runs:
           if [ $ignore_files_length -gt 0 ]; then
             ignore_files=()
 
+            IFS=,
             for ignore_file in "${ignore_files_string[@]}";
             do
               ignore_files+=("$ignore_file")
