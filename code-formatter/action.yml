@@ -119,6 +119,7 @@ runs:
           head_branch_sha=${{ github.event.pull_request.head.sha }}
           echo $base_branch_sha
           echo $head_branch_sha
+          
           git diff-tree -r --no-commit-id --name-only --diff-filter=ACMRT $base_branch_sha $head_branch_sha > modified_files.txt
           chmod 755 modified_files.txt
           [ -n "$(tail -c1 modified_files.txt)" ] && echo >> modified_files.txt
@@ -130,9 +131,6 @@ runs:
 
           ignore_files_string=${{ inputs.ignore-files }}
           ignore_files_length=${#ignore_files_string}
-
-          echo ${modified_files[@]}
-          echo ${ignore_files_string}
         
           if [ $ignore_files_length -gt 0 ]; then
             ignore_files=()
@@ -143,24 +141,18 @@ runs:
               ignore_files+=("$ignore_file")
             done
 
-            echo ${ignore_files[@]}
-
             for modified_file in "${modified_files[@]}";
             do
               file_name=$(basename $modified_file)
-              echo "File in PR: $file_name"
               for ignore_file in ${ignore_files[@]};
               do
-                echo "File to ignore: $ignore_file"
                 if [[ $file_name == $ignore_file ]]; then
-                  echo "A"
+                  echo "Ignore file: $ignore_file"
                   modified_files=("${modified_files[@]/$ignore_file}")
                 fi
               done
             done
           fi
-
-          echo ${modified_files[@]}
   
           for file in "${modified_files[@]}";
           do        
