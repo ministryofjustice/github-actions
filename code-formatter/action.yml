@@ -131,17 +131,20 @@ runs:
           ignore_files_string=${{ inputs.ignore-files }}
           ignore_files_length=${#ignore_files_string}
 
+          echo ${modified_files[@]}
+        
           if [ $ignore_files_length -gt 0 ]; then
             ignore_files=()
 
             IFS=,
-            for ignore_file in $ignore_files_string;
+            for ignore_file in "${ignore_files_string[@]}";
             do
               ignore_files+=("$ignore_file")
             done
 
-            IFS=
-            for modified_file in $modified_files;
+            echo ${ignore_files[@]}
+
+            for modified_file in "${modified_files[@]}";
             do
               file_name=$(basename $modified_file)
               echo "File in PR: $file_name"
@@ -159,8 +162,7 @@ runs:
 
           echo ${modified_files[@]}
   
-          IFS=
-          for file in $modified_files;
+          for file in "${modified_files[@]}";
           do        
             echo "Checking file: $file"
             if [[ $file == *".github"* ]]; then
