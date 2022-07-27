@@ -132,11 +132,11 @@ runs:
           ignore_files_length=${#ignore_files_string}
 
           echo ${modified_files[@]}
+          echo ${ignore_files_string}
         
           if [ $ignore_files_length -gt 0 ]; then
             ignore_files=()
 
-            IFS=,
             for ignore_file in "${ignore_files_string[@]}";
             do
               ignore_files+=("$ignore_file")
@@ -148,7 +148,6 @@ runs:
             do
               file_name=$(basename $modified_file)
               echo "File in PR: $file_name"
-              IFS=
               for ignore_file in "${ignore_files[@]}";
               do
                 echo "File to ignore: $ignore_file"
