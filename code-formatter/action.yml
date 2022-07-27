@@ -129,6 +129,10 @@ runs:
           done < modified_files.txt
           ignore_files=${{ inputs.ignore-files }}
           ignore_files_length=${#ignore_files}
+          
+          echo ${ignore_files[@]}
+          echo ${modified_files[@]}
+          
           if [ $ignore_files_length -gt 0 ]; then
             for modified_file in $modified_files;
             do
