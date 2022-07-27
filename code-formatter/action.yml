@@ -128,17 +128,16 @@ runs:
             modified_files+=("$file")
           done < modified_files.txt
           ignore_files=${{ inputs.ignore-files }}
-          string_length=${#ignore_files}
-          if [ $string_length -gt 0 ]; then
-            IFS=,
-            for ignore_file in $ignore_files;
+          ignore_files_length=${#ignore_files}
+          if [ $ignore_files_length -gt 0 ]; then
+            for modified_file in $modified_files;
             do
-              echo "File to ignore: $ignore_file"
-              IFS=
-              for modified_file in $modified_files;
+              file_name=$(basename $modified_file)
+              echo "File in PR: $file_name"
+              IFS=,
+              for ignore_file in $ignore_files;
               do
-                file_name=$(basename $modified_file)
-                echo "File in PR: $file_name"
+                echo "File to ignore: $ignore_file"
                 if [[ $file_name == $ignore_file ]]; then
                   echo "A"
                   modified_files=("${modified_files[@]/$ignore_file}")
