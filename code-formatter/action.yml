@@ -130,7 +130,7 @@ runs:
             if [ $string_length -gt 0 ]; then
               echo "A"
               IFS=,
-              for ignore_file in ${{ inputs.ignore-files }};
+              for ignore_file in "${{ inputs.ignore-files }}";
               do
                 file_name=$(basename $file)
                 echo $file_name
