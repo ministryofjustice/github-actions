@@ -127,9 +127,6 @@ runs:
             echo "Checking file: $file"
             string=${{ inputs.ignore-files }}
             string_length=${#string}
-            echo $string_length
-            echo $file
-            echo ${{ inputs.ignore-files }}
             if [ $string_length -gt 0 ]; then
               echo "A"
               IFS=,
