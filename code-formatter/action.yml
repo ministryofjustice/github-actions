@@ -128,28 +128,33 @@ runs:
             ignore_files=${{ inputs.ignore-files }}
             string_length=${#ignore_files}
             if [ $string_length -gt 0 ]; then
-              echo "A"
-              echo $ignore_files
               IFS=,
               for ignore_file in $ignore_files;
               do
                 file_name=$(basename $file)
-                echo $file_name
-                echo $ignore_file
+                echo "File in PR: $file_name"
+                echo "File to ignore: $ignore_file"
                 if [[ $file_name == $ignore_file ]]; then
                   echo "Ignore file $file_name"
+                  break
                 elif [[ $file == *".github"* ]]; then
                   echo "Cannot format .github/workflow files."
+                  break
                 elif [[ $file == *".py"* ]]; then
                   python3 -m autopep8 --in-place $file
+                  break
                 elif [[ $file == *".rb"* ]]; then
                   bundle exec standardrb --fix $file
+                  break
                 elif [[ $file == *".tf" ]] || [[ $file == *".tfvars" ]]; then
                   terraform fmt $file
+                  break
                 elif [[ $file == *".html.md.erb" ]]; then
                   bundle exec erblint -a $file
+                  break
                 elif [[ $file == *".yaml" || $file == *".yml" || $file == *".md" || $file == *".html.md" || $file == *".json" ]]; then
                   npx prettier --print-width=150 --write $file
+                  break
                 fi
               done
             else
