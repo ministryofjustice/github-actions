@@ -140,10 +140,12 @@ runs:
               ignore_files+=("$ignore_file")
             done
 
+            IFS=
             for modified_file in $modified_files;
             do
               file_name=$(basename $modified_file)
               echo "File in PR: $file_name"
+              IFS=
               for ignore_file in $ignore_files;
               do
                 echo "File to ignore: $ignore_file"
@@ -156,8 +158,9 @@ runs:
           fi
 
           echo ${modified_files[@]}
-
-          for modified_file in $modified_files;
+  
+          IFS=
+          for file in $modified_files;
           do        
             echo "Checking file: $file"
             if [[ $file == *".github"* ]]; then
