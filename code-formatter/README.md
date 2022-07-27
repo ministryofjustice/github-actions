@@ -21,10 +21,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: ministryofjustice/github-actions/code-formatter@v5
+      - uses: ministryofjustice/github-actions/code-formatter@v6
+        with:
+          ignore-files: "fileA.json,fileB.rb,fileC.yaml"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+The ```with: ignore-files:``` is optional. 
 
 `GITHUB_TOKEN` is provided automatically by github actions. You do
 not need to do anything extra to make it available. Just use the
