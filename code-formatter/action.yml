@@ -127,13 +127,19 @@ runs:
           do
             modified_files+=("$file")
           done < modified_files.txt
-          ignore_files=${{ inputs.ignore-files }}
-          ignore_files_length=${#ignore_files}
-          
-          echo ${ignore_files[@]}
-          echo ${modified_files[@]}
-          
+
+          ignore_files_string=${{ inputs.ignore-files }}
+          ignore_files_length=${#ignore_files_string}
+
           if [ $ignore_files_length -gt 0 ]; then
+            ignore_files=()
+
+            IFS=,
+            for ignore_file in $ignore_files_string;
+            do
+              ignore_files+=("$ignore_file")
+            done
+
             for modified_file in $modified_files;
             do
               file_name=$(basename $modified_file)
