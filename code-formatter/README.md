@@ -28,7 +28,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-The ```with: ignore-files:``` is optional. 
+The `with: ignore-files:` is optional.
 
 `GITHUB_TOKEN` is provided automatically by github actions. You do
 not need to do anything extra to make it available. Just use the

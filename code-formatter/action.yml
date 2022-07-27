@@ -1,10 +1,10 @@
 name: "Code-Formatter"
 desciption: "Format Ruby, Terraform, YAML/YML, Python, Markdown, JSON and html.md.erb files within a PR"
 inputs:
-  ignore-files: 
-    description: 'Files to ignore'
+  ignore-files:
+    description: "Files to ignore"
     required: false
-    default: ''
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -131,7 +131,7 @@ runs:
 
           ignore_files_string=${{ inputs.ignore-files }}
           ignore_files_length=${#ignore_files_string}
-        
+
           if [ $ignore_files_length -gt 0 ]; then
             ignore_files=()
 
@@ -153,7 +153,7 @@ runs:
               done
             done
           fi
-  
+
           for file in "${modified_files[@]}";
           do
             if [ ${#file} -gt 0 ]; then
