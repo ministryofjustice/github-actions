@@ -156,7 +156,7 @@ runs:
   
           for file in "${modified_files[@]}";
           do
-            if [ $file -gt 0 ]; then
+            if [ ${#file} -gt 0 ]; then
               echo "Checking file: $file"
               if [[ $file == *".github"* ]]; then
                 echo "Cannot format .github/workflow files."
