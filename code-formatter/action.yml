@@ -149,7 +149,7 @@ runs:
               file_name=$(basename $modified_file)
               echo "File in PR: $file_name"
               IFS=
-              for ignore_file in $ignore_files;
+              for ignore_file in "${ignore_files[@]}";
               do
                 echo "File to ignore: $ignore_file"
                 if [[ $file_name == $ignore_file ]]; then
