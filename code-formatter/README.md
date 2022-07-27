@@ -4,7 +4,7 @@ A Github Action to apply code formatting to file in **PRs only**. CI GH Action w
 
 Formats Ruby, Terraform, YAML/YML, Python, Markdown, JSON and html.md.erb files within a PR.
 
-## USAGE
+## Usage
 
 Create a file in your repo called `.github/workflows/format-code.yml` with the
 following contents:
