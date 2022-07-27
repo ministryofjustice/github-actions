@@ -155,20 +155,22 @@ runs:
           fi
   
           for file in "${modified_files[@]}";
-          do        
-            echo "Checking file: $file"
-            if [[ $file == *".github"* ]]; then
-              echo "Cannot format .github/workflow files."
-            elif [[ $file == *".py"* ]]; then
-              python3 -m autopep8 --in-place $file
-            elif [[ $file == *".rb"* ]]; then
-              bundle exec standardrb --fix $file
-            elif [[ $file == *".tf" ]] || [[ $file == *".tfvars" ]]; then
-              terraform fmt $file
-            elif [[ $file == *".html.md.erb" ]]; then
-              bundle exec erblint -a $file
-            elif [[ $file == *".yaml" || $file == *".yml" || $file == *".md" || $file == *".html.md" || $file == *".json" ]]; then
-              npx prettier --print-width=150 --write $file
+          do
+            if [ $file -gt 0 ]; then
+              echo "Checking file: $file"
+              if [[ $file == *".github"* ]]; then
+                echo "Cannot format .github/workflow files."
+              elif [[ $file == *".py"* ]]; then
+                python3 -m autopep8 --in-place $file
+              elif [[ $file == *".rb"* ]]; then
+                bundle exec standardrb --fix $file
+              elif [[ $file == *".tf" ]] || [[ $file == *".tfvars" ]]; then
+                terraform fmt $file
+              elif [[ $file == *".html.md.erb" ]]; then
+                bundle exec erblint -a $file
+              elif [[ $file == *".yaml" || $file == *".yml" || $file == *".md" || $file == *".html.md" || $file == *".json" ]]; then
+                npx prettier --print-width=150 --write $file
+              fi
             fi
           done  
         fi
