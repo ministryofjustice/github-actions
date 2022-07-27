@@ -1,5 +1,10 @@
 name: "Code-Formatter"
 desciption: "Format Ruby, Terraform, YAML/YML, Python, Markdown, JSON and html.md.erb files within a PR"
+inputs:
+  ignore-files:
+    description: "Files to ignore"
+    required: false
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -114,26 +119,60 @@ runs:
           head_branch_sha=${{ github.event.pull_request.head.sha }}
           echo $base_branch_sha
           echo $head_branch_sha
+          
           git diff-tree -r --no-commit-id --name-only --diff-filter=ACMRT $base_branch_sha $head_branch_sha > modified_files.txt
           chmod 755 modified_files.txt
           [ -n "$(tail -c1 modified_files.txt)" ] && echo >> modified_files.txt
+          modified_files=()
           while IFS= read -r file
           do
-            echo "Checking file: $file"
-            if [[ $file == *".github"* ]]; then
-              echo "Cannot format .github/workflow files."
-            elif [[ $file == *".py"* ]]; then
-              python3 -m autopep8 --in-place $file
-            elif [[ $file == *".rb"* ]]; then
-              bundle exec standardrb --fix $file
-            elif [[ $file == *".tf" ]] || [[ $file == *".tfvars" ]]; then
-              terraform fmt $file
-            elif [[ $file == *".html.md.erb" ]]; then
-              bundle exec erblint -a $file
-            elif [[ $file == *".yaml" || $file == *".yml" || $file == *".md" || $file == *".html.md" || $file == *".json" ]]; then
-              npx prettier --print-width=150 --write $file
-            fi
+            modified_files+=("$file")
           done < modified_files.txt
+
+          ignore_files_string=${{ inputs.ignore-files }}
+          ignore_files_length=${#ignore_files_string}
+
+          if [ $ignore_files_length -gt 0 ]; then
+            ignore_files=()
+
+            IFS=,
+            for ignore_file in "${ignore_files_string[@]}";
+            do
+              ignore_files+=("$ignore_file")
+            done
+
+            for modified_file in "${modified_files[@]}";
+            do
+              file_name=$(basename $modified_file)
+              for ignore_file in ${ignore_files[@]};
+              do
+                if [[ $file_name == $ignore_file ]]; then
+                  echo "Ignore file: $ignore_file"
+                  modified_files=("${modified_files[@]/$ignore_file}")
+                fi
+              done
+            done
+          fi
+
+          for file in "${modified_files[@]}";
+          do
+            if [ ${#file} -gt 0 ]; then
+              echo "Checking file: $file"
+              if [[ $file == *".github"* ]]; then
+                echo "Cannot format .github/workflow files."
+              elif [[ $file == *".py"* ]]; then
+                python3 -m autopep8 --in-place $file
+              elif [[ $file == *".rb"* ]]; then
+                bundle exec standardrb --fix $file
+              elif [[ $file == *".tf" ]] || [[ $file == *".tfvars" ]]; then
+                terraform fmt $file
+              elif [[ $file == *".html.md.erb" ]]; then
+                bundle exec erblint -a $file
+              elif [[ $file == *".yaml" || $file == *".yml" || $file == *".md" || $file == *".html.md" || $file == *".json" ]]; then
+                npx prettier --print-width=150 --write $file
+              fi
+            fi
+          done  
         fi
       shell: bash
 
