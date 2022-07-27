@@ -125,12 +125,13 @@ runs:
           while IFS= read -r file
           do
             echo "Checking file: $file"
-            string=${{ inputs.ignore-files }}
-            string_length=${#string}
+            ignore_files=${{ inputs.ignore-files }}
+            string_length=${#ignore_files}
             if [ $string_length -gt 0 ]; then
               echo "A"
+              echo $ignore_files
               IFS=,
-              for ignore_file in "${{ inputs.ignore-files }}";
+              for ignore_file in $ignore_files;
               do
                 file_name=$(basename $file)
                 echo $file_name
