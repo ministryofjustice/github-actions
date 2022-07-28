@@ -10,6 +10,7 @@ echo "INPUT_TFSEC_VERSION: $INPUT_TFSEC_VERSION"
 echo "INPUT_TFSEC_OUTPUT_FORMAT: $INPUT_TFSEC_OUTPUT_FORMAT"
 echo "INPUT_TFSEC_OUTPUT_FILE: $INPUT_TFSEC_OUTPUT_FILE"
 echo "INPUT_CHECKOV_EXCLUDE: $INPUT_CHECKOV_EXCLUDE"
+echo "INPUT_CHECKOV_EXTERNAL_MODULES: $INPUT_CHECKOV_EXTERNAL_MODULES"
 echo "INPUT_TFLINT_EXCLUDE: $INPUT_TFLINT_EXCLUDE"
 echo "INPUT_TFLINT_CONFIG: $INPUT_TFLINT_CONFIG"
 echo
@@ -82,9 +83,9 @@ run_checkov(){
     if [[ "${directory}" != *"templates"* ]]; then
       if [[ -n "$INPUT_CHECKOV_EXCLUDE" ]]; then
         echo "Excluding the following checks: ${INPUT_CHECKOV_EXCLUDE}"
-        checkov --quiet -d $terraform_working_dir --skip-check ${INPUT_CHECKOV_EXCLUDE} 2>&1
+        checkov --quiet -d $terraform_working_dir --skip-check ${INPUT_CHECKOV_EXCLUDE} --download-external-modules ${INPUT_CHECKOV_EXTERNAL_MODULES} 2>&1
       else
-        checkov --quiet -d $terraform_working_dir 2>&1
+        checkov --quiet -d $terraform_working_dir --download-external-modules ${INPUT_CHECKOV_EXTERNAL_MODULES} 2>&1
       fi
       checkov_exitcode+=$?
       echo "checkov_exitcode=${checkov_exitcode}"
