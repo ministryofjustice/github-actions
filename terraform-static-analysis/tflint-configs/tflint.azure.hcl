@@ -1,10 +1,20 @@
 plugin "azurerm" {
     enabled = true
-    version = "0.17.1"
+    version = "0.18.0"
     source  = "github.com/terraform-linters/tflint-ruleset-azurerm"
 }
 
+plugin "terraform" {
+    enabled = true
+    version = "0.1.0"
+    source  = "github.com/terraform-linters/tflint-ruleset-terraform"
+}
+
 rule "terraform_comment_syntax" {
+  enabled = false
+}
+
+rule "terraform_deprecated_index" {
   enabled = false
 }
 
@@ -14,6 +24,10 @@ rule "terraform_documented_outputs" {
 
 rule "terraform_documented_variables" {
   enabled = true
+}
+
+rule "terraform_empty_list_equality" {
+  enabled = false
 }
 
 rule "terraform_module_pinned_source" {
@@ -53,5 +67,9 @@ rule "terraform_unused_declarations" {
 }
 
 rule "terraform_unused_required_providers" {
+  enabled = true
+}
+
+rule "terraform_workspace_remote" {
   enabled = true
 }
