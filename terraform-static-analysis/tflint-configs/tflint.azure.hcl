@@ -1,12 +1,13 @@
 plugin "azurerm" {
     enabled = true
-    version = "0.18.0"
+    version = "0.19.0"
     source  = "github.com/terraform-linters/tflint-ruleset-azurerm"
 }
 
 plugin "terraform" {
     enabled = true
-    version = "0.1.0"
+    version = "0.2.1"
+    preset  = "recommended"
     source  = "github.com/terraform-linters/tflint-ruleset-terraform"
 }
 
