@@ -52,7 +52,7 @@ jobs:
           starts-with: "####"
 
       - name: Run Analysis
-        uses: ministryofjustice/github-actions/terraform-static-analysis@v8
+        uses: ministryofjustice/github-actions/terraform-static-analysis@v9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
