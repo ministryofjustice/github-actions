@@ -1,8 +1,8 @@
-FROM golang:1.18-buster
+FROM golang:1.18-bullseye
 
 #Install Checkov
 RUN apt-get update && apt-get install -y \
-  python3.7 \
+  python3 \
   python3-pip \
   git \
   jq \
