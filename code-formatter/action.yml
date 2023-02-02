@@ -1,5 +1,5 @@
 name: "Code-Formatter"
-desciption: "Format Ruby, Terraform, YAML/YML, Python, Markdown, JSON and html.md.erb files within a PR"
+description: "Format Ruby, Terraform, YAML/YML, Python, Markdown, JSON and html.md.erb files within a PR"
 inputs:
   ignore-files:
     description: "Files to ignore"
@@ -119,7 +119,7 @@ runs:
           head_branch_sha=${{ github.event.pull_request.head.sha }}
           echo $base_branch_sha
           echo $head_branch_sha
-          
+
           git diff-tree -r --no-commit-id --name-only --diff-filter=ACMRT $base_branch_sha $head_branch_sha > modified_files.txt
           chmod 755 modified_files.txt
           [ -n "$(tail -c1 modified_files.txt)" ] && echo >> modified_files.txt
@@ -172,7 +172,7 @@ runs:
                 npx prettier --print-width=150 --write $file
               fi
             fi
-          done  
+          done
         fi
       shell: bash
 
@@ -197,6 +197,16 @@ runs:
         then
           git ls-files --deleted -z | git update-index --assume-unchanged -z --stdin
           if [ -n "$(git status --porcelain=1 --untracked-files=no)" ]; then
+            owner=$(git config --get remote.origin.url | sed -n 's#.*github\.com:\([^/]*\)/.*#\1#p')
+            repo=$(basename -s .git `git config --get remote.origin.url`)
+            # Set the necessary headers for the request
+            headers="Authorization: token $GITHUB_TOKEN"
+            content_type="Content-Type: application/json"
+            # Get the list of files to update using git diff
+            files=`git diff HEAD HEAD~ --name-only`
+            # Initialize an array to store the file objects
+            file_objects=()
+
             git add --ignore-removal .
             git commit -m "Commit changes made by code formatters"
             git push
