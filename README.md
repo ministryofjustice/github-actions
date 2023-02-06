@@ -6,14 +6,14 @@ A collection of github actions.
 
 <!-- markdownlint-disable MD013 -->
 
-| Action                                                         | Description                                                      |
-| -------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Action                                                                   | Description                                                      |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------------- |
 | [code-formatter](code-formatter)                                         | Run various code formatters against a PR, and commit the results |
 | [iam-role-policy-changes-check](iam-role-policy-changes-check)           | Reject PR if it contains IAM related content                     |
 | [malformed-yaml](malformed-yaml)                                         | Reject a PR if it contains malformed YAML files                  |
 | [reject-multi-namespace-prs](reject-multi-namespace-prs)                 | Reject a PR if it affects multiple namespace folders             |
 | [terraform-static-analysis](terraform-static-analysis)                   | Runs TFSec, Checkov and TFlint against Terraform                 |
-| [check-terraform-modules-are-latest](check-terraform-modules-are-latest) | Checks "cloud-platform-terraform-*" module versions are latest   |
+| [check-terraform-modules-are-latest](check-terraform-modules-are-latest) | Checks "cloud-platform-terraform-\*" module versions are latest  |
 
 <!-- markdownlint-enable MD013 -->
 
