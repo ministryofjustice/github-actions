@@ -29,7 +29,7 @@ updates:
     directory: "/iam-role-policy-changes-check"
     schedule:
       interval: "daily"
-   - package-ecosystem: "docker"
+  - package-ecosystem: "docker"
     directory: "/malformed-yaml"
     schedule:
       interval: "daily"
