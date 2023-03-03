@@ -18,12 +18,12 @@ runs:
         git fetch origin
         branch_name=${{ github.head_ref }}
         if [[ $( git rev-parse --verify origin/$branch_name ) ]]; then
-          echo "::set-output name=result::$((0))"
+          echo "result=$((0))" >> ${GITHUB_OUTPUT}
         else
           echo "Warning: Cannot code-format a forked branch or cannot find the branch!"
           echo $branch_name
           echo "Finished: no Code Formatter changes."
-          echo "::set-output name=result::$((1))"
+          echo "result=$((1))" >> ${GITHUB_OUTPUT}
         fi
       shell: bash
 
