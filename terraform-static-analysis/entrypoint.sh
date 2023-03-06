@@ -32,6 +32,9 @@ declare -i checkov_exitcode=0
 declare -i tflint_exitcode=0
 declare -i tfinit_exitcode=0
 
+# see https://github.com/actions/runner/issues/2033
+git config --global --add safe.directory /github/workspace
+
 # Identify which Terraform folders have changes and need scanning
 tf_folders_with_changes=`git diff-tree --no-commit-id --name-only -r @^ | awk '{print $1}' | grep '\.tf' | sed 's#/[^/]*$##' | grep -v '\.tf' | uniq`
 echo
