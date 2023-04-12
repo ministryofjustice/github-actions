@@ -9,27 +9,34 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+      time: "09:00" # UTC
   - package-ecosystem: "gomod"
     directory: "/iam-role-policy-changes-check"
     schedule:
       interval: "daily"
+      time: "09:00" # UTC
   - package-ecosystem: "terraform"
     directory: "/terraform-static-analysis/tflint-configs"
     schedule:
       interval: "daily"
+      time: "09:00" # UTC
   - package-ecosystem: "docker"
     directory: "/reject-multi-namespace-prs"
     schedule:
       interval: "daily"
+      time: "09:00" # UTC
   - package-ecosystem: "docker"
     directory: "/terraform-static-analysis"
     schedule:
       interval: "daily"
+      time: "09:00" # UTC
   - package-ecosystem: "docker"
     directory: "/iam-role-policy-changes-check"
     schedule:
       interval: "daily"
+      time: "09:00" # UTC
   - package-ecosystem: "docker"
     directory: "/malformed-yaml"
     schedule:
       interval: "daily"
+      time: "09:00" # UTC
