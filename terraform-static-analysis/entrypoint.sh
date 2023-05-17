@@ -33,7 +33,7 @@ declare -i tflint_exitcode=0
 declare -i tfinit_exitcode=0
 
 # see https://github.com/actions/runner/issues/2033
-git config --global --add safe.directory /github/workspace
+git config --global --add safe.directory $GITHUB_WORKSPACE
 
 # Identify which Terraform folders have changes and need scanning
 tf_folders_with_changes=`git diff-tree --no-commit-id --name-only -r @^ | awk '{print $1}' | grep '\.tf' | sed 's#/[^/]*$##' | grep -v '\.tf' | uniq`
@@ -56,7 +56,7 @@ run_tfsec(){
   do
     line_break
     echo "Running TFSEC in ${directory}"
-    terraform_working_dir="/github/workspace/${directory}"
+    terraform_working_dir="${GITHUB_WORKSPACE}/${directory}"
     if [[ "${directory}" != *"templates"* ]]; then
       if [[ -n "$INPUT_TFSEC_EXCLUDE" ]]; then
         echo "Excluding the following checks: ${INPUT_TFSEC_EXCLUDE}"
@@ -82,7 +82,7 @@ run_checkov(){
   do
     line_break
     echo "Running Checkov in ${directory}"
-    terraform_working_dir="/github/workspace/${directory}"
+    terraform_working_dir="${GITHUB_WORKSPACE}/${directory}"
     if [[ "${directory}" != *"templates"* ]]; then
       if [[ -n "$INPUT_CHECKOV_EXCLUDE" ]]; then
         echo "Excluding the following checks: ${INPUT_CHECKOV_EXCLUDE}"
@@ -117,7 +117,7 @@ run_tflint(){
   do
     line_break
     echo "Running tflint in ${directory}"
-    terraform_working_dir="/github/workspace/${directory}"
+    terraform_working_dir="${GITHUB_WORKSPACE}/${directory}"
     if [[ "${directory}" != *"templates"* ]]; then
       if [[ -n "$INPUT_TFLINT_EXCLUDE" ]]; then
         echo "Excluding the following checks: ${INPUT_TFLINT_EXCLUDE}"
