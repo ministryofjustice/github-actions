@@ -6,9 +6,7 @@ inputs:
     required: false
     default: ""
 outputs:
-  files_changed:
-    description: "String for if the code formatter has changed files"
-    value: "false"
+  files_changed: ${{ steps.commit_changes.outputs.files_changed }}
 runs:
   using: "composite"
   steps:
@@ -205,9 +203,10 @@ runs:
             git add --ignore-removal .
             git commit -m "Commit changes made by code formatters"
             git push
-            echo "files_changed=true" >> ${GITHUB_OUTPUT}
+            echo "files_changed=true" >> "${GITHUB_OUTPUT}"
             echo "Finished: Code Formatter changes applied."
           else
+            echo "files_changed=false" >> "${GITHUB_OUTPUT}"
             echo "Finished: no Code Formatter changes."
           fi
         fi
