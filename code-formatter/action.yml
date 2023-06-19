@@ -6,7 +6,7 @@ inputs:
     required: false
     default: ""
 outputs:
-  files_changed: 
+  files_changed:
     description: String for if files have been changed by the formatter (true/false)
     value: ${{ steps.commit_changes.outputs.files_changed }}
 runs:
