@@ -33,3 +33,7 @@ The `with: ignore-files:` is optional.
 `GITHUB_TOKEN` is provided automatically by github actions. You do
 not need to do anything extra to make it available. Just use the
 content above, exactly as shown.
+
+## Outputs
+
+**files_changed**: a string boolean ("false"/"true") that outputs if the code formatter has changed and recommited files
