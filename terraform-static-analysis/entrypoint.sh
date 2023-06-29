@@ -21,6 +21,13 @@ else
   env GO111MODULE=on go install github.com/aquasecurity/tfsec/cmd/tfsec@latest
 fi
 
+# install trivy from github (taken from README.md)
+if [[ -n "$INPUT_TRIVY_VERSION" ]]; then
+  curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin ${INPUT_TRIVY_VERSION}
+else
+  curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin latest
+fi
+
 line_break() {
   echo
   echo "*****************************"
@@ -47,9 +54,30 @@ echo
 echo "All TF folders"
 echo $all_tf_folders
 
+run_trivy(){
+  line_break
+  echo "Trivy will check the following folders:"
+  echo $1
+  directories=($1)
+  for directory in ${directories[@]}
+  do
+    line_break
+    echo "Running Trivy in ${directory}"
+    terraform_working_dir="${GITHUB_WORKSPACE}/${directory}"
+    if [[ "${directory}" != *"templates"* ]]; then
+      trivy fs --scanners vuln,config,secret --exit-code 1 --no-progress ${INPUT_TRIVY_IGNORE_UNFIXED} --clear-cache --ignorefile ${INPUT_TRIVY_IGNORE_FILE} --severity ${INPUT_TRIVY_SEVERITY} --ignore-unfixed --no-progress --output json ${INPUT_TRIVY_IMAGE_NAME} 2>&1
+      trivy_exitcode+=$?
+      echo "trivy_exitcode=${trivy_exitcode}"
+    else
+      echo "Skipping folder as path name contains *templates*"
+    fi
+  done
+  return $trivy_exitcode
+}
+
 run_tfsec(){
   line_break
-  echo "TFSEC will check the following folders:"
+  echo "Trivy will check the following folders:"
   echo $1
   directories=($1)
   for directory in ${directories[@]}
@@ -150,6 +178,9 @@ case ${INPUT_SCAN_TYPE} in
     TFLINT_OUTPUT=$(run_tflint "${all_tf_folders}")
     tflint_exitcode=$?
     wait
+    TRIVY_OUTPUT=$(run_trivy "${all_tf_folders}")
+    trivy_exitcode=$?
+    wait
     ;;
 
   changed)
@@ -164,6 +195,9 @@ case ${INPUT_SCAN_TYPE} in
     TFLINT_OUTPUT=$(run_tflint "${tf_folders_with_changes}")
     tflint_exitcode=$?
     wait
+    TRIVY_OUTPUT=$(run_trivy "${tf_folders_with_changes}")
+    trivy_exitcode=$?
+    wait
     ;;
   *)
     line_break
@@ -176,6 +210,9 @@ case ${INPUT_SCAN_TYPE} in
     wait
     TFLINT_OUTPUT=$(run_tflint "${INPUT_TERRAFORM_WORKING_DIR}")
     tflint_exitcode=$?
+    wait
+    TRIVY_OUTPUT=$(run_trivy "${INPUT_TERRAFORM_WORKING_DIR}")
+    trivy_exitcode=$?
     wait
     ;;
 esac
@@ -198,11 +235,18 @@ else
   TFLINT_STATUS="Failed"
 fi
 
+if [ $trivy_exitcode -eq 0 ]; then
+  TRIVY_STATUS="Success"
+else
+  TRIVY_STATUS="Failed"
+fi
+
 # Print output.
 line_break
 echo "${TFSEC_OUTPUT}"
 echo "${CHECKOV_OUTPUT}"
 echo "${TFLINT_OUTPUT}"
+echo "${TRIVY_OUTPUT}"
 
 # Comment on the pull request if necessary.
 if [ "${INPUT_COMMENT_ON_PR}" == "1" ] || [ "${INPUT_COMMENT_ON_PR}" == "true" ]; then
@@ -237,7 +281,15 @@ ${CHECKOV_OUTPUT}
 ${TFLINT_OUTPUT}
 \`\`\`
 
-</details>"
+</details>
+
+#### \`Trivy Scan\` ${TRIVY_STATUS}
+<details><summary>Show Output</summary>
+
+\`\`\`hcl
+${TRIVY_OUTPUT}
+\`\`\`
+"
 
   PAYLOAD=$(echo "${COMMENT}" | jq -R --slurp '{body: .}')
   URL=$(jq -r .pull_request.comments_url "${GITHUB_EVENT_PATH}")
@@ -248,8 +300,9 @@ line_break
 echo "Total of TFSEC exit codes: $tfsec_exitcode"
 echo "Total of Checkov exit codes: $checkov_exitcode"
 echo "Total of tflint exit codes: $tflint_exitcode"
+echo "Total of trivy exit codes: $trivy_exitcode"
 
-if [ $tfsec_exitcode -gt 0 ] || [ $checkov_exitcode -gt 0 ] || [ $tflint_exitcode -gt 0 ];then
+if [ $tfsec_exitcode -gt 0 ] || [ $checkov_exitcode -gt 0 ] || [ $tflint_exitcode -gt 0 ] || [ $trivy_exitcode -gt 0 ];then
   echo "Exiting with error(s)"
   exit 1
 else
