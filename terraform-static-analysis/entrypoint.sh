@@ -13,6 +13,8 @@ echo "INPUT_CHECKOV_EXCLUDE: $INPUT_CHECKOV_EXCLUDE"
 echo "INPUT_CHECKOV_EXTERNAL_MODULES: $INPUT_CHECKOV_EXTERNAL_MODULES"
 echo "INPUT_TFLINT_EXCLUDE: $INPUT_TFLINT_EXCLUDE"
 echo "INPUT_TFLINT_CONFIG: $INPUT_TFLINT_CONFIG"
+echo "INPUT_TRIVY_EXCLUDE: $INPUT_TRIVY_EXCLUDE"
+
 echo
 # install tfsec from GitHub (taken from README.md)
 if [[ -n "$INPUT_TFSEC_VERSION" ]]; then
@@ -65,7 +67,7 @@ run_trivy(){
     echo "Running Trivy in ${directory}"
     terraform_working_dir="${GITHUB_WORKSPACE}/${directory}"
     if [[ "${directory}" != *"templates"* ]]; then
-      trivy fs --scanners vuln,config,secret --exit-code 1 --no-progress ${INPUT_TRIVY_IGNORE_UNFIXED} --clear-cache --ignorefile ${INPUT_TRIVY_IGNORE_FILE} --severity ${INPUT_TRIVY_SEVERITY} --ignore-unfixed --no-progress --output json ${INPUT_TRIVY_IMAGE_NAME} 2>&1
+      trivy fs --scanners vuln,config,secret --exit-code 1 --no-progress --clear-cache --severity ${INPUT_TRIVY_SEVERITY} ${terraform_working_dir} 2>&1
       trivy_exitcode+=$?
       echo "trivy_exitcode=${trivy_exitcode}"
     else
