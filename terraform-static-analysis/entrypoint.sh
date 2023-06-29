@@ -40,7 +40,7 @@ line_break() {
 declare -i tfsec_exitcode=0
 declare -i checkov_exitcode=0
 declare -i tflint_exitcode=0
-declare -i tfinit_exitcode=0
+declare -i trivy_exitcode=0
 
 # see https://github.com/actions/runner/issues/2033
 git config --global --add safe.directory $GITHUB_WORKSPACE
