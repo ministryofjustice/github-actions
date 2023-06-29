@@ -13,8 +13,9 @@ echo "INPUT_CHECKOV_EXCLUDE: $INPUT_CHECKOV_EXCLUDE"
 echo "INPUT_CHECKOV_EXTERNAL_MODULES: $INPUT_CHECKOV_EXTERNAL_MODULES"
 echo "INPUT_TFLINT_EXCLUDE: $INPUT_TFLINT_EXCLUDE"
 echo "INPUT_TFLINT_CONFIG: $INPUT_TFLINT_CONFIG"
+echo "INPUT_TRIVY_VERSION: $INPUT_TRIVY_VERSION"
 echo "INPUT_TRIVY_EXCLUDE: $INPUT_TRIVY_EXCLUDE"
-
+echo "INPUT_TRIVY_SEVERITY: $INPUT_TRIVY_SEVERITY"
 echo
 # install tfsec from GitHub (taken from README.md)
 if [[ -n "$INPUT_TFSEC_VERSION" ]]; then
@@ -23,7 +24,7 @@ else
   env GO111MODULE=on go install github.com/aquasecurity/tfsec/cmd/tfsec@latest
 fi
 
-# install trivy from github (taken from README.md)
+# install trivy from github (taken from docs install guide)
 if [[ -n "$INPUT_TRIVY_VERSION" ]]; then
   curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin ${INPUT_TRIVY_VERSION}
 else
