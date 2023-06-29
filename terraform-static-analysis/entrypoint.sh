@@ -293,6 +293,7 @@ ${TFLINT_OUTPUT}
 \`\`\`hcl
 ${TRIVY_OUTPUT}
 \`\`\`
+</details>
 "
 
   PAYLOAD=$(echo "${COMMENT}" | jq -R --slurp '{body: .}')
