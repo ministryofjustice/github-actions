@@ -81,7 +81,7 @@ run_trivy(){
 
 run_tfsec(){
   line_break
-  echo "TFSec will check the following folders:"
+  echo "TFSEC will check the following folders:"
   echo $1
   directories=($1)
   for directory in ${directories[@]}
