@@ -174,58 +174,79 @@ case ${INPUT_SCAN_TYPE} in
   full)
     line_break
     echo "Starting full scan"
-    TFSEC_OUTPUT=$(run_tfsec "${all_tf_folders}")
-    tfsec_exitcode=$?
-    wait
+    if [[ "${TFSEC_TRIVY}" == "tfsec"]]; then
+      TFSEC_OUTPUT=$(run_tfsec "${all_tf_folders}")
+      tfsec_exitcode=$?
+      wait
+    fi
+    if [[ "${TFSEC_TRIVY}" == "trivy"]]; then
+      TRIVY_OUTPUT=$(run_trivy "${all_tf_folders}")
+      trivy_exitcode=$?
+      wait
+    fi
     CHECKOV_OUTPUT=$(run_checkov "${all_tf_folders}")
     checkov_exitcode=$?
     wait
     TFLINT_OUTPUT=$(run_tflint "${all_tf_folders}")
     tflint_exitcode=$?
     wait
-    TRIVY_OUTPUT=$(run_trivy "${all_tf_folders}")
-    trivy_exitcode=$?
-    wait
     ;;
 
   changed)
     line_break
     echo "Starting scan of changed folders"
-    TFSEC_OUTPUT=$(run_tfsec "${tf_folders_with_changes}")
-    tfsec_exitcode=$?
-    wait
+    if [[ "${TFSEC_TRIVY}" == "tfsec"]]; then
+      TFSEC_OUTPUT=$(run_tfsec "${tf_folders_with_changes}")
+      tfsec_exitcode=$?
+      wait
+    fi
+    if [[ "${TFSEC_TRIVY}" == "trivy"]]; then
+      TRIVY_OUTPUT=$(run_trivy "${tf_folders_with_changes}")
+      trivy_exitcode=$?
+      wait
+    fi
     CHECKOV_OUTPUT=$(run_checkov "${tf_folders_with_changes}")
     checkov_exitcode=$?
     wait
     TFLINT_OUTPUT=$(run_tflint "${tf_folders_with_changes}")
     tflint_exitcode=$?
     wait
-    TRIVY_OUTPUT=$(run_trivy "${tf_folders_with_changes}")
-    trivy_exitcode=$?
-    wait
     ;;
   *)
     line_break
     echo "Starting single folder scan"
-    TFSEC_OUTPUT=$(run_tfsec "${INPUT_TERRAFORM_WORKING_DIR}")
-    tfsec_exitcode=$?
-    wait
+    if [[ "${TFSEC_TRIVY}" == "tfsec"]]; then
+      TFSEC_OUTPUT=$(run_tfsec "${INPUT_TERRAFORM_WORKING_DIR}")
+      tfsec_exitcode=$?
+      wait
+    fi
+    if [[ "${TFSEC_TRIVY}" == "trivy"]]; then
+      TRIVY_OUTPUT=$(run_trivy "${INPUT_TERRAFORM_WORKING_DIR}")
+      trivy_exitcode=$?
+      wait
+    fi
     CHECKOV_OUTPUT=$(run_checkov "${INPUT_TERRAFORM_WORKING_DIR}")
     checkov_exitcode=$?
     wait
     TFLINT_OUTPUT=$(run_tflint "${INPUT_TERRAFORM_WORKING_DIR}")
     tflint_exitcode=$?
     wait
-    TRIVY_OUTPUT=$(run_trivy "${INPUT_TERRAFORM_WORKING_DIR}")
-    trivy_exitcode=$?
-    wait
     ;;
 esac
 
-if [ $tfsec_exitcode -eq 0 ]; then
-  TFSEC_STATUS="Success"
-else
-  TFSEC_STATUS="Failed"
+if [[ "${TFSEC_TRIVY}" == "tfsec"]]; then
+  if [ $tfsec_exitcode -eq 0 ]; then
+    TFSEC_STATUS="Success"
+  else
+    TFSEC_STATUS="Failed"
+  fi
+fi
+if [[ "${TFSEC_TRIVY}" == "trivy"]]; then
+  if [ $trivy_exitcode -eq 0 ]; then
+    TRIVY_STATUS="Success"
+  else
+    TRIVY_STATUS="Failed"
+  fi
 fi
 
 if [ $checkov_exitcode -eq 0 ]; then
@@ -240,18 +261,16 @@ else
   TFLINT_STATUS="Failed"
 fi
 
-if [ $trivy_exitcode -eq 0 ]; then
-  TRIVY_STATUS="Success"
-else
-  TRIVY_STATUS="Failed"
-fi
-
 # Print output.
 line_break
-echo "${TFSEC_OUTPUT}"
+if [[ "${TFSEC_TRIVY}" == "tfsec"]]; then
+ echo "${TFSEC_OUTPUT}"
+fi
+if [[ "${TFSEC_TRIVY}" == "trivy"]]; then
+ echo "${TRIVY_OUTPUT}"
+fi
 echo "${CHECKOV_OUTPUT}"
 echo "${TFLINT_OUTPUT}"
-echo "${TRIVY_OUTPUT}"
 
 # Comment on the pull request if necessary.
 if [ "${INPUT_COMMENT_ON_PR}" == "1" ] || [ "${INPUT_COMMENT_ON_PR}" == "true" ]; then
