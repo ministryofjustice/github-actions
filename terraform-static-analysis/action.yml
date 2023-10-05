@@ -48,7 +48,7 @@ inputs:
     required: false
     default: "latest"
   tfsec_trivy:
-    description: "Whether or not to run TF Sec or Trivy [tfsec, trivy]"
+    description: "Whether or not to run TF Sec or Trivy, defaults to tfsec [tfsec, trivy]"
     required: false
     default: "tfsec"
 
