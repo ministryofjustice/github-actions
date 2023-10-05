@@ -47,6 +47,10 @@ inputs:
     description: "Specify the version of trivy to install"
     required: false
     default: "latest"
+  tfsec_trivy:
+    description: "Whether or not to run TF Sec or Trivy [tfsec, trivy]"
+    required: false
+    default: "tfsec"
 
 runs:
   using: "docker"

@@ -16,16 +16,17 @@ echo "INPUT_TFLINT_CONFIG: $INPUT_TFLINT_CONFIG"
 echo "INPUT_TRIVY_VERSION: $INPUT_TRIVY_VERSION"
 echo "INPUT_TRIVY_EXCLUDE: $INPUT_TRIVY_EXCLUDE"
 echo "INPUT_TRIVY_SEVERITY: $INPUT_TRIVY_SEVERITY"
+echo "TFSEC_TRVIY: $TFSEC_TRVIY"
 echo
 # install tfsec from GitHub (taken from README.md)
-if [[ -n "$INPUT_TFSEC_VERSION" ]]; then
+if [[ -n "$INPUT_TFSEC_VERSION" && "${TFSEC_TRVIY}" == "tfsec" ]]; then
   env GO111MODULE=on go install github.com/aquasecurity/tfsec/cmd/tfsec@"${INPUT_TFSEC_VERSION}"
 else
   env GO111MODULE=on go install github.com/aquasecurity/tfsec/cmd/tfsec@latest
 fi
 
 # install trivy from github (taken from docs install guide)
-if [[ -n "$INPUT_TRIVY_VERSION" ]]; then
+if [[ -n "$INPUT_TRIVY_VERSION" && "${TFSEC_TRVIY}" == "trivy"]]; then
   curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin ${INPUT_TRIVY_VERSION}
 else
   curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin latest
@@ -260,16 +261,23 @@ else
 fi
 
 if [ "${GITHUB_EVENT_NAME}" == "pull_request" ] && [ -n "${GITHUB_TOKEN}" ] && [ "${COMMENT}" == "1" ] ; then
-    COMMENT="#### \`TFSEC Scan\` ${TFSEC_STATUS}
+if [[ "${TFSEC_TRIVY}" == "tfsec"]]; then
+    TFSEC_TRIVY_COMMENT = "#### \`TFSEC Scan\` ${TFSEC_STATUS}
 <details><summary>Show Output</summary>
-
 \`\`\`hcl
 ${TFSEC_OUTPUT}
 \`\`\`
-
-</details>
-
-#### \`Checkov Scan\` ${CHECKOV_STATUS}
+</details>"
+fi
+if [[ "${TFSEC_TRIVY}" == "trivy"]]; then
+    TFSEC_TRIVY_COMMENT = "#### \`Trivy Scan\` ${TRIVY_STATUS}
+<details><summary>Show Output</summary>
+\`\`\`hcl
+${TRIVY_OUTPUT}
+\`\`\`
+</details>"
+  
+    COMMENT="#### \`Checkov Scan\` ${CHECKOV_STATUS}
 <details><summary>Show Output</summary>
 
 \`\`\`hcl
@@ -296,16 +304,22 @@ ${TRIVY_OUTPUT}
 </details>
 "
 
-  PAYLOAD=$(echo "${COMMENT}" | jq -R --slurp '{body: .}')
+  PAYLOAD_COMMENT = "${TFSEC_TRIVY_COMMENT} ${COMMENT}"
+
+  PAYLOAD=$(echo "${PAYLOAD_COMMENT}" | jq -R --slurp '{body: .}')
   URL=$(jq -r .pull_request.comments_url "${GITHUB_EVENT_PATH}")
   echo "${PAYLOAD}" | curl -s -S -H "Authorization: token ${GITHUB_TOKEN}" --header "Content-Type: application/json" --data @- "${URL}" > /dev/null
 fi
 
 line_break
-echo "Total of TFSEC exit codes: $tfsec_exitcode"
+if [[ "${TFSEC_TRIVY}" == "tfsec"]]; then
+  echo "Total of TFSEC exit codes: $tfsec_exitcode"
+fi
+if [[ "${TFSEC_TRIVY}" == "trivy"]]; then
+  echo "Total of trivy exit codes: $trivy_exitcode"
+fi
 echo "Total of Checkov exit codes: $checkov_exitcode"
 echo "Total of tflint exit codes: $tflint_exitcode"
-echo "Total of trivy exit codes: $trivy_exitcode"
 
 if [ $tfsec_exitcode -gt 0 ] || [ $checkov_exitcode -gt 0 ] || [ $tflint_exitcode -gt 0 ] || [ $trivy_exitcode -gt 0 ];then
   echo "Exiting with error(s)"
