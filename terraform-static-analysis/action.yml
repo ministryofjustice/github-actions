@@ -39,6 +39,18 @@ inputs:
   tfsec_output_file:
     description: "The name of the output file"
     required: false
+  trivy_severity:
+    description: "Provide severities via , without space to exclude from run"
+    default: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
+    required: false
+  trivy_version:
+    description: "Specify the version of trivy to install"
+    required: false
+    default: "latest"
+  tfsec_trivy:
+    description: "Whether or not to run TF Sec or Trivy, defaults to tfsec [tfsec, trivy]"
+    required: false
+    default: "tfsec"
 
 runs:
   using: "docker"
