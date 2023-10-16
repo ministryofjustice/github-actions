@@ -16,17 +16,17 @@ echo "INPUT_TFLINT_CONFIG: $INPUT_TFLINT_CONFIG"
 echo "INPUT_TRIVY_VERSION: $INPUT_TRIVY_VERSION"
 echo "INPUT_TRIVY_EXCLUDE: $INPUT_TRIVY_EXCLUDE"
 echo "INPUT_TRIVY_SEVERITY: $INPUT_TRIVY_SEVERITY"
-echo "TFSEC_TRVIY: $TFSEC_TRVIY"
+echo "TFSEC_TRIVY: $TFSEC_TRIVY"
 echo
 # install tfsec from GitHub (taken from README.md)
-if [[ -n "$INPUT_TFSEC_VERSION" && "${TFSEC_TRVIY}" == "tfsec" ]]; then
+if [[ -n "$INPUT_TFSEC_VERSION" && "${TFSEC_TRIVY}" == "tfsec" ]]; then
   env GO111MODULE=on go install github.com/aquasecurity/tfsec/cmd/tfsec@"${INPUT_TFSEC_VERSION}"
 else
   env GO111MODULE=on go install github.com/aquasecurity/tfsec/cmd/tfsec@latest
 fi
 
 # install trivy from github (taken from docs install guide)
-if [[ -n "$INPUT_TRIVY_VERSION" && "${TFSEC_TRVIY}" == "trivy" ]]; then
+if [[ -n "$INPUT_TRIVY_VERSION" && "${TFSEC_TRIVY}" == "trivy" ]]; then
   curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin ${INPUT_TRIVY_VERSION}
 else
   curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin latest
