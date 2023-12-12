@@ -17,6 +17,10 @@ inputs:
   tfsec_exclude:
     description: "Provide checks via , without space to exclude from run"
     required: false
+  checkov_run:
+    description: "Whether or not to run Checkov"
+    required: false
+    default: true
   checkov_exclude:
     description: "Provide checks via , without space to exclude from run"
     required: false

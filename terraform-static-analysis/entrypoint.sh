@@ -9,6 +9,7 @@ echo "INPUT_TFSEC_EXCLUDE: $INPUT_TFSEC_EXCLUDE"
 echo "INPUT_TFSEC_VERSION: $INPUT_TFSEC_VERSION"
 echo "INPUT_TFSEC_OUTPUT_FORMAT: $INPUT_TFSEC_OUTPUT_FORMAT"
 echo "INPUT_TFSEC_OUTPUT_FILE: $INPUT_TFSEC_OUTPUT_FILE"
+echo "INPUT_CHECKOV_RUN: $INPUT_CHECKOV_RUN"
 echo "INPUT_CHECKOV_EXCLUDE: $INPUT_CHECKOV_EXCLUDE"
 echo "INPUT_CHECKOV_EXTERNAL_MODULES: $INPUT_CHECKOV_EXTERNAL_MODULES"
 echo "INPUT_TFLINT_EXCLUDE: $INPUT_TFLINT_EXCLUDE"
@@ -205,9 +206,11 @@ case ${INPUT_SCAN_TYPE} in
       trivy_exitcode=$?
       wait
     fi
-    CHECKOV_OUTPUT=$(run_checkov "${tf_folders_with_changes}")
-    checkov_exitcode=$?
-    wait
+    if $INPUT_CHECKOV_RUN ; then
+      CHECKOV_OUTPUT=$(run_checkov "${tf_folders_with_changes}")
+      checkov_exitcode=$?
+      wait
+    fi
     TFLINT_OUTPUT=$(run_tflint "${tf_folders_with_changes}")
     tflint_exitcode=$?
     wait
@@ -225,9 +228,11 @@ case ${INPUT_SCAN_TYPE} in
       trivy_exitcode=$?
       wait
     fi
-    CHECKOV_OUTPUT=$(run_checkov "${INPUT_TERRAFORM_WORKING_DIR}")
-    checkov_exitcode=$?
-    wait
+    if $INPUT_CHECKOV_RUN ; then
+      CHECKOV_OUTPUT=$(run_checkov "${INPUT_TERRAFORM_WORKING_DIR}")
+      checkov_exitcode=$?
+      wait
+    fi
     TFLINT_OUTPUT=$(run_tflint "${INPUT_TERRAFORM_WORKING_DIR}")
     tflint_exitcode=$?
     wait
@@ -248,11 +253,12 @@ if [[ "${TFSEC_TRIVY}" == "trivy" ]]; then
     TRIVY_STATUS="Failed"
   fi
 fi
-
-if [ $checkov_exitcode -eq 0 ]; then
-  CHECKOV_STATUS="Success"
-else
-  CHECKOV_STATUS="Failed"
+if $INPUT_CHECKOV_RUN ; then
+  if [ $checkov_exitcode -eq 0 ]; then
+    CHECKOV_STATUS="Success"
+  else
+    CHECKOV_STATUS="Failed"
+  fi
 fi
 
 if [ $tflint_exitcode -eq 0 ]; then
@@ -269,7 +275,9 @@ fi
 if [[ "${TFSEC_TRIVY}" == "trivy" ]]; then
  echo "${TRIVY_OUTPUT}"
 fi
-echo "${CHECKOV_OUTPUT}"
+if $INPUT_CHECKOV_RUN ; then
+  echo "${CHECKOV_OUTPUT}"
+fi
 echo "${TFLINT_OUTPUT}"
 
 # Comment on the pull request if necessary.
@@ -338,7 +346,9 @@ fi
 if [[ "${TFSEC_TRIVY}" == "trivy" ]]; then
   echo "Total of trivy exit codes: $trivy_exitcode"
 fi
-echo "Total of Checkov exit codes: $checkov_exitcode"
+if $INPUT_CHECKOV_RUN; then
+  echo "Total of Checkov exit codes: $checkov_exitcode"
+fi
 echo "Total of tflint exit codes: $tflint_exitcode"
 
 if [ $tfsec_exitcode -gt 0 ] || [ $checkov_exitcode -gt 0 ] || [ $tflint_exitcode -gt 0 ] || [ $trivy_exitcode -gt 0 ];then
