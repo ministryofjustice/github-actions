@@ -185,9 +185,11 @@ case ${INPUT_SCAN_TYPE} in
       trivy_exitcode=$?
       wait
     fi
-    CHECKOV_OUTPUT=$(run_checkov "${all_tf_folders}")
-    checkov_exitcode=$?
-    wait
+    if $INPUT_CHECKOV_RUN ; then
+      CHECKOV_OUTPUT=$(run_checkov "${all_tf_folders}")
+      checkov_exitcode=$?
+      wait
+    fi
     TFLINT_OUTPUT=$(run_tflint "${all_tf_folders}")
     tflint_exitcode=$?
     wait
