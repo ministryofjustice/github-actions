@@ -20,14 +20,14 @@ echo "INPUT_TRIVY_SEVERITY: $INPUT_TRIVY_SEVERITY"
 echo "INPUT_TFSEC_TRIVY: $INPUT_TFSEC_TRIVY"
 echo
 # install tfsec from GitHub (taken from README.md)
-if [[ -n "$INPUT_TFSEC_VERSION" && "${TFSEC_TRIVY}" == "tfsec" ]]; then
+if [[ -n "$INPUT_TFSEC_VERSION" && "${INPUT_TFSEC_TRIVY}" == "tfsec" ]]; then
   env GO111MODULE=on go install github.com/aquasecurity/tfsec/cmd/tfsec@"${INPUT_TFSEC_VERSION}"
 else
   env GO111MODULE=on go install github.com/aquasecurity/tfsec/cmd/tfsec@latest
 fi
 
 # install trivy from github (taken from docs install guide)
-if [[ -n "$INPUT_TRIVY_VERSION" && "${TFSEC_TRIVY}" == "trivy" ]]; then
+if [[ -n "$INPUT_TRIVY_VERSION" && "${INPUT_TFSEC_TRIVY}" == "trivy" ]]; then
   curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin ${INPUT_TRIVY_VERSION}
 else
   curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin latest
@@ -175,12 +175,12 @@ case ${INPUT_SCAN_TYPE} in
   full)
     line_break
     echo "Starting full scan"
-    if [[ "${TFSEC_TRIVY}" == "tfsec" ]]; then
+    if [[ "${INPUT_TFSEC_TRIVY}" == "tfsec" ]]; then
       TFSEC_OUTPUT=$(run_tfsec "${all_tf_folders}")
       tfsec_exitcode=$?
       wait
     fi
-    if [[ "${TFSEC_TRIVY}" == "trivy" ]]; then
+    if [[ "${INPUT_TFSEC_TRIVY}" == "trivy" ]]; then
       TRIVY_OUTPUT=$(run_trivy "${all_tf_folders}")
       trivy_exitcode=$?
       wait
@@ -198,12 +198,12 @@ case ${INPUT_SCAN_TYPE} in
   changed)
     line_break
     echo "Starting scan of changed folders"
-    if [[ "${TFSEC_TRIVY}" == "tfsec" ]]; then
+    if [[ "${INPUT_TFSEC_TRIVY}" == "tfsec" ]]; then
       TFSEC_OUTPUT=$(run_tfsec "${tf_folders_with_changes}")
       tfsec_exitcode=$?
       wait
     fi
-    if [[ "${TFSEC_TRIVY}" == "trivy" ]]; then
+    if [[ "${INPUT_TFSEC_TRIVY}" == "trivy" ]]; then
       TRIVY_OUTPUT=$(run_trivy "${tf_folders_with_changes}")
       trivy_exitcode=$?
       wait
@@ -220,12 +220,12 @@ case ${INPUT_SCAN_TYPE} in
   *)
     line_break
     echo "Starting single folder scan"
-    if [[ "${TFSEC_TRIVY}" == "tfsec" ]]; then
+    if [[ "${INPUT_TFSEC_TRIVY}" == "tfsec" ]]; then
       TFSEC_OUTPUT=$(run_tfsec "${INPUT_TERRAFORM_WORKING_DIR}")
       tfsec_exitcode=$?
       wait
     fi
-    if [[ "${TFSEC_TRIVY}" == "trivy" ]]; then
+    if [[ "${INPUT_TFSEC_TRIVY}" == "trivy" ]]; then
       TRIVY_OUTPUT=$(run_trivy "${INPUT_TERRAFORM_WORKING_DIR}")
       trivy_exitcode=$?
       wait
@@ -241,14 +241,14 @@ case ${INPUT_SCAN_TYPE} in
     ;;
 esac
 
-if [[ "${TFSEC_TRIVY}" == "tfsec" ]]; then
+if [[ "${INPUT_TFSEC_TRIVY}" == "tfsec" ]]; then
   if [ $tfsec_exitcode -eq 0 ]; then
     TFSEC_STATUS="Success"
   else
     TFSEC_STATUS="Failed"
   fi
 fi
-if [[ "${TFSEC_TRIVY}" == "trivy" ]]; then
+if [[ "${INPUT_TFSEC_TRIVY}" == "trivy" ]]; then
   if [ $trivy_exitcode -eq 0 ]; then
     TRIVY_STATUS="Success"
   else
@@ -271,10 +271,10 @@ fi
 
 # Print output.
 line_break
-if [[ "${TFSEC_TRIVY}" == "tfsec" ]]; then
+if [[ "${INPUT_TFSEC_TRIVY}" == "tfsec" ]]; then
  echo "${TFSEC_OUTPUT}"
 fi
-if [[ "${TFSEC_TRIVY}" == "trivy" ]]; then
+if [[ "${INPUT_TFSEC_TRIVY}" == "trivy" ]]; then
  echo "${TRIVY_OUTPUT}"
 fi
 if $INPUT_CHECKOV_RUN ; then
@@ -290,7 +290,7 @@ else
 fi
 
 if [ "${GITHUB_EVENT_NAME}" == "pull_request" ] && [ -n "${GITHUB_TOKEN}" ] && [ "${COMMENT}" == "1" ] ; then
-  if [[ "${TFSEC_TRIVY}" == "tfsec" ]]; then
+  if [[ "${INPUT_TFSEC_TRIVY}" == "tfsec" ]]; then
     TFSEC_TRIVY_COMMENT="#### \`TFSEC Scan\` ${TFSEC_STATUS}
 <details><summary>Show Output</summary>
 \`\`\`hcl
@@ -298,7 +298,7 @@ ${TFSEC_OUTPUT}
 \`\`\`
 </details>"
   fi
-  if [[ "${TFSEC_TRIVY}" == "trivy" ]]; then
+  if [[ "${INPUT_TFSEC_TRIVY}" == "trivy" ]]; then
     TFSEC_TRIVY_COMMENT="#### \`Trivy Scan\` ${TRIVY_STATUS}
 <details><summary>Show Output</summary>
 \`\`\`hcl
@@ -342,10 +342,10 @@ ${TRIVY_OUTPUT}
 fi
 
 line_break
-if [[ "${TFSEC_TRIVY}" == "tfsec" ]]; then
+if [[ "${INPUT_TFSEC_TRIVY}" == "tfsec" ]]; then
   echo "Total of TFSEC exit codes: $tfsec_exitcode"
 fi
-if [[ "${TFSEC_TRIVY}" == "trivy" ]]; then
+if [[ "${INPUT_TFSEC_TRIVY}" == "trivy" ]]; then
   echo "Total of trivy exit codes: $trivy_exitcode"
 fi
 if $INPUT_CHECKOV_RUN; then
