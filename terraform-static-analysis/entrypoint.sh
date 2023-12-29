@@ -13,6 +13,7 @@ echo "INPUT_CHECKOV_EXCLUDE: $INPUT_CHECKOV_EXCLUDE"
 echo "INPUT_CHECKOV_EXTERNAL_MODULES: $INPUT_CHECKOV_EXTERNAL_MODULES"
 echo "INPUT_TFLINT_EXCLUDE: $INPUT_TFLINT_EXCLUDE"
 echo "INPUT_TFLINT_CONFIG: $INPUT_TFLINT_CONFIG"
+echo "INPUT_TFLINT_CALL_MODULE_TYPE: $INPUT_TFLINT_CALL_MODULE_TYPE"
 echo "INPUT_TRIVY_VERSION: $INPUT_TRIVY_VERSION"
 echo "INPUT_TRIVY_EXCLUDE: $INPUT_TRIVY_EXCLUDE"
 echo "INPUT_TRIVY_SEVERITY: $INPUT_TRIVY_SEVERITY"
@@ -156,9 +157,9 @@ run_tflint(){
         echo "Excluding the following checks: ${INPUT_TFLINT_EXCLUDE}"
         readarray -d , -t tflint_exclusions <<< $INPUT_TFLINT_EXCLUDE
         tflint_exclusions_list=( "${tflint_exclusions[@]/#/--disable-rule=}" )
-        tflint --config $tflint_config ${tflint_exclusions_list[@]} --chdir ${terraform_working_dir} 2>&1
+        tflint --config $tflint_config ${tflint_exclusions_list[@]} --chdir ${terraform_working_dir} --call-module-type ${INPUT_TFLINT_CALL_MODULE_TYPE} 2>&1
       else
-        tflint --config $tflint_config --chdir ${terraform_working_dir} 2>&1
+        tflint --config $tflint_config --chdir ${terraform_working_dir} --call-module-type ${INPUT_TFLINT_CALL_MODULE_TYPE} 2>&1
       fi
     else
       echo "Skipping folder as path name contains *templates*"

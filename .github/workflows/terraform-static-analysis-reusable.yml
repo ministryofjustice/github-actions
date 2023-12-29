@@ -30,6 +30,11 @@ on:
         required: false
         default: 'tflint.default.hcl'
         type: string
+      tflint_call_module_type:
+        description: 'Select types of module to call. The following values are valid: all, local (default), none'
+        required: false
+        default: 'local'
+        type: string
 
 jobs:
   terraform-static-analysis-scan:
@@ -62,3 +67,4 @@ jobs:
           terraform_working_dir: ${{ inputs.terraform_working_dir }}
           tflint_exclude: ${{ inputs.tflint_exclude }}
           tflint_config: ${{ inputs.tflint_config }}
+          tflint_call_module_type:  ${{ inputs.tflint_call_module_type }}

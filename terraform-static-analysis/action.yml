@@ -30,6 +30,10 @@ inputs:
   tflint_config:
     description: 'Provide a specific config for this run (including the .hcl extension), see the "tflint-configs" folder for available configs'
     required: false
+  tflint_call_module_type:
+    description: "Select types of module to call. The following values are valid: all, local (default), none"
+    required: false
+    default: "local"
   tfsec_version:
     description: "Specify the version of tfsec to install"
     required: false
