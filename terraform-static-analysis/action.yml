@@ -17,6 +17,9 @@ inputs:
   tfsec_exclude:
     description: "Provide checks via , without space to exclude from run"
     required: false
+  trivy_exclude:
+    description: "Provide checks via , without space to exclude from run"
+    required: false
   checkov_exclude:
     description: "Provide checks via , without space to exclude from run"
     required: false
