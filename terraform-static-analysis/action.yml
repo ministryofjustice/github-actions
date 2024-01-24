@@ -17,8 +17,8 @@ inputs:
   tfsec_exclude:
     description: "Provide checks via , without space to exclude from run"
     required: false
-  trivy_exclude:
-    description: "Provide checks via , without space to exclude from run"
+  trivy_ignore:
+    description: "Provide path to .trivyignore.yaml file within the repo, recomened default is ./.trivyignore.yaml"
     required: false
   checkov_exclude:
     description: "Provide checks via , without space to exclude from run"

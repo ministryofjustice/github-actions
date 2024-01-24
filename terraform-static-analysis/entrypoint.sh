@@ -15,7 +15,7 @@ echo "INPUT_TFLINT_EXCLUDE: $INPUT_TFLINT_EXCLUDE"
 echo "INPUT_TFLINT_CONFIG: $INPUT_TFLINT_CONFIG"
 echo "INPUT_TFLINT_CALL_MODULE_TYPE: $INPUT_TFLINT_CALL_MODULE_TYPE"
 echo "INPUT_TRIVY_VERSION: $INPUT_TRIVY_VERSION"
-echo "INPUT_TRIVY_EXCLUDE: $INPUT_TRIVY_EXCLUDE"
+echo "INPUT_TRIVY_IGNORE: $INPUT_TRIVY_IGNORE"
 echo "INPUT_TRIVY_SEVERITY: $INPUT_TRIVY_SEVERITY"
 echo "INPUT_TFSEC_TRIVY: $INPUT_TFSEC_TRIVY"
 echo
@@ -71,7 +71,7 @@ run_trivy(){
     echo "Running Trivy in ${directory}"
     terraform_working_dir="${GITHUB_WORKSPACE}/${directory}"
     if [[ "${directory}" != *"templates"* ]]; then
-      trivy fs --scanners vuln,config,secret --exit-code 1 --no-progress --clear-cache --severity ${INPUT_TRIVY_SEVERITY} ${terraform_working_dir} 2>&1
+      trivy fs --scanners vuln,config,secret --exit-code 1 --no-progress --ignorefile ${INPUT_TRIVY_IGNORE} --severity ${INPUT_TRIVY_SEVERITY} ${terraform_working_dir} 2>&1
       trivy_exitcode+=$?
       echo "trivy_exitcode=${trivy_exitcode}"
     else
