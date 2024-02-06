@@ -2,7 +2,7 @@
 
 This action combines [TFSEC](https://github.com/tfsec/tfsec), [Checkov](https://github.com/bridgecrewio/checkov) and [tflint](https://github.com/terraform-linters/tflint) into one action, loosely based on the [TFSEC action](https://github.com/triat/terraform-security-scan) and [Checkov actions](https://github.com/bridgecrewio/checkov-action) here.
 
-The main reason for combining these checks is to enable one action to run which can cover multiple checks as well as multiple and nested Terraform folders.  This action also has logic to perform different scan options depending if you want to scan your whole repo or only individual or changed folders:
+The main reason for combining these checks is to enable one action to run which can cover multiple checks as well as multiple and nested Terraform folders. This action also has logic to perform different scan options depending if you want to scan your whole repo or only individual or changed folders:
 
 Full scan (`full`) - scan all folders with `*.tf` files in a repository.
 
@@ -16,8 +16,8 @@ With the introduction of trivy as a scanner option you can now select between us
 
 If Trivy is enabled and you want to ignore some errors a trivy ignore file will need to be created in your repo and the path to that file added to the input of trivy_ignore:, an example of this file is shown bellow.
 
-
 ## Example trivy config
+
 ```
 with:
         scan_type: full
@@ -85,7 +85,6 @@ licenses:
       - "usr/share/gcc/python/libstdcxx/v6/__init__.py"
 
 ```
-
 
 ### Notes
 
