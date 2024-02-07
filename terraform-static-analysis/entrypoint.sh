@@ -71,6 +71,7 @@ run_trivy() {
   for directory in "${directories[@]}"; do
     line_break
     echo "Running Trivy in ${directory}"
+    echo ${INPUT_TRIVY_FORMAT}
     terraform_working_dir="${GITHUB_WORKSPACE}/${directory}"
 
     if [[ "${directory}" != *"templates"* ]] && [ "${INPUT_TRIVY_FORMAT}" == "sarif" ]; then
