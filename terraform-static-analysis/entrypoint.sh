@@ -61,28 +61,31 @@ echo
 echo "All TF folders"
 echo $all_tf_folders
 
-run_trivy(){
+run_trivy() {
   line_break
   echo "Trivy will check the following folders:"
-  echo $1
-  directories=($1)
-  for directory in ${directories[@]}
-  do
+  echo "$1"
+  directories=("$1")
+  trivy_exitcode=0
+
+  for directory in "${directories[@]}"; do
     line_break
     echo "Running Trivy in ${directory}"
     terraform_working_dir="${GITHUB_WORKSPACE}/${directory}"
-    if [[ "${directory}" != *"templates"*] && ["${INPUT_TRIVY_FORMAT}" == "sarif"]]; then
-      trivy fs --scanners vuln,misconfig,secret --exit-code 1 --no-progress --ignorefile ${INPUT_TRIVY_IGNORE} --severity ${INPUT_TRIVY_SEVERITY} --format ${INPUT_TRIVY_FORMAT} --output trivy-results.sarif ${terraform_working_dir} 2>&1
-      trivy_exitcode+=$?
+
+    if [[ "${directory}" != *"templates"* ]] && [ "${INPUT_TRIVY_FORMAT}" == "sarif" ]; then
+      trivy fs --scanners vuln,misconfig,secret --exit-code 1 --no-progress --ignorefile "${INPUT_TRIVY_IGNORE}" --severity "${INPUT_TRIVY_SEVERITY}" --format "${INPUT_TRIVY_FORMAT}" --output trivy-results.sarif "${terraform_working_dir}" 2>&1
+      trivy_exitcode=$((trivy_exitcode + $?))
       echo "trivy_exitcode=${trivy_exitcode}"
-    elif [[ "${directory}" != *"templates"*]]; then
-      trivy fs --scanners vuln,misconfig,secret --exit-code 1 --no-progress --ignorefile ${INPUT_TRIVY_IGNORE} --severity ${INPUT_TRIVY_SEVERITY} ${terraform_working_dir} 2>&1
-      trivy_exitcode+=$?
+    elif [[ "${directory}" != *"templates"* ]]; then
+      trivy fs --scanners vuln,misconfig,secret --exit-code 1 --no-progress --ignorefile "${INPUT_TRIVY_IGNORE}" --severity "${INPUT_TRIVY_SEVERITY}" "${terraform_working_dir}" 2>&1
+      trivy_exitcode=$((trivy_exitcode + $?))
       echo "trivy_exitcode=${trivy_exitcode}"
     else
       echo "Skipping folder as path name contains *templates*"
     fi
   done
+
   return $trivy_exitcode
 }
 
