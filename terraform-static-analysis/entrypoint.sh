@@ -17,6 +17,7 @@ echo "INPUT_TFLINT_CALL_MODULE_TYPE: $INPUT_TFLINT_CALL_MODULE_TYPE"
 echo "INPUT_TRIVY_VERSION: $INPUT_TRIVY_VERSION"
 echo "INPUT_TRIVY_IGNORE: $INPUT_TRIVY_IGNORE"
 echo "INPUT_TRIVY_SEVERITY: $INPUT_TRIVY_SEVERITY"
+echo "INPUT_TRIVY_FORMAT: $INPUT_TRIVY_FORMAT"
 echo "INPUT_TFSEC_TRIVY: $INPUT_TFSEC_TRIVY"
 echo
 # install tfsec from GitHub (taken from README.md)
@@ -70,8 +71,12 @@ run_trivy(){
     line_break
     echo "Running Trivy in ${directory}"
     terraform_working_dir="${GITHUB_WORKSPACE}/${directory}"
-    if [[ "${directory}" != *"templates"* ]]; then
-      trivy fs --scanners vuln,misconfig,secret --exit-code 1 --no-progress --ignorefile ${INPUT_TRIVY_IGNORE} --severity ${INPUT_TRIVY_SEVERITY} --format sarif --output trivy-results.sarif ${terraform_working_dir} 2>&1
+    if [[ "${directory}" != *"templates"*] && ["${INPUT_TRIVY_FORMAT}" == "sarif"]]; then
+      trivy fs --scanners vuln,misconfig,secret --exit-code 1 --no-progress --ignorefile ${INPUT_TRIVY_IGNORE} --severity ${INPUT_TRIVY_SEVERITY} --format ${INPUT_TRIVY_FORMAT} --output trivy-results.sarif ${terraform_working_dir} 2>&1
+      trivy_exitcode+=$?
+      echo "trivy_exitcode=${trivy_exitcode}"
+    elif [[ "${directory}" != *"templates"*]]; then
+      trivy fs --scanners vuln,misconfig,secret --exit-code 1 --no-progress --ignorefile ${INPUT_TRIVY_IGNORE} --severity ${INPUT_TRIVY_SEVERITY} ${terraform_working_dir} 2>&1
       trivy_exitcode+=$?
       echo "trivy_exitcode=${trivy_exitcode}"
     else
