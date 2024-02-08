@@ -79,7 +79,7 @@ run_trivy() {
       trivy_exitcode=$((trivy_exitcode + $?))
       echo "trivy_exitcode=${trivy_exitcode}"
     elif [[ "${directory}" != *"templates"* ]]; then
-      trivy fs --scanners vuln,misconfig,secret --exit-code 1 --no-progress --ignorefile "${INPUT_TRIVY_IGNORE}" --format "${INPUT_TRIVY_FORMAT}" --output trivy-results.sarif --severity "${INPUT_TRIVY_SEVERITY}" "${terraform_working_dir}" 2>&1
+      trivy fs --scanners vuln,misconfig,secret --exit-code 1 --no-progress --ignorefile "${INPUT_TRIVY_IGNORE}" --format sarif --output trivy-results.sarif --severity "${INPUT_TRIVY_SEVERITY}" "${terraform_working_dir}" 2>&1
       trivy_exitcode=$((trivy_exitcode + $?))
       echo "trivy_exitcode=${trivy_exitcode}"
     else
