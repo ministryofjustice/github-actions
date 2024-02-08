@@ -75,10 +75,12 @@ run_trivy() {
     terraform_working_dir="${GITHUB_WORKSPACE}/${directory}"
 
     if [[ "${directory}" != *"templates"* ]] && [[ "${INPUT_TRIVY_FORMAT}" != "sarif" ]]; then
+      echo "trivy without report ${INPUT_TRIVY_FORMAT}"
       trivy fs --scanners vuln,misconfig,secret --exit-code 1 --no-progress --ignorefile "${INPUT_TRIVY_IGNORE}" --severity "${INPUT_TRIVY_SEVERITY}"  "${terraform_working_dir}" 2>&1
       trivy_exitcode=$((trivy_exitcode + $?))
       echo "trivy_exitcode=${trivy_exitcode}"
     elif [[ "${directory}" != *"templates"* ]]; then
+      echo "trivy with report ${INPUT_TRIVY_FORMAT}"
       trivy fs --scanners vuln,misconfig,secret --exit-code 1 --no-progress --ignorefile "${INPUT_TRIVY_IGNORE}" --format sarif --output trivy-results.sarif --severity "${INPUT_TRIVY_SEVERITY}" "${terraform_working_dir}" 2>&1
       trivy_exitcode=$((trivy_exitcode + $?))
       echo "trivy_exitcode=${trivy_exitcode}"
