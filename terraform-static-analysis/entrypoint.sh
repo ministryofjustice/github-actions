@@ -73,22 +73,25 @@ run_trivy() {
     echo "Running Trivy in ${directory}"
     terraform_working_dir="${GITHUB_WORKSPACE}/${directory}"
 
-    if [[ "${directory}" != *"templates"* ]] && [[ "${INPUT_TRIVY_FORMAT}" != "sarif" ]]; then
-      trivy fs --scanners vuln,misconfig,secret --exit-code 1 --no-progress --ignorefile "${INPUT_TRIVY_IGNORE}" --severity "${INPUT_TRIVY_SEVERITY}"  "${terraform_working_dir}" 2>&1
-      trivy_exitcode=$((trivy_exitcode + $?))
-      echo "trivy without report ${INPUT_TRIVY_FORMAT}"
-      echo "trivy_exitcode=${trivy_exitcode}"
-    elif [[ "${directory}" != *"templates"* ]]; then
-      trivy fs --scanners vuln,misconfig,secret --exit-code 1 --no-progress --ignorefile "${INPUT_TRIVY_IGNORE}" --format sarif --output trivy-results.sarif --severity "${INPUT_TRIVY_SEVERITY}" "${terraform_working_dir}" 2>&1
-      trivy_exitcode=$((trivy_exitcode + $?))
-      echo "trivy with report ${INPUT_TRIVY_FORMAT}"
+    if [[ "${directory}" != *"templates"* ]]; then
+      trivy_options="--scanners vuln,misconfig,secret --exit-code 1 --no-progress --ignorefile ${INPUT_TRIVY_IGNORE} --severity ${INPUT_TRIVY_SEVERITY}"
+      
+      if [[ "${INPUT_TRIVY_FORMAT}" != "sarif" ]]; then
+        trivy ${trivy_options} "${terraform_working_dir}" 2>&1
+        trivy_exitcode=$((trivy_exitcode + $?))
+        echo "trivy without report ${INPUT_TRIVY_FORMAT}"
+      else
+        trivy ${trivy_options} --format sarif --output trivy-results.sarif "${terraform_working_dir}" 2>&1
+        trivy_exitcode=$((trivy_exitcode + $?))
+        echo "trivy with report ${INPUT_TRIVY_FORMAT}"
+      fi
       echo "trivy_exitcode=${trivy_exitcode}"
     else
-      echo "skipped everything"
       echo "Skipping folder as path name contains *templates*"
     fi
   done
-  echo "end of line"
+
+  echo "End of line"
   return $trivy_exitcode
 }
 
