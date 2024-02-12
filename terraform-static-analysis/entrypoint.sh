@@ -18,6 +18,7 @@ echo "INPUT_TRIVY_VERSION: $INPUT_TRIVY_VERSION"
 echo "INPUT_TRIVY_IGNORE: $INPUT_TRIVY_IGNORE"
 echo "INPUT_TRIVY_SEVERITY: $INPUT_TRIVY_SEVERITY"
 echo "INPUT_TFSEC_TRIVY: $INPUT_TFSEC_TRIVY"
+echo "INPUT_TRIVY_SKIP_DIR: $INPUT_TRIVY_SKIP_DIR"
 echo
 # install tfsec from GitHub (taken from README.md)
 if [[ -n "$INPUT_TFSEC_VERSION" && "${INPUT_TFSEC_TRIVY}" == "tfsec" ]]; then
@@ -71,7 +72,7 @@ run_trivy(){
     echo "Running Trivy in ${directory}"
     terraform_working_dir="${GITHUB_WORKSPACE}/${directory}"
     if [[ "${directory}" != *"templates"* ]]; then
-      trivy fs --scanners vuln,misconfig,secret --exit-code 1 --no-progress --ignorefile ${INPUT_TRIVY_IGNORE} --severity ${INPUT_TRIVY_SEVERITY} ${terraform_working_dir} 2>&1
+      trivy fs --scanners vuln,misconfig,secret --exit-code 1 --no-progress --ignorefile ${INPUT_TRIVY_IGNORE} --skip-dirs ${INPUT_TRIVY_SKIP_DIR} --severity ${INPUT_TRIVY_SEVERITY} ${terraform_working_dir} 2>&1
       trivy_exitcode+=$?
       echo "trivy_exitcode=${trivy_exitcode}"
     else
