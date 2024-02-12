@@ -61,6 +61,9 @@ inputs:
     description: "Whether or not to run TF Sec or Trivy, defaults to tfsec [tfsec, trivy]"
     required: false
     default: "tfsec"
+  trivy_skip_dir:
+    description: "Directories that get skipped for trivy e.g. test"
+    required: false
 
 runs:
   using: "docker"

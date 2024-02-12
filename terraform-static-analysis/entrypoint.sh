@@ -19,6 +19,7 @@ echo "INPUT_TRIVY_IGNORE: $INPUT_TRIVY_IGNORE"
 echo "INPUT_TRIVY_SEVERITY: $INPUT_TRIVY_SEVERITY"
 echo "INPUT_TRIVY_FORMAT: $INPUT_TRIVY_FORMAT"
 echo "INPUT_TFSEC_TRIVY: $INPUT_TFSEC_TRIVY"
+echo "INPUT_TRIVY_SKIP_DIR: $INPUT_TRIVY_SKIP_DIR"
 echo
 # install tfsec from GitHub (taken from README.md)
 if [[ -n "$INPUT_TFSEC_VERSION" && "${INPUT_TFSEC_TRIVY}" == "tfsec" ]]; then
@@ -85,6 +86,8 @@ run_trivy() {
         trivy_exitcode=$((trivy_exitcode + $?))
         echo "trivy with report ${INPUT_TRIVY_FORMAT}"
       fi
+      trivy_exitcode+=$?
+
       echo "trivy_exitcode=${trivy_exitcode}"
     else
       echo "Skipping folder as path name contains *templates*"
