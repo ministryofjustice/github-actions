@@ -1,4 +1,4 @@
-FROM ministryofjustice/cloud-platform-tools:2.7.0
+FROM ministryofjustice/cloud-platform-tools:2.8.1
 
 # Octokit depends on faraday, and an update to
 # faraday breaks the current version of octokit
