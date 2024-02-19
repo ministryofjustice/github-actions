@@ -79,7 +79,6 @@ run_trivy(){
       echo "Skipping folder as path name contains *templates*"
     fi
   done
-
   return $trivy_exitcode
 }
 
