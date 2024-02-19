@@ -80,7 +80,6 @@ run_trivy(){
     fi
   done
 
-  echo "End of line"
   return $trivy_exitcode
 }
 
