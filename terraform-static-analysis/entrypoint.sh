@@ -73,7 +73,8 @@ run_trivy(){
     echo "Running Trivy in ${directory}"
     terraform_working_dir="${GITHUB_WORKSPACE}/${directory}"
     if [[ "${directory}" != *"templates"* ]]; then
-      trivy fs --scanners vuln,misconfig,secret --exit-code 1 --no-progress --ignorefile ${INPUT_TRIVY_IGNORE} --skip-dirs ${INPUT_TRIVY_SKIP_DIR} --severity ${INPUT_TRIVY_SEVERITY} ${terraform_working_dir} 2>&1
+      trivy fs --scanners vuln,misconfig,secret --exit-code 1 --no-progress --ignorefile ${INPUT_TRIVY_IGNORE} --severity ${INPUT_TRIVY_SEVERITY} ${terraform_working_dir} 2>&1
+      trivy_exitcode+=$?
       echo "trivy_exitcode=${trivy_exitcode}"
     else
       echo "Skipping folder as path name contains *templates*"
