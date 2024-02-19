@@ -14,7 +14,7 @@ See the [action.yml](action.yml) for other input options. Global excludes for ch
 
 With the introduction of trivy as a scanner option you can now select between using tfsec or trivy by adding the input tfsec_trivy: leaving this blank will default the scanner to tfsec adding trivy to it will switch the scanner to trivy. If you decide to use trivy you will need to add the following inputs to the with statement
 
-If Trivy is enabled and you want to ignore some errors a trivy ignore file will need to be created in your repo and the path to that file added to the input of trivy_ignore:, an example of this file is shown bellow.
+If Trivy is enabled and you want to ignore errors, a trivy ignore file will need to be created in your repo and the path to that file added to the input of trivy_ignore: input, an example of this file is shown bellow.
 
 ## Example trivy config
 
