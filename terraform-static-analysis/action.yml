@@ -54,9 +54,6 @@ inputs:
     description: "Specify the version of trivy to install"
     required: false
     default: "latest"
-  trivy_format:
-    description: Adds theability to output the results to a sarif output for upload to github
-    required: false
   tfsec_trivy:
     description: "Whether or not to run TF Sec or Trivy, defaults to tfsec [tfsec, trivy]"
     required: false
