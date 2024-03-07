@@ -8,7 +8,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         repository: ${{ github.repository }}
 
@@ -119,7 +119,7 @@ runs:
           head_branch_sha=${{ github.event.pull_request.head.sha }}
           echo $base_branch_sha
           echo $head_branch_sha
-          
+
           git diff-tree -r --no-commit-id --name-only --diff-filter=ACMRT $base_branch_sha $head_branch_sha > modified_files.txt
           chmod 755 modified_files.txt
           [ -n "$(tail -c1 modified_files.txt)" ] && echo >> modified_files.txt
@@ -172,7 +172,7 @@ runs:
                 npx prettier --print-width=150 --write $file
               fi
             fi
-          done  
+          done
         fi
       shell: bash
 
