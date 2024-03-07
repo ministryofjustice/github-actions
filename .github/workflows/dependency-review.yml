@@ -13,9 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - name: Dependency Review
         uses: actions/dependency-review-action@v3
         with:
-          # Possible values: critical, high, moderate, low 
+          # Possible values: critical, high, moderate, low
           fail-on-severity: critical
