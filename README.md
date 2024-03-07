@@ -6,11 +6,11 @@ A collection of github actions.
 
 <!-- markdownlint-disable MD013 -->
 
-| Action                                                         | Description                                                      |
-| -------------------------------------------------------------- | ---------------------------------------------------------------- |
-| [code-formatter](code-formatter)                               | Run various code formatters against a PR, and commit the results |
-| [malformed-yaml](malformed-yaml)                               | Reject a PR if it contains malformed YAML files                  |
-| [terraform-static-analysis](terraform-static-analysis)         | Runs TFSec, Checkov and TFlint against Terraform                 |
+| Action                                                 | Description                                                      |
+| ------------------------------------------------------ | ---------------------------------------------------------------- |
+| [code-formatter](code-formatter)                       | Run various code formatters against a PR, and commit the results |
+| [malformed-yaml](malformed-yaml)                       | Reject a PR if it contains malformed YAML files                  |
+| [terraform-static-analysis](terraform-static-analysis) | Runs TFSec, Checkov and TFlint against Terraform                 |
 
 <!-- markdownlint-enable MD013 -->
 
