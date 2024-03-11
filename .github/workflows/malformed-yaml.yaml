@@ -6,8 +6,8 @@ jobs:
   reject-malformed-yaml:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: ministryofjustice/github-actions/malformed-yaml@main
+      - uses: actions/checkout@v4
+      - uses: ministryofjustice/github-actions/malformed-yaml@convert-yaml-lint # TODO: Update this to main branch once on PR review
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.number }}

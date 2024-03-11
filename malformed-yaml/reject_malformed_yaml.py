@@ -25,7 +25,7 @@ def get_github_env() -> tuple:
 
 
 def message(files: set):
-    msg = "The following files contain malformed YAML:\n -"
+    msg = "😱 The following files contain malformed YAML:\n -"
     msg += "\n -".join(files)
     return msg
 
