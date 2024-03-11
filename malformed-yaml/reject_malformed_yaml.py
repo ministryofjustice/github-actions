@@ -15,12 +15,13 @@ def malformed_yaml(changed_files: list) -> set:
     return files
 
 
-def get_github_token() -> tuple:
+def get_github_env() -> tuple:
     pr_number = os.getenv("PR_NUMBER")
     token = os.getenv("GITHUB_TOKEN")
-    if not token or not pr_number:
+    repo = os.getenv("REPOSITORY_NAME")
+    if not token or not pr_number or not repo:
         raise ValueError("No GITHUB_TOKEN or PR_NUMBER env var found. Please make this available via the github actions workflow\nhttps://help.github.com/en/articles/virtual-environments-for-github-actions#github_token-secret.")
-    return token, pr_number
+    return token, repo, pr_number
 
 
 def message(files: set):
@@ -30,8 +31,9 @@ def message(files: set):
 
 
 def does_pr_contain_malformed_yaml() -> bool:
-    token, pr = get_github_token()
-    github = github_service(token, pr)
+    token, repository_name, pr = get_github_env()
+    github = github_service(token, repository_name, pr)
+
     changed_files = github.get_changed_files_from_pr()
     malformed_files = malformed_yaml(changed_files)
     if malformed_files:
