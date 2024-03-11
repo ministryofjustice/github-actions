@@ -1,0 +1,14 @@
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  reject-malformed-yaml:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ministryofjustice/github-actions/malformed-yaml@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.number }}
+          REPOSITORY_NAME: ${{ github.event.repository.name }}
