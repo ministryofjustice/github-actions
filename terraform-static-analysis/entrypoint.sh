@@ -19,6 +19,7 @@ echo "INPUT_TRIVY_IGNORE: $INPUT_TRIVY_IGNORE"
 echo "INPUT_TRIVY_SEVERITY: $INPUT_TRIVY_SEVERITY"
 echo "INPUT_TFSEC_TRIVY: $INPUT_TFSEC_TRIVY"
 echo "INPUT_TRIVY_SKIP_DIR: $INPUT_TRIVY_SKIP_DIR"
+echo "INPUT_MAIN_BRANCH_NAME: $INPUT_MAIN_BRANCH_NAME"
 echo
 # install tfsec from GitHub (taken from README.md)
 if [[ -n "$INPUT_TFSEC_VERSION" && "${INPUT_TFSEC_TRIVY}" == "tfsec" ]]; then
@@ -50,24 +51,23 @@ declare -i trivy_exitcode=0
 git config --global --add safe.directory $GITHUB_WORKSPACE
 
 # Identify which Terraform folders have changes and need scanning
-tf_folders_with_changes=`git diff-tree --no-commit-id --name-only -r @^ | awk '{print $1}' | grep '\.tf' | sed 's#/[^/]*$##' | grep -v '\.tf' | uniq`
+tf_folders_with_changes=$(git diff --name-only HEAD.."${INPUT_MAIN_BRANCH_NAME}" | awk '{print $1}' | grep '\.tf' | sed 's#/[^/]*$##' | grep -v '\.tf' | uniq)
 echo
 echo "TF folders with changes"
 echo $tf_folders_with_changes
 
 # Get a list of all terraform folders in the repo
-all_tf_folders=`find . -type f -name '*.tf' | sed 's#/[^/]*$##' | sed 's/.\///'| sort | uniq`
+all_tf_folders=$(find . -type f -name '*.tf' | sed 's#/[^/]*$##' | sed 's/.\///' | sort | uniq)
 echo
 echo "All TF folders"
 echo $all_tf_folders
 
-run_trivy(){
+run_trivy() {
   line_break
   echo "Trivy will check the following folders:"
   echo $1
   directories=($1)
-  for directory in ${directories[@]}
-  do
+  for directory in ${directories[@]}; do
     line_break
     echo "Running Trivy in ${directory}"
     terraform_working_dir="${GITHUB_WORKSPACE}/${directory}"
@@ -82,13 +82,12 @@ run_trivy(){
   return $trivy_exitcode
 }
 
-run_tfsec(){
+run_tfsec() {
   line_break
   echo "TFSEC will check the following folders:"
   echo $1
   directories=($1)
-  for directory in ${directories[@]}
-  do
+  for directory in ${directories[@]}; do
     line_break
     echo "Running TFSEC in ${directory}"
     terraform_working_dir="${GITHUB_WORKSPACE}/${directory}"
@@ -108,13 +107,12 @@ run_tfsec(){
   return $tfsec_exitcode
 }
 
-run_checkov(){
+run_checkov() {
   line_break
   echo "Checkov will check the following folders:"
   echo $1
   directories=($1)
-  for directory in ${directories[@]}
-  do
+  for directory in ${directories[@]}; do
     line_break
     echo "Running Checkov in ${directory}"
     terraform_working_dir="${GITHUB_WORKSPACE}/${directory}"
@@ -134,9 +132,9 @@ run_checkov(){
   return $checkov_exitcode
 }
 
-run_tflint(){
+run_tflint() {
   line_break
-  if [[ -n $INPUT_TFLINT_CONFIG ]] ; then
+  if [[ -n $INPUT_TFLINT_CONFIG ]]; then
     echo "Setting custom (${INPUT_TFLINT_CONFIG}) tflint config..."
     tflint_config="/tflint-configs/${INPUT_TFLINT_CONFIG}"
   else
@@ -148,16 +146,15 @@ run_tflint(){
   echo "tflint will check the following folders:"
   echo $1
   directories=($1)
-  for directory in ${directories[@]}
-  do
+  for directory in ${directories[@]}; do
     line_break
     echo "Running tflint in ${directory}"
     terraform_working_dir="${GITHUB_WORKSPACE}/${directory}"
     if [[ "${directory}" != *"templates"* ]]; then
       if [[ -n "$INPUT_TFLINT_EXCLUDE" ]]; then
         echo "Excluding the following checks: ${INPUT_TFLINT_EXCLUDE}"
-        readarray -d , -t tflint_exclusions <<< $INPUT_TFLINT_EXCLUDE
-        tflint_exclusions_list=( "${tflint_exclusions[@]/#/--disable-rule=}" )
+        readarray -d , -t tflint_exclusions <<<$INPUT_TFLINT_EXCLUDE
+        tflint_exclusions_list=("${tflint_exclusions[@]/#/--disable-rule=}")
         tflint --config $tflint_config ${tflint_exclusions_list[@]} --chdir ${terraform_working_dir} --call-module-type ${INPUT_TFLINT_CALL_MODULE_TYPE} 2>&1
       else
         tflint --config $tflint_config --chdir ${terraform_working_dir} --call-module-type ${INPUT_TFLINT_CALL_MODULE_TYPE} 2>&1
@@ -173,67 +170,67 @@ run_tflint(){
 
 case ${INPUT_SCAN_TYPE} in
 
-  full)
-    line_break
-    echo "Starting full scan"
-    if [[ "${INPUT_TFSEC_TRIVY}" == "tfsec" ]]; then
-      TFSEC_OUTPUT=$(run_tfsec "${all_tf_folders}")
-      tfsec_exitcode=$?
-      wait
-    fi
-    if [[ "${INPUT_TFSEC_TRIVY}" == "trivy" ]]; then
-      TRIVY_OUTPUT=$(run_trivy "${all_tf_folders}")
-      trivy_exitcode=$?
-      wait
-    fi
-    CHECKOV_OUTPUT=$(run_checkov "${all_tf_folders}")
-    checkov_exitcode=$?
+full)
+  line_break
+  echo "Starting full scan"
+  if [[ "${INPUT_TFSEC_TRIVY}" == "tfsec" ]]; then
+    TFSEC_OUTPUT=$(run_tfsec "${all_tf_folders}")
+    tfsec_exitcode=$?
     wait
-    TFLINT_OUTPUT=$(run_tflint "${all_tf_folders}")
-    tflint_exitcode=$?
+  fi
+  if [[ "${INPUT_TFSEC_TRIVY}" == "trivy" ]]; then
+    TRIVY_OUTPUT=$(run_trivy "${all_tf_folders}")
+    trivy_exitcode=$?
     wait
-    ;;
+  fi
+  CHECKOV_OUTPUT=$(run_checkov "${all_tf_folders}")
+  checkov_exitcode=$?
+  wait
+  TFLINT_OUTPUT=$(run_tflint "${all_tf_folders}")
+  tflint_exitcode=$?
+  wait
+  ;;
 
-  changed)
-    line_break
-    echo "Starting scan of changed folders"
-    if [[ "${INPUT_TFSEC_TRIVY}" == "tfsec" ]]; then
-      TFSEC_OUTPUT=$(run_tfsec "${tf_folders_with_changes}")
-      tfsec_exitcode=$?
-      wait
-    fi
-    if [[ "${INPUT_TFSEC_TRIVY}" == "trivy" ]]; then
-      TRIVY_OUTPUT=$(run_trivy "${tf_folders_with_changes}")
-      trivy_exitcode=$?
-      wait
-    fi
-    CHECKOV_OUTPUT=$(run_checkov "${tf_folders_with_changes}")
-    checkov_exitcode=$?
+changed)
+  line_break
+  echo "Starting scan of changed folders"
+  if [[ "${INPUT_TFSEC_TRIVY}" == "tfsec" ]]; then
+    TFSEC_OUTPUT=$(run_tfsec "${tf_folders_with_changes}")
+    tfsec_exitcode=$?
     wait
-    TFLINT_OUTPUT=$(run_tflint "${tf_folders_with_changes}")
-    tflint_exitcode=$?
+  fi
+  if [[ "${INPUT_TFSEC_TRIVY}" == "trivy" ]]; then
+    TRIVY_OUTPUT=$(run_trivy "${tf_folders_with_changes}")
+    trivy_exitcode=$?
     wait
-    ;;
-  *)
-    line_break
-    echo "Starting single folder scan"
-    if [[ "${INPUT_TFSEC_TRIVY}" == "tfsec" ]]; then
-      TFSEC_OUTPUT=$(run_tfsec "${INPUT_TERRAFORM_WORKING_DIR}")
-      tfsec_exitcode=$?
-      wait
-    fi
-    if [[ "${INPUT_TFSEC_TRIVY}" == "trivy" ]]; then
-      TRIVY_OUTPUT=$(run_trivy "${INPUT_TERRAFORM_WORKING_DIR}")
-      trivy_exitcode=$?
-      wait
-    fi
-    CHECKOV_OUTPUT=$(run_checkov "${INPUT_TERRAFORM_WORKING_DIR}")
-    checkov_exitcode=$?
+  fi
+  CHECKOV_OUTPUT=$(run_checkov "${tf_folders_with_changes}")
+  checkov_exitcode=$?
+  wait
+  TFLINT_OUTPUT=$(run_tflint "${tf_folders_with_changes}")
+  tflint_exitcode=$?
+  wait
+  ;;
+*)
+  line_break
+  echo "Starting single folder scan"
+  if [[ "${INPUT_TFSEC_TRIVY}" == "tfsec" ]]; then
+    TFSEC_OUTPUT=$(run_tfsec "${INPUT_TERRAFORM_WORKING_DIR}")
+    tfsec_exitcode=$?
     wait
-    TFLINT_OUTPUT=$(run_tflint "${INPUT_TERRAFORM_WORKING_DIR}")
-    tflint_exitcode=$?
+  fi
+  if [[ "${INPUT_TFSEC_TRIVY}" == "trivy" ]]; then
+    TRIVY_OUTPUT=$(run_trivy "${INPUT_TERRAFORM_WORKING_DIR}")
+    trivy_exitcode=$?
     wait
-    ;;
+  fi
+  CHECKOV_OUTPUT=$(run_checkov "${INPUT_TERRAFORM_WORKING_DIR}")
+  checkov_exitcode=$?
+  wait
+  TFLINT_OUTPUT=$(run_tflint "${INPUT_TERRAFORM_WORKING_DIR}")
+  tflint_exitcode=$?
+  wait
+  ;;
 esac
 
 if [[ "${INPUT_TFSEC_TRIVY}" == "tfsec" ]]; then
@@ -266,10 +263,10 @@ fi
 # Print output.
 line_break
 if [[ "${INPUT_TFSEC_TRIVY}" == "tfsec" ]]; then
- echo "${TFSEC_OUTPUT}"
+  echo "${TFSEC_OUTPUT}"
 fi
 if [[ "${INPUT_TFSEC_TRIVY}" == "trivy" ]]; then
- echo "${TRIVY_OUTPUT}"
+  echo "${TRIVY_OUTPUT}"
 fi
 echo "${CHECKOV_OUTPUT}"
 echo "${TFLINT_OUTPUT}"
@@ -281,7 +278,7 @@ else
   COMMENT=0
 fi
 
-if [ "${GITHUB_EVENT_NAME}" == "pull_request" ] && [ -n "${GITHUB_TOKEN}" ] && [ "${COMMENT}" == "1" ] ; then
+if [ "${GITHUB_EVENT_NAME}" == "pull_request" ] && [ -n "${GITHUB_TOKEN}" ] && [ "${COMMENT}" == "1" ]; then
   if [[ "${INPUT_TFSEC_TRIVY}" == "tfsec" ]]; then
     INPUT_TFSEC_TRIVY_COMMENT="#### \`TFSEC Scan\` ${TFSEC_STATUS}
 <details><summary>Show Output</summary>
@@ -299,7 +296,7 @@ ${TRIVY_OUTPUT}
 </details>"
   fi
 
-    COMMENT="#### \`Checkov Scan\` ${CHECKOV_STATUS}
+  COMMENT="#### \`Checkov Scan\` ${CHECKOV_STATUS}
 <details><summary>Show Output</summary>
 
 \`\`\`hcl
@@ -330,7 +327,7 @@ ${TRIVY_OUTPUT}
 
   PAYLOAD=$(echo "${PAYLOAD_COMMENT}" | jq -R --slurp '{body: .}')
   URL=$(jq -r .pull_request.comments_url "${GITHUB_EVENT_PATH}")
-  echo "${PAYLOAD}" | curl -s -S -H "Authorization: token ${GITHUB_TOKEN}" --header "Content-Type: application/json" --data @- "${URL}" > /dev/null
+  echo "${PAYLOAD}" | curl -s -S -H "Authorization: token ${GITHUB_TOKEN}" --header "Content-Type: application/json" --data @- "${URL}" >/dev/null
 fi
 
 line_break
@@ -343,7 +340,7 @@ fi
 echo "Total of Checkov exit codes: $checkov_exitcode"
 echo "Total of tflint exit codes: $tflint_exitcode"
 
-if [ $tfsec_exitcode -gt 0 ] || [ $checkov_exitcode -gt 0 ] || [ $tflint_exitcode -gt 0 ] || [ $trivy_exitcode -gt 0 ];then
+if [ $tfsec_exitcode -gt 0 ] || [ $checkov_exitcode -gt 0 ] || [ $tflint_exitcode -gt 0 ] || [ $trivy_exitcode -gt 0 ]; then
   echo "Exiting with error(s)"
   exit 1
 else

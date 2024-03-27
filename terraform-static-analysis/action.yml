@@ -61,6 +61,10 @@ inputs:
   trivy_skip_dir:
     description: "Directories that get skipped for trivy e.g. test"
     required: false
+  main_branch_name:
+    description: "The name of the main branch e.g. 'main' or 'master', defaults to 'main'"
+    required: false
+    default: "main"
 
 runs:
   using: "docker"
