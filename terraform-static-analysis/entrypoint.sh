@@ -51,7 +51,7 @@ declare -i trivy_exitcode=0
 git config --global --add safe.directory $GITHUB_WORKSPACE
 
 # Identify which Terraform folders have changes and need scanning
-tf_folders_with_changes=$(git diff --name-only HEAD.."${INPUT_MAIN_BRANCH_NAME}" | awk '{print $1}' | grep '\.tf' | sed 's#/[^/]*$##' | grep -v '\.tf' | uniq)
+tf_folders_with_changes=$(git diff --name-only HEAD.."origin/${INPUT_MAIN_BRANCH_NAME}" | awk '{print $1}' | grep '\.tf' | sed 's#/[^/]*$##' | grep -v '\.tf' | uniq)
 echo
 echo "TF folders with changes"
 echo $tf_folders_with_changes
