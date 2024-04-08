@@ -1,6 +1,6 @@
 ---
-name: Set Up Google Container Structure Test
-description: This action installs Google's Container Structure Test tool.
+name: Set Up Container Structure Test
+description: This action installs the Container Structure Test binary.
 
 inputs:
   version:
