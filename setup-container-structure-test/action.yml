@@ -1,0 +1,38 @@
+---
+name: Set Up Container Structure Test
+description: This action installs the Container Structure Test binary.
+
+inputs:
+  version:
+    description: The version of Container Structure Test to install.
+    required: false
+    default: "latest"
+
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        if [[ "$(uname --machine)" == "x86_64" ]]; then
+          export architecture="amd64"
+        elif [[ "$(uname --machine)" == "aarch64" ]]; then
+          export architecture="arm64"
+        else
+          echo "Unsupported architecture: $(uname --machine)"
+          exit 1
+        fi
+
+        if [[ "${{ inputs.version }}" == "latest" ]]; then
+          export version="$(curl --silent https://api.github.com/repos/GoogleContainerTools/container-structure-test/releases/latest | jq -r '.tag_name')"
+        else
+          export version="${{ inputs.version }}"
+        fi
+
+        mkdir --parents "${GITHUB_WORKSPACE}/.container-structure-test"
+
+        curl --fail-with-body --location --silent "https://github.com/GoogleContainerTools/container-structure-test/releases/download/${version}/container-structure-test-linux-${architecture}" \
+          --output "${GITHUB_WORKSPACE}/.container-structure-test/container-structure-test"
+
+        chmod +x "${GITHUB_WORKSPACE}/.container-structure-test/container-structure-test"
+
+        echo "${GITHUB_WORKSPACE}/.container-structure-test" >>"${GITHUB_PATH}"
