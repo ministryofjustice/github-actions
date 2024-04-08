@@ -30,3 +30,13 @@ jobs:
         run: |
           container-structure-test ...
 ```
+
+Specifying a version
+
+```yaml
+      - name: Set Up Container Structure Test
+        id: setup_container_structure_test
+        uses: ministryofjustice/github-actions/setup-container-structure-test@main
+        with:
+          version: v1.17.0
+```
