@@ -21,6 +21,6 @@ jobs:
       - name: Install Python dependencies
         run: |
           pipenv install --dev
-      - name: Run tests with pytest and coverage report
+      - name: Run tests with pytest
         run: |
-          pipenv run pytest test/
+          pipenv run pytest -vv test/
