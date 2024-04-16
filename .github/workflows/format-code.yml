@@ -10,5 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - uses: ministryofjustice/github-actions/code-formatter@v14
+        with:
+          ignore-files: "bad.yml,bad.yaml,secret-bad.yml"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
