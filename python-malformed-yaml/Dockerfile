@@ -3,8 +3,7 @@ ADD . /app
 WORKDIR /app
 
 RUN pip install --target=/app PyYaml
-
-COPY main.py /main.py
+RUN chown appuser:appgroup /app
 
 ENTRYPOINT [ "/app/main.py" ]
 
