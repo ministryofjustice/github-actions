@@ -1,5 +1,4 @@
 import yaml
-import pathlib
 
 
 def main():
