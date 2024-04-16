@@ -1,0 +1,15 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[scripts]
+
+[packages]
+
+[dev-packages]
+pytest = "==8.1.1"
+PyYaml = "==6.0.1"
+
+[requires]
+python_version = "3.11"
