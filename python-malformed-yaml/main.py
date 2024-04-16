@@ -1,5 +1,5 @@
 import yaml
-
+import pathlib
 
 def main():
   # get all yaml files in PR (not just new/modified)
