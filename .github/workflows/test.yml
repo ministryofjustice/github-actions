@@ -1,0 +1,26 @@
+name: Test
+on:
+  - pull_request
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Pipenv
+        run: |
+          python3 -m pip install pipenv
+      - name: Install Python dependencies
+        run: |
+          pipenv install --dev
+      - name: Run tests with pytest and coverage report
+        run: |
+          pipenv run pytest test/
