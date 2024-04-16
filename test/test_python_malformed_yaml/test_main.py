@@ -5,7 +5,7 @@ main = python_malformed_yaml_main.main
 
 
 
-def test_exception():
+def test_main_exception():
     with pytest.raises(Exception) as exc_info:   
         main()
     malformed_files = [
