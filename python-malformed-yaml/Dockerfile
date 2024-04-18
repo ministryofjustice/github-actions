@@ -65,4 +65,5 @@ COPY main.py /app/main.py
 RUN pip install pipenv
 RUN pipenv install
 
-ENTRYPOINT [ "pipenv", "run", "python", "/app/main.py" ]
+RUN pipenv run python /app/main.py
+# ENTRYPOINT [ "pipenv", "run", "python", "/app/main.py" ]
