@@ -20,6 +20,9 @@ def get_changed_yaml_files_from_pr():
     print(changed_files)
 
 
+def main():
+    print("!!!OUTPUT!!!")
+    get_changed_yaml_files_from_pr()
 
 # def main():
 
@@ -46,5 +49,5 @@ def get_changed_yaml_files_from_pr():
 #         print("All YAML files OK!")
 
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()
