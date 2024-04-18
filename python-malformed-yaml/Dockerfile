@@ -26,4 +26,4 @@ COPY Pipfile.lock /app/Pipfile.lock
 RUN python3 -m pip install pipenv
 RUN pipenv install
 RUN chmod +x /app/main.py
-RUN pipenv run python /app/main.py
+RUN pipenv run python3 /app/main.py
