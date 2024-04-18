@@ -2,6 +2,10 @@ name: Test
 on:
   - pull_request
 
+defaults:
+  run:
+    working-directory: ./python-malformed-yaml
+
 jobs:
   test:
     name: Test
