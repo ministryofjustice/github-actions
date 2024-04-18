@@ -13,3 +13,5 @@ jobs:
         uses: ministryofjustice/github-actions/python-malformed-yaml@mal-yaml-to-python
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.number }}
+          REPOSITORY_NAME: ${{ github.event.repository.name }}
