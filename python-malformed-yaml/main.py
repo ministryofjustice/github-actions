@@ -5,11 +5,15 @@ from github_service import GitHubService as github_service
 
 
 def get_github_env() -> tuple:
-    pr_number = os.getenv("PR_NUMBER")
     token = os.getenv("GITHUB_TOKEN")
+    pr_number = os.getenv("PR_NUMBER")
     repo = os.getenv("REPOSITORY_NAME")
-    if not token or not pr_number or not repo:
-        raise ValueError("No GITHUB_TOKEN or PR_NUMBER env var found. Please make this available via the github actions workflow\nhttps://help.github.com/en/articles/virtual-environments-for-github-actions#github_token-secret.")
+    if not token:
+        raise ValueError("No GITHUB_TOKEN.")
+    if not pr_number:
+        raise ValueError("No PR_NUMBER.")
+    if not repo:
+        raise ValueError("No REPOSITORY_NAME.")
     return token, repo, pr_number
 
 
