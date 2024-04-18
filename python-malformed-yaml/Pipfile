@@ -6,10 +6,11 @@ name = "pypi"
 [scripts]
 
 [packages]
+PyGithub = "==2.2.0"
+PyYaml = "==6.0.1"
 
 [dev-packages]
 pytest = "==8.1.1"
-PyYaml = "==6.0.1"
 
 [requires]
 python_version = "3.11"
