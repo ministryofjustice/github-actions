@@ -17,13 +17,13 @@
 FROM python:3.12-slim
 
 WORKDIR /app
+
 COPY github_service.py /app/github_service.py
 COPY main.py /app/main.py
 COPY Pipfile /app/Pipfile
 COPY Pipfile.lock /app/Pipfile.lock
 
+RUN python3 -m pip install pipenv
 RUN pipenv install
-
 RUN chmod +x /app/main.py
-
 RUN pipenv run python /app/main.py
