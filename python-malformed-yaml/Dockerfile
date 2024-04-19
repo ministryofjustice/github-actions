@@ -4,12 +4,10 @@ RUN apt-get update
 
 WORKDIR /app
 
-COPY Pipfile /app/Pipfile
-COPY Pipfile.lock /app/Pipfile.lock
 COPY github_service.py /app/github_service.py
 COPY main.py /app/main.py
+COPY requirements.txt /app/requirements.txt
 
-RUN pip install pipenv
-RUN pipenv install
+RUN pip install --no-cache-dir -r requirements.txt
 
-ENTRYPOINT [ "pipenv", "run", "python3", "/app/main.py" ]
+ENTRYPOINT [ "python3", "/app/main.py" ]
