@@ -26,7 +26,7 @@ def get_changed_yaml_files_from_pr():
 
 def main():
     print("!!!OUTPUT!!!")
-    # get_changed_yaml_files_from_pr()
+    get_changed_yaml_files_from_pr()
 
 # def main():
 
