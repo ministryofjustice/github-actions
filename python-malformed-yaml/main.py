@@ -1,5 +1,6 @@
 import os
-import pathlib
+from pathlib import Path
+import re
 import yaml
 from github_service import GitHubService as github_service
 
@@ -17,16 +18,34 @@ def get_github_env() -> tuple:
     return token, repo, pr_number
 
 
-def get_changed_yaml_files_from_pr():
+def get_changed_yaml_files_from_pr() -> list:
     token, repository_name, pr = get_github_env()
-    github = github_service(token, repository_name, pr)
+    github = github_service(token, repository_name, int(pr))
     changed_files = github.get_changed_files_from_pr()
-    print(changed_files)
+    pattern = re.compile("\\.yml$|\\.yaml$")
+    changed_yaml_files = [file for file in changed_files if pattern.search(file)]
+    return changed_yaml_files
 
+def get_malformed_yaml_files(yaml_files: list) -> list:
+    print(f"WD: {os.getcwd()}")
+    # p = Path.cwd()
+    # os.chdir(p.parent)
+    # print(f"NEW WD: {os.getcwd()}")
+
+    malformed_yaml_files = []
+    for y in yaml_files:
+        with open(y) as stream:
+            try:
+                yaml.safe_load(stream)
+            except yaml.YAMLError as exc:
+                malformed_yaml_files.append(f"\n{str(y)}:\n{str(exc)}")   
+    return malformed_yaml_files     
 
 def main():
-    print("!!!OUTPUT!!!")
-    get_changed_yaml_files_from_pr()
+    changed_yaml_files = get_changed_yaml_files_from_pr()
+    print(changed_yaml_files)
+    malformed_yaml_files = get_malformed_yaml_files(changed_yaml_files)
+    print(malformed_yaml_files)
 
 # def main():
 
