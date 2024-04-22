@@ -1,7 +1,17 @@
 import os
+import logging
 import re
 import yaml
 from github_service import GitHubService as github_service
+
+
+logging.basicConfig(
+    format="%(asctime)s %(levelname)-8s %(message)s",
+    level="INFO",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+
+logger = logging.getLogger(__name__)
 
 
 def get_github_env() -> tuple[str, str, str]:
@@ -72,10 +82,9 @@ def main():
     if malformed_yaml_files:
         msg = malformed_yaml_files_message(malformed_yaml_files)
         github.fail_pr(message=msg)
-        print(msg)
-        return os._exit(1)
+        logger.error(msg)
     else:
-        print("PR YAML files all OK!")
+        logger.info("PR YAML files all OK!")
 
 
 if __name__ == "__main__":

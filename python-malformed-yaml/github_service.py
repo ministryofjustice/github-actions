@@ -18,4 +18,3 @@ class GitHubService():
         self.client.get_repo(
             self.repository_name).get_pull(self.pr_number).create_issue_comment(
                 message)
-        return 1
