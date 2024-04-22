@@ -1,5 +1,6 @@
 import os
 import logging
+import sys
 import re
 import yaml
 from github_service import GitHubService as github_service
@@ -83,7 +84,7 @@ def main():
         msg = malformed_yaml_files_message(malformed_yaml_files)
         github.fail_pr(message=msg)
         logger.error(msg)
-        return os._exit(1)
+        return sys.exit(1)
     else:
         logger.info("PR YAML files all OK!")
 
