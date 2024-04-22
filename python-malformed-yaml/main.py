@@ -75,12 +75,10 @@ def main():
         msg = malformed_yaml_files_message(malformed_yaml_files)
         github.fail_pr(message=msg)
         print(msg)
-        return True
+        return os._exit(1)
     else:
         print("PR YAML files all OK!")
-        return False
 
 
 if __name__ == "__main__":
-    if main():
-        os._exit(1)
+    main()
