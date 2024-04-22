@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 import re
 import yaml
 from github_service import GitHubService as github_service
