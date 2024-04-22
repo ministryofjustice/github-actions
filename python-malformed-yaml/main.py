@@ -54,7 +54,10 @@ def get_malformed_yaml_files_and_errors(yaml_files: list[str]) -> list[str]:
                 malformed_yaml_files_and_errors.append(f"\n{str(y)}:\n{str(exc)}")
     return malformed_yaml_files_and_errors
 
-def message(files_and_errors: list):
+def malformed_yaml_files_message(files_and_errors: list):
+    """
+    Compose message to display in the PR.
+    """
     msg = "😱 The following malformed YAML files and related errors were found:\n"
     msg += "\n".join(files_and_errors)
     return msg
@@ -70,11 +73,11 @@ def main():
     changed_yaml_files = get_changed_yaml_files_from_pr()
     malformed_yaml_files = get_malformed_yaml_files_and_errors(changed_yaml_files)
     if malformed_yaml_files:
-        msg = message(malformed_yaml_files)
+        msg = malformed_yaml_files_message(malformed_yaml_files)
         github.fail_pr(message=msg)
         print(msg)
         return True
-    else: 
+    else:
         print("PR YAML files all OK!")
         return False
 
