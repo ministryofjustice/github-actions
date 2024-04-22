@@ -55,7 +55,7 @@ def get_malformed_yaml_files_and_errors(yaml_files: list[str]) -> list[str]:
     return malformed_yaml_files_and_errors
 
 def message(files_and_errors: list):
-    msg = "😱 The following malformed YAML files and errors were found:\n"
+    msg = "😱 The following malformed YAML files and related errors were found:\n"
     msg += "\n".join(files_and_errors)
     return msg
 
@@ -64,34 +64,21 @@ def main():
     Function to collect the new or modified YAML files from the PR that
     are malformed, report these to the user, and request changes.
     """
+    token, repository_name, pr = get_github_env()
+    github = github_service(token, repository_name, int(pr))
+
     changed_yaml_files = get_changed_yaml_files_from_pr()
     malformed_yaml_files = get_malformed_yaml_files_and_errors(changed_yaml_files)
-    msg = message(malformed_yaml_files)
-    print(msg)
-# def main():
-
-#     yml_files = [p for p in pathlib.Path(".").rglob(
-#         '*') if p.suffix in [".yml", ".yaml"]]
-#     yml_files = [y for y in yml_files if "secret/" not in str(y)]
-
-#     malformed_yaml = []
-#     for y in yml_files:
-#         with open(y) as stream:
-#             try:
-#                 yaml.safe_load(stream)
-#             except yaml.YAMLError as exc:
-#                 malformed_yaml.append(f"\n{str(y)}:\n{str(exc)}")
-
-#     if malformed_yaml != []:
-#         error_message = (
-#             "Malformed YAML detected:\n" +
-#             "\n".join(malformed_yaml) +
-#             ("\n Please correct and resubmit this PR.")
-#         )
-#         raise Exception(error_message)
-#     else:
-#         print("All YAML files OK!")
+    if malformed_yaml_files:
+        msg = message(malformed_yaml_files)
+        github.fail_pr(message=msg)
+        print(msg)
+        return True
+    else: 
+        print("PR YAML files all OK!")
+        return False
 
 
 if __name__ == "__main__":
-    main()
+    if main():
+        os._exit(1)
