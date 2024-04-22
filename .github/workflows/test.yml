@@ -22,8 +22,8 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install --upgrade pip
-          pip install --no-cache-dir -r python-malformed-yaml/requirements.txt
-          pip install --no-cache-dir -r python-malformed-yaml/requirements-dev.txt
+          pip install --no-cache-dir -r requirements.txt
+          pip install --no-cache-dir -r requirements-dev.txt
       - name: Run tests with pytest
         run: |
-          pytest -vv python-malformed-yaml/test/
+          pytest -vv test/
