@@ -25,3 +25,29 @@ class TestMain(unittest.TestCase):
         ]
         result = get_changed_yaml_files_from_pr()
         self.assertEqual(result, [])
+    
+    def test_get_malformed_yaml_files_and_errors(self):
+        result = get_malformed_yaml_files_and_errors(
+            yaml_files=[
+                "python-malformed-yaml/test/test_yaml_files/bad.yaml",
+                "python-malformed-yaml/test/test_yaml_files/bad.yml",
+                "python-malformed-yaml/test/test_yaml_files/good.yaml",
+            ]
+        )
+        expected = [
+            '\npython-malformed-yaml/test/test_yaml_files/bad.yaml:\nwhile scanning ' +
+            'a quoted scalar\n  in "python-malformed-yaml/test/test_yaml_files/' +
+            'bad.yaml", line 2, column 14\nfound unexpected end of stream\n  in ' +
+            '"python-malformed-yaml/test/test_yaml_files/bad.yaml", line 3, column 1',
+            '\npython-malformed-yaml/test/test_yaml_files/bad.yml:\nwhile scanning a' +
+            ' quoted scalar\n  in "python-malformed-yaml/test/test_yaml_files/' +
+            'bad.yml", line 2, column 6\nfound unexpected end of stream\n  in ' +
+            '"python-malformed-yaml/test/test_yaml_files/bad.yml", line 3, column 1'
+        ]
+        self.assertEqual(expected, result)
+    
+    def test_main():
+        """
+        test main function here, mock antecedent functions
+        """
+        self.assertEqual("some", "stuff")
