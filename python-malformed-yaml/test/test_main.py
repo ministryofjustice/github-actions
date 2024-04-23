@@ -31,20 +31,20 @@ class TestMain(unittest.TestCase):
     def test_get_malformed_yaml_files_and_errors(self):
         result = get_malformed_yaml_files_and_errors(
             yaml_files=[
-                "python-malformed-yaml/test/test_yaml_files/bad.yaml",
-                "python-malformed-yaml/test/test_yaml_files/bad.yml",
-                "python-malformed-yaml/test/test_yaml_files/good.yaml",
+                "test/test_yaml_files/bad.yaml",
+                "test/test_yaml_files/bad.yml",
+                "test/test_yaml_files/good.yaml",
             ]
         )
         expected = [
-            '\npython-malformed-yaml/test/test_yaml_files/bad.yaml:\nwhile scanning ' +
-            'a quoted scalar\n  in "python-malformed-yaml/test/test_yaml_files/' +
+            '\ntest/test_yaml_files/bad.yaml:\nwhile scanning ' +
+            'a quoted scalar\n  in "test/test_yaml_files/' +
             'bad.yaml", line 2, column 14\nfound unexpected end of stream\n  in ' +
-            '"python-malformed-yaml/test/test_yaml_files/bad.yaml", line 3, column 1',
-            '\npython-malformed-yaml/test/test_yaml_files/bad.yml:\nwhile scanning a' +
-            ' quoted scalar\n  in "python-malformed-yaml/test/test_yaml_files/' +
+            '"test/test_yaml_files/bad.yaml", line 3, column 1',
+            '\ntest/test_yaml_files/bad.yml:\nwhile scanning a' +
+            ' quoted scalar\n  in "test/test_yaml_files/' +
             'bad.yml", line 2, column 6\nfound unexpected end of stream\n  in ' +
-            '"python-malformed-yaml/test/test_yaml_files/bad.yml", line 3, column 1'
+            '"test/test_yaml_files/bad.yml", line 3, column 1'
         ]
         self.assertEqual(expected, result)
 
@@ -52,9 +52,9 @@ class TestMain(unittest.TestCase):
     @patch.dict(os.environ, {"GITHUB_TOKEN": "token", "PR_NUMBER": "123", "REPOSITORY_NAME": "repo_name"})    
     def test_main_malformed_yaml_true(self, mock_github_service):
         mock_github_service.return_value.get_changed_files_from_pr.return_value = [
-                "python-malformed-yaml/test/test_yaml_files/bad.yaml",
-                "python-malformed-yaml/test/test_yaml_files/bad.yml",
-                "python-malformed-yaml/test/test_yaml_files/good.yaml",
+                "test/test_yaml_files/bad.yaml",
+                "test/test_yaml_files/bad.yml",
+                "test/test_yaml_files/good.yaml",
             ]
         result = main()
         self.assertEqual(result, True)
@@ -63,7 +63,7 @@ class TestMain(unittest.TestCase):
     @patch.dict(os.environ, {"GITHUB_TOKEN": "token", "PR_NUMBER": "123", "REPOSITORY_NAME": "repo_name"})    
     def test_main_malformed_yaml_false(self, mock_github_service):
         mock_github_service.return_value.get_changed_files_from_pr.return_value = [
-                "python-malformed-yaml/test/test_yaml_files/good.yaml",
+                "test/test_yaml_files/good.yaml",
             ]
         result = main()
         self.assertEqual(result, False)
