@@ -67,7 +67,7 @@ def malformed_yaml_files_message(files_and_errors: list):
     Compose message to display in the PR.
     """
     msg = "😱 The following malformed YAML files and related errors were found:\n"
-    msg += "\n".join(files_and_errors)
+    msg += "\n".join(files_and_errors) + "\n\nPlease correct them and resubmit this PR."
     return msg
 
 def main():
@@ -79,15 +79,17 @@ def main():
     github = github_service(token, repository_name, int(pr))
 
     changed_yaml_files = get_changed_yaml_files_from_pr()
-    malformed_yaml_files = get_malformed_yaml_files_and_errors(changed_yaml_files)
-    if malformed_yaml_files:
-        msg = malformed_yaml_files_message(malformed_yaml_files)
+    malformed_yaml_files_and_errors = get_malformed_yaml_files_and_errors(changed_yaml_files)
+    if malformed_yaml_files_and_errors:
+        msg = malformed_yaml_files_message(malformed_yaml_files_and_errors)
         github.fail_pr(message=msg)
         logger.error(msg)
-        return sys.exit(1)
-    else:
-        logger.info("PR YAML files all OK!")
+        return True
+
+    logger.info("PR YAML files all OK!")
+    return False
 
 
 if __name__ == "__main__":
-    main()
+    if main():
+        sys.exit(1)

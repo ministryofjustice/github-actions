@@ -1,5 +1,6 @@
 import os
-from unittest.mock import patch
+import logging
+from unittest.mock import patch, MagicMock
 import unittest
 from main import get_changed_yaml_files_from_pr, get_malformed_yaml_files_and_errors, main
 from github_service import GitHubService as github_service
@@ -45,9 +46,23 @@ class TestMain(unittest.TestCase):
             '"python-malformed-yaml/test/test_yaml_files/bad.yml", line 3, column 1'
         ]
         self.assertEqual(expected, result)
-    
-    def test_main():
-        """
-        test main function here, mock antecedent functions
-        """
-        self.assertEqual("some", "stuff")
+
+    @patch.object(github_service, "__new__")
+    @patch.dict(os.environ, {"GITHUB_TOKEN": "token", "PR_NUMBER": "123", "REPOSITORY_NAME": "repo_name"})    
+    def test_main_malformed_yaml_true(self, mock_github_service):
+        mock_github_service.return_value.get_changed_files_from_pr.return_value = [
+                "python-malformed-yaml/test/test_yaml_files/bad.yaml",
+                "python-malformed-yaml/test/test_yaml_files/bad.yml",
+                "python-malformed-yaml/test/test_yaml_files/good.yaml",
+            ]
+        result = main()
+        self.assertEqual(result, True)
+
+    @patch.object(github_service, "__new__")
+    @patch.dict(os.environ, {"GITHUB_TOKEN": "token", "PR_NUMBER": "123", "REPOSITORY_NAME": "repo_name"})    
+    def test_main_malformed_yaml_false(self, mock_github_service):
+        mock_github_service.return_value.get_changed_files_from_pr.return_value = [
+                "python-malformed-yaml/test/test_yaml_files/good.yaml",
+            ]
+        result = main()
+        self.assertEqual(result, False)
