@@ -34,16 +34,23 @@ def get_changed_yaml_files_from_pr() -> list[str]:
     """
     Collect a list of all the new or modified YAML files
     in a PR, except those in a 'secret/' directory.
+
+
+        NEED TO ACCOUNT FOR NO CHANGED FILES AND NO YAMLS FILES - EMPTY LISTS
+        CAN BREAK AT THIS POINT - NO NEED TO CONTINUE
     """
     token, repository_name, pr = get_github_env()
     github = github_service(token, repository_name, int(pr))
     changed_files = github.get_changed_files_from_pr()
     pattern = re.compile("\\.yml$|\\.yaml$")
     skip_pattern = re.compile("secret/")
-    changed_yaml_files = [
-        file for file in changed_files if pattern.search(file) and not skip_pattern.search(file)
-    ]
-    return changed_yaml_files
+    if changed_files:
+        changed_yaml_files = [
+            file for file in changed_files if pattern.search(file) and not skip_pattern.search(file)
+        ]
+        return changed_yaml_files
+    logger.info("🫧 No new or modified YAML files to check.")
+
 
 def get_malformed_yaml_files_and_errors(yaml_files: list[str]) -> list[str]:
     """
