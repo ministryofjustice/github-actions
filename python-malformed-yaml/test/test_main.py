@@ -20,17 +20,10 @@ class TestMain(unittest.TestCase):
 
     @patch.object(github_service, "__new__")
     @patch.dict(os.environ, {"GITHUB_TOKEN": "token", "PR_NUMBER": "123", "REPOSITORY_NAME": "repo_name"})
-    def test_get_changed_yaml_files_from_pr_no_yaml(self, mock_github_service):
+    def test_get_changed_yaml_files_from_pr_no_yaml_system_exit(self, mock_github_service):
         mock_github_service.return_value.get_changed_files_from_pr.return_value = [
             "a.txt", "secret/non/yaml.csv", "some.yml/but/not/a/yml.txt"
         ]
-        result = get_changed_yaml_files_from_pr()
-        self.assertEqual(result, [])
-
-    @patch.object(github_service, "__new__")
-    @patch.dict(os.environ, {"GITHUB_TOKEN": "token", "PR_NUMBER": "123", "REPOSITORY_NAME": "repo_name"})
-    def test_get_changed_yaml_files_from_pr_no_files_system_exit(self, mock_github_service):
-        mock_github_service.return_value.get_changed_files_from_pr.return_value = []
         with self.assertRaises(SystemExit) as cm:
             get_changed_yaml_files_from_pr()
         self.assertEqual(cm.exception.code, 1)

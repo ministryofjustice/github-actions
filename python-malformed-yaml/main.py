@@ -37,13 +37,14 @@ def get_changed_yaml_files_from_pr() -> list[str]:
     """
     token, repository_name, pr = get_github_env()
     github = github_service(token, repository_name, int(pr))
+    # We assume there must always be some changed or new files in a PR
     changed_files = github.get_changed_files_from_pr()
     pattern = re.compile("\\.yml$|\\.yaml$")
     skip_pattern = re.compile("secret/")
-    if changed_files:
-        changed_yaml_files = [
-            file for file in changed_files if pattern.search(file) and not skip_pattern.search(file)
-        ]
+    changed_yaml_files = [
+        file for file in changed_files if pattern.search(file) and not skip_pattern.search(file)
+    ]
+    if changed_yaml_files:
         return changed_yaml_files
     logger.info("🫧 No new or modified YAML files to check.")
     sys.exit(1)
