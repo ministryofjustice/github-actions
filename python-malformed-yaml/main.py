@@ -67,7 +67,7 @@ def malformed_yaml_files_message(files_and_errors: list):
     Compose message to display in the PR.
     """
     msg = "😱 The following malformed YAML files and related errors were found:\n"
-    msg += "\n".join(files_and_errors) + "\n\nPlease correct them and resubmit this PR."
+    msg += "\n".join(files_and_errors) + "\n\n🥺 Please correct them and resubmit this PR."
     return msg
 
 def main():
@@ -86,7 +86,7 @@ def main():
         logger.error(msg)
         return True
 
-    logger.info("PR YAML files all OK!")
+    logger.info("🤩 PR YAML files all OK!")
     return False
 
 
