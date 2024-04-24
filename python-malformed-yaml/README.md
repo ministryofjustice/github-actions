@@ -30,12 +30,16 @@ jobs:
   reject-malformed-yaml:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: ministryofjustice/github-actions/malformed-yaml@main
+      - name: Checkout repo
+      - uses: actions/checkout@v4.1.2
+      - name: Detect malformed YAML files
+      - uses: ministryofjustice/github-actions/malformed-yaml@v18.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.number }}
+
 ```
 
-`GITHUB_TOKEN` is provided automatically by github actions. You do
-not need to do anything extra to make it available. Just use the
+`GITHUB_TOKEN` and `PR_NUMBER` are provided automatically. You do
+not need to do anything extra to make these available. Just use the
 content above, exactly as shown.
