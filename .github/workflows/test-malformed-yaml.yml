@@ -1,4 +1,4 @@
-name: Test
+name: Test Malformewd YAML Action
 on:
   - pull_request
 
@@ -8,7 +8,7 @@ defaults:
 
 jobs:
   test:
-    name: Test
+    name: Test Malformed YAML Action
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
