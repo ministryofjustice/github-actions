@@ -47,7 +47,7 @@ def get_changed_yaml_files_from_pr() -> list[str]:
     if changed_yaml_files:
         return changed_yaml_files
     logger.info("🫧 No new or modified YAML files to check.")
-    sys.exit(1)
+    sys.exit(0)
 
 def get_malformed_yaml_files_and_errors(yaml_files: list[str]) -> list[str]:
     """
