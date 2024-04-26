@@ -1,8 +1,8 @@
 from github import Github
 
 
-class GitHubService():
-    """A class to interact with GitHub API."""
+class GitHubPullRequest():
+    """A class to interact with the GitHub API."""
 
     def __init__(self, github_token, repository_name: str, pr_number: int):
         self.github_token = github_token

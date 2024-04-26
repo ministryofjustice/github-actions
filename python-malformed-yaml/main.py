@@ -3,7 +3,7 @@ import logging
 import sys
 import re
 import yaml
-from github_service import GitHubService as github_service
+from github_pull_request import GitHubPullRequest as github_pull_request
 
 
 logging.basicConfig(
@@ -36,18 +36,14 @@ def get_changed_yaml_files_from_pr() -> list[str]:
     in a PR, except those in a 'secret/' directory.
     """
     token, repository_name, pr = get_github_env()
-    github = github_service(token, repository_name, int(pr))
+    github_pr = github_pull_request(token, repository_name, int(pr))
     # We assume there must always be some changed or new files in a PR
-    changed_files = github.get_changed_files_from_pr()
+    changed_files = github_pr.get_changed_files_from_pr()
     pattern = re.compile("\\.yml$|\\.yaml$")
     skip_pattern = re.compile("secret/")
-    changed_yaml_files = [
+    return [
         file for file in changed_files if pattern.search(file) and not skip_pattern.search(file)
     ]
-    if changed_yaml_files:
-        return changed_yaml_files
-    logger.info("🫧 No new or modified YAML files to check.")
-    sys.exit(0)
 
 def get_malformed_yaml_files_and_errors(yaml_files: list[str]) -> list[str]:
     """
@@ -80,13 +76,18 @@ def main():
     are malformed, report these to the user, and request changes.
     """
     token, repository_name, pr = get_github_env()
-    github = github_service(token, repository_name, int(pr))
+    github_pr = github_pull_request(token, repository_name, int(pr))
+
 
     changed_yaml_files = get_changed_yaml_files_from_pr()
+    if not changed_yaml_files:
+        logger.info("🫧 No new or modified YAML files.")
+        return False
+
     malformed_yaml_files_and_errors = get_malformed_yaml_files_and_errors(changed_yaml_files)
     if malformed_yaml_files_and_errors:
         msg = malformed_yaml_files_message(malformed_yaml_files_and_errors)
-        github.fail_pr(message=msg)
+        github_pr.fail_pr(message=msg)
         logger.error(msg)
         return True
 
