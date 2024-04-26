@@ -4,7 +4,7 @@ on:
 
 defaults:
   run:
-    working-directory: ./python-malformed-yaml
+    working-directory: ./malformed-yaml
 
 jobs:
   test:

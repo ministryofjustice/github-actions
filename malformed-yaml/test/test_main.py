@@ -1,6 +1,5 @@
 import os
-import logging
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 import unittest
 from main import get_changed_yaml_files_from_pr, get_malformed_yaml_files_and_errors, main
 from github_pull_request import GitHubPullRequest as github_pull_request

@@ -1,11 +1,11 @@
-FROM ministryofjustice/cloud-platform-tools:2.1
+FROM python:3.12-slim
 
-# Octokit depends on faraday, and an update to
-# faraday breaks the current version of octokit
-RUN gem install faraday --version 0.9
-RUN gem install octokit --version 4.21.0
+RUN apt-get update && apt-get upgrade -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY reject-malformed-yaml.rb /reject-malformed-yaml.rb
-COPY github.rb /github.rb
+WORKDIR /app
 
-ENTRYPOINT ["/reject-malformed-yaml.rb"]
+COPY github_pull_request.py main.py requirements.txt /app/
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+ENTRYPOINT [ "python3", "/app/main.py" ]
