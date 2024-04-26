@@ -4,9 +4,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get clean && rm -rf /var/lib/apt
 
 WORKDIR /app
 
-COPY github_service.py /app/github_service.py
-COPY main.py /app/main.py
-COPY requirements.txt /app/requirements.txt
+COPY github_service.py main.py requirements.txt /app/
 
 RUN pip install --no-cache-dir -r requirements.txt
 
