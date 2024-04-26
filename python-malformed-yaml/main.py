@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 def get_github_env() -> tuple[str, str, str]:
     """
     Function to collect the three required GitHub
-    environmnet variables
+    environment variables
     """
     token = os.getenv("GITHUB_TOKEN")
     pr_number = os.getenv("PR_NUMBER")
