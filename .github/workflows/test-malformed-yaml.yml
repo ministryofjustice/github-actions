@@ -1,4 +1,4 @@
-name: Test Malformewd YAML Action
+name: Test Malformed YAML Action
 on:
   - pull_request
 
