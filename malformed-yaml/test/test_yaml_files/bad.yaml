@@ -1,0 +1,2 @@
+desc: Example 2 of a malformed YAML file
+another-key: "some-unfinished-stuff\"

@@ -1,6 +1,0 @@
-name: Reject malformed YAML
-description: Reject a PR if it contains any malformed YAML files
-
-runs:
-  using: 'docker'
-  image: 'Dockerfile'
