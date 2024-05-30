@@ -107,6 +107,7 @@ run_tfsec() {
         echo "tfsec_exitcode=${tfsec_exitcode}"
       else
         echo "Skipping folder ${directory} as it does not exist."
+      fi
     else
       echo "Skipping folder as path name contains *templates*"
     fi
@@ -135,6 +136,7 @@ run_checkov() {
         echo "checkov_exitcode=${checkov_exitcode}"
       else
         echo "Skipping folder ${directory} as it does not exist."
+      fi
     else
       echo "Skipping folder as path name contains *templates*"
     fi
@@ -172,6 +174,7 @@ run_tflint() {
         fi
       else
         echo "Skipping folder ${directory} as it does not exist."
+      fi
     else
       echo "Skipping folder as path name contains *templates*"
     fi
