@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import sys
 from datetime import datetime
@@ -98,7 +99,7 @@ def advisory_to_slack_block(advisory) -> tuple[dict[str, Any], bool]:
         "type": "section",
         "text": {
             "type": "mrkdwn",
-            "text": f"New <https://github.com/datahub-project/datahub/security/advisories|DataHub Security Advisory>:\n"
+            "text": f"New <https://github.com/{os.environ.get('REPO_OWNER', '')}/{os.environ.get('REPO', '')}/security/advisories|Security Advisory>:\n"
             f"*ID:* {advisory['ghsa_id']}\n"
             f"*Severity:* {severity}\n"
             f"*Published:* {advisory['published_at']}\n"

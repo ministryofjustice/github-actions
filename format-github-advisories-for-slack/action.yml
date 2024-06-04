@@ -70,6 +70,9 @@ runs:
     - name: Filter advisories
       id: filter_advisories
       shell: bash
+      env:
+        REPO: inputs.target-repo
+        REPO_OWNER: inputs.target-repo-owner
       run: python scripts/filter_advisories.py \
         "${{ steps.read_current_version.outputs.application_version }}" \
         "${{ steps.get_last_run_datetime.outputs.last_run_datetime }}"
