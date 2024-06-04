@@ -1,5 +1,5 @@
 name: "Code-Formatter"
-desciption: "Format Ruby, Terraform, YAML/YML, Python, Markdown, JSON and html.md.erb files within a PR"
+description: "Format Ruby, Terraform, YAML/YML, Python, Markdown, JSON and html.md.erb files within a PR"
 inputs:
   ignore-files:
     description: "Files to ignore"
