@@ -167,7 +167,12 @@ def main():
         json.dump(output, f, indent=2)
 
     # Output the number of found advisories for GitHub Actions
-    print(f"{len(filtered_advisories)} advisories found")
+    num_filtered_advisores = str(len(filtered_advisories))
+
+    print(f"{num_filtered_advisores} advisories found")
+
+    with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+        print(f"num_filtered_advisories={num_filtered_advisores}", file=fh)
 
 
 if __name__ == "__main__":

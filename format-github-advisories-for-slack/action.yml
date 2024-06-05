@@ -17,6 +17,14 @@ inputs:
     description: "Version key path within yaml file, e.g. 'global.datahub.version'"
     required: true
     default: ""
+  security-alert-action-file:
+    description: "Name of the github action that runs this job"
+    required: true
+    default: ""
+outputs:
+  num_filtered_advisories:
+    description: "Number of advisories matching criteria since last run"
+    value: ${{ steps.filter_advisories.outputs.num_filtered_advisories }}
 runs:
   using: "composite"
   steps:
@@ -43,10 +51,11 @@ runs:
         -H "X-GitHub-Api-Version: 2022-11-28" \
         /repos/"${{ github.repository}}"/actions/runs \
         --jq '.workflow_runs[] 
-          | select(.conclusion=="success" and .status=="completed" and .path=="${{ github.action_path }}") 
+          | select(.conclusion=="success" and .status=="completed" and (.path|endswith("${{ inputs.security-alert-action-file }}"))) 
           | .run_started_at' \
         | head -n 1)
         echo "last_run_datetime=${LAST_RUN_DATE}" >> "${GITHUB_OUTPUT}"
+        echo "${LAST_RUN_DATE}"
 
     - name: Read current version from values.yaml
       id: read_current_version
@@ -55,6 +64,7 @@ runs:
         PYTHON_DICT_KEY=$(echo "${{ inputs.version-key }}" | awk -F'.' '{ for(i=1; i<=NF; i++) printf "[\x27"$i"\x27]" }')
         APPLICATION_VERSION=$(python -c "import yaml; print(yaml.safe_load(open(${{ inputs.version-file-path }}))${PYTHON_DICT_KEY})")
         echo "application_version=${APPLICATION_VERSION}" >> "${GITHUB_OUTPUT}"
+        echo "${APPLICATION_VERSION}"
 
     - name: Set up Python
       uses: actions/setup-python@v5
