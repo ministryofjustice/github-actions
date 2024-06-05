@@ -33,17 +33,20 @@ When configured as below, it will run regularly and post advisories to the provi
         - uses: actions/checkout@v4
 
         - name: Format advisories for target repo
+          id: filter_advisories
           uses: ministryofjustice/github-actions/format-github-advisories-for-slack@v18
           with:
               target-repo-owner: "github-owner"
               target-repo: "target-repo-name"
               version-file-path: "helm_deploy/values.yaml"
               version-key: "global.application.version"
+              security-alert-action-file: "security-alerts.yml"
           env:
             GH_TOKEN: ${{ github.token }}
     
         - name: Send advisories to Slack
-          id: slack
+          id: send_to_slack
+          if: ${{ steps.filter_advisories.outputs.num_filtered_advisories != '0' }}
           uses: slackapi/slack-github-action@v1.26.0
           with:
             channel-id: "CXXXXXXXXXX" # Channel > Right click > View Channel Details > Scroll to bottom > Channel ID
