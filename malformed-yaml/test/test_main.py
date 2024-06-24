@@ -41,14 +41,14 @@ class TestMain(unittest.TestCase):
                 "test/test_yaml_files/bad.yaml",
                 "test/test_yaml_files/bad.yml",
                 "test/test_yaml_files/good.yaml",
-                "test/test_yaml_files/good-multi-doc.yaml",
+                "test/test_yaml_files/good-multi-doc.yml",
                 "test/test_yaml_files/bad-multi-doc.yaml",
             ]
         )
         self.assertIn("test/test_yaml_files/bad.yaml", "\n".join(result))
         self.assertIn("test/test_yaml_files/bad.yml", "\n".join(result))
         self.assertNotIn("test/test_yaml_files/good.yaml", "\n".join(result))
-        self.assertNotIn("test/test_yaml_files/good-multi-doc.yaml", "\n".join(result))
+        self.assertNotIn("test/test_yaml_files/good-multi-doc.yml", "\n".join(result))
         self.assertIn("test/test_yaml_files/bad-multi-doc.yaml", "\n".join(result))
 
     @patch.object(github_pull_request, "__new__")
@@ -58,7 +58,7 @@ class TestMain(unittest.TestCase):
                 "test/test_yaml_files/bad.yaml",
                 "test/test_yaml_files/bad.yml",
                 "test/test_yaml_files/good.yaml",
-                "test/test_yaml_files/good-multi-doc.yaml",
+                "test/test_yaml_files/good-multi-doc.yml",
                 "test/test_yaml_files/bad-multi-doc.yaml",
             ]
         result = main()
@@ -69,7 +69,7 @@ class TestMain(unittest.TestCase):
     def test_main_malformed_yaml_false(self, mock_github_pull_request):
         mock_github_pull_request.return_value.get_changed_files_from_pr.return_value = [
                 "test/test_yaml_files/good.yaml",
-                "test/test_yaml_files/good-multi-doc.yaml",
+                "test/test_yaml_files/good-multi-doc.yml",
             ]
         result = main()
         self.assertEqual(result, False)
