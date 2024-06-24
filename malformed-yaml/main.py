@@ -57,8 +57,8 @@ def get_malformed_yaml_files_and_errors(yaml_files: list[str]) -> list[str]:
     for y in yaml_files:
         with open(y, encoding="utf-8") as stream:
             try:
-                for docs in yaml.safe_load_all(stream):
-                    print(docs)
+                for _ in yaml.safe_load_all(stream):
+                    pass
             except yaml.YAMLError as exc:
                 malformed_yaml_files_and_errors.append(f"\n{str(y)}:\n{str(exc)}")
     return malformed_yaml_files_and_errors
