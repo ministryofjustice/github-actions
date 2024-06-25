@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import logging
 import sys
 import re
@@ -29,20 +30,32 @@ def get_github_env() -> tuple[str, str, str]:
         raise ValueError("No PR_NUMBER.")
     return token, repo, pr_number
 
+def get_extant_files(files: list[str]) -> list[str]:
+    """
+    Check that a list of files exists and prune any that do not.
+    Return extant files only.
+    """
+    extant_files = []
+    for file in files:
+        file_path = Path(file)
+        if file_path.exists():
+            extant_files.append(file)
+    return extant_files
 
 def get_changed_yaml_files_from_pr() -> list[str]:
     """
-    Collect a list of all the new or modified YAML files
-    in a PR, except those in a 'secret/' directory.
+    Collect a list of all the new or modified YAML files (with path)
+    in a PR, excluding files in a 'secret/' directory.
     """
     token, repository_name, pr = get_github_env()
     github_pr = github_pull_request(token, repository_name, int(pr))
     # We assume there must always be some changed or new files in a PR
     changed_files = github_pr.get_changed_files_from_pr()
-    pattern = re.compile("\\.yml$|\\.yaml$")
+    yml_pattern = re.compile("\\.yml$|\\.yaml$")
     skip_pattern = re.compile("secret/")
+
     return [
-        file for file in changed_files if pattern.search(file) and not skip_pattern.search(file)
+        file for file in changed_files if yml_pattern.search(file) and not skip_pattern.search(file)
     ]
 
 def get_malformed_yaml_files_and_errors(yaml_files: list[str]) -> list[str]:
@@ -85,7 +98,10 @@ def main():
         logger.info("🫧 No new or modified YAML files.")
         return False
 
-    malformed_yaml_files_and_errors = get_malformed_yaml_files_and_errors(changed_yaml_files)
+
+    malformed_yaml_files_and_errors = get_malformed_yaml_files_and_errors(
+        get_extant_files(changed_yaml_files)
+    )
     if malformed_yaml_files_and_errors:
         msg = malformed_yaml_files_message(malformed_yaml_files_and_errors)
         github_pr.fail_pr(message=msg)
