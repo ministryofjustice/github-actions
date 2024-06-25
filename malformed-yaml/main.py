@@ -35,12 +35,7 @@ def get_extant_files(files: list[str]) -> list[str]:
     Check that a list of files exists and prune any that do not.
     Return extant files only.
     """
-    extant_files = []
-    for file in files:
-        file_path = Path(file)
-        if file_path.exists():
-            extant_files.append(file)
-    return extant_files
+    return [file for file in files if Path(file).exists()]
 
 def get_changed_yaml_files_from_pr() -> list[str]:
     """
