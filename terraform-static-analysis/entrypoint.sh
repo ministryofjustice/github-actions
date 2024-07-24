@@ -30,7 +30,7 @@ fi
 
 # install trivy from github (taken from docs install guide)
 if [[ -n "$INPUT_TRIVY_VERSION" && "${INPUT_TFSEC_TRIVY}" == "trivy" ]]; then
-  curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin ${INPUT_TRIVY_VERSION}
+  curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin "${INPUT_TRIVY_VERSION}"
 else
   curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin latest
 fi
@@ -48,24 +48,24 @@ declare -i tfinit_exitcode=0
 declare -i trivy_exitcode=0
 
 # see https://github.com/actions/runner/issues/2033
-git config --global --add safe.directory $GITHUB_WORKSPACE
+git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
 # Identify which Terraform folders have changes and need scanning
 tf_folders_with_changes=$(git diff --name-only HEAD.."origin/${INPUT_MAIN_BRANCH_NAME}" | awk '{print $1}' | grep '\.tf' | sed 's#/[^/]*$##' | grep -v '\.tf' | uniq)
 echo
 echo "TF folders with changes"
-echo $tf_folders_with_changes
+echo "$tf_folders_with_changes"
 
 # Get a list of all terraform folders in the repo
 all_tf_folders=$(find . -type f -name '*.tf' | sed 's#/[^/]*$##' | sed 's/.\///' | sort | uniq)
 echo
 echo "All TF folders"
-echo $all_tf_folders
+echo "$all_tf_folders"
 
 run_trivy() {
   line_break
   echo "Trivy will check the following folders:"
-  echo $1
+  echo "$1"
   directories=($1)
   for directory in ${directories[@]}; do
     line_break
@@ -73,7 +73,7 @@ run_trivy() {
     terraform_working_dir="${GITHUB_WORKSPACE}/${directory}"
     if [[ "${directory}" != *"templates"* ]]; then
       if [ -d "${terraform_working_dir}" ]; then
-        trivy fs --scanners vuln,misconfig,secret --exit-code 1 --no-progress --ignorefile ${INPUT_TRIVY_IGNORE} --severity ${INPUT_TRIVY_SEVERITY} ${terraform_working_dir} 2>&1
+        trivy fs --scanners vuln,misconfig,secret --exit-code 1 --no-progress --ignorefile "${INPUT_TRIVY_IGNORE}" --severity "${INPUT_TRIVY_SEVERITY}" "${terraform_working_dir}" 2>&1
         trivy_exitcode+=$?
         echo "trivy_exitcode=${trivy_exitcode}"
       else
@@ -89,7 +89,7 @@ run_trivy() {
 run_tfsec() {
   line_break
   echo "TFSEC will check the following folders:"
-  echo $1
+  echo "$1"
   directories=($1)
   for directory in ${directories[@]}; do
     line_break
@@ -99,9 +99,9 @@ run_tfsec() {
       if [ -d "${terraform_working_dir}" ]; then
         if [[ -n "$INPUT_TFSEC_EXCLUDE" ]]; then
           echo "Excluding the following checks: ${INPUT_TFSEC_EXCLUDE}"
-          /go/bin/tfsec ${terraform_working_dir} --no-colour -e "${INPUT_TFSEC_EXCLUDE}" ${INPUT_TFSEC_OUTPUT_FORMAT:+ -f "$INPUT_TFSEC_OUTPUT_FORMAT"} ${INPUT_TFSEC_OUTPUT_FILE:+ --out "$INPUT_TFSEC_OUTPUT_FILE"} 2>&1
+          /go/bin/tfsec "${terraform_working_dir}" --no-colour -e "${INPUT_TFSEC_EXCLUDE}" ${INPUT_TFSEC_OUTPUT_FORMAT:+ -f "$INPUT_TFSEC_OUTPUT_FORMAT"} ${INPUT_TFSEC_OUTPUT_FILE:+ --out "$INPUT_TFSEC_OUTPUT_FILE"} 2>&1
         else
-          /go/bin/tfsec ${terraform_working_dir} --no-colour ${INPUT_TFSEC_OUTPUT_FORMAT:+ -f "$INPUT_TFSEC_OUTPUT_FORMAT"} ${INPUT_TFSEC_OUTPUT_FILE:+ --out "$INPUT_TFSEC_OUTPUT_FILE"} 2>&1
+          /go/bin/tfsec "${terraform_working_dir}" --no-colour ${INPUT_TFSEC_OUTPUT_FORMAT:+ -f "$INPUT_TFSEC_OUTPUT_FORMAT"} ${INPUT_TFSEC_OUTPUT_FILE:+ --out "$INPUT_TFSEC_OUTPUT_FILE"} 2>&1
         fi
         tfsec_exitcode+=$?
         echo "tfsec_exitcode=${tfsec_exitcode}"
@@ -118,7 +118,7 @@ run_tfsec() {
 run_checkov() {
   line_break
   echo "Checkov will check the following folders:"
-  echo $1
+  echo "$1"
   directories=($1)
   for directory in ${directories[@]}; do
     line_break
@@ -128,9 +128,9 @@ run_checkov() {
       if [ -d "${terraform_working_dir}" ]; then
         if [[ -n "$INPUT_CHECKOV_EXCLUDE" ]]; then
           echo "Excluding the following checks: ${INPUT_CHECKOV_EXCLUDE}"
-          checkov --quiet -d $terraform_working_dir --skip-check ${INPUT_CHECKOV_EXCLUDE} --download-external-modules ${INPUT_CHECKOV_EXTERNAL_MODULES} 2>&1
+          checkov --quiet -d "$terraform_working_dir" --skip-check "${INPUT_CHECKOV_EXCLUDE}" --download-external-modules "${INPUT_CHECKOV_EXTERNAL_MODULES}" 2>&1
         else
-          checkov --quiet -d $terraform_working_dir --download-external-modules ${INPUT_CHECKOV_EXTERNAL_MODULES} 2>&1
+          checkov --quiet -d "$terraform_working_dir" --download-external-modules "${INPUT_CHECKOV_EXTERNAL_MODULES}" 2>&1
         fi
         checkov_exitcode+=$?
         echo "checkov_exitcode=${checkov_exitcode}"
@@ -154,9 +154,9 @@ run_tflint() {
     tflint_config="/tflint-configs/tflint.default.hcl"
   fi
   echo "Running tflint --init..."
-  tflint --init --config $tflint_config
+  tflint --init --config "$tflint_config"
   echo "tflint will check the following folders:"
-  echo $1
+  echo "$1"
   directories=($1)
   for directory in ${directories[@]}; do
     line_break
@@ -166,11 +166,11 @@ run_tflint() {
       if [ -d "${terraform_working_dir}" ]; then
         if [[ -n "$INPUT_TFLINT_EXCLUDE" ]]; then
           echo "Excluding the following checks: ${INPUT_TFLINT_EXCLUDE}"
-          readarray -d , -t tflint_exclusions <<<$INPUT_TFLINT_EXCLUDE
+          readarray -d , -t tflint_exclusions <<<"$INPUT_TFLINT_EXCLUDE"
           tflint_exclusions_list=("${tflint_exclusions[@]/#/--disable-rule=}")
-          tflint --config $tflint_config ${tflint_exclusions_list[@]} --chdir ${terraform_working_dir} --call-module-type ${INPUT_TFLINT_CALL_MODULE_TYPE} 2>&1
+          tflint --config "$tflint_config" ${tflint_exclusions_list[@]} --chdir "${terraform_working_dir}" --call-module-type "${INPUT_TFLINT_CALL_MODULE_TYPE}" 2>&1
         else
-          tflint --config $tflint_config --chdir ${terraform_working_dir} --call-module-type ${INPUT_TFLINT_CALL_MODULE_TYPE} 2>&1
+          tflint --config "$tflint_config" --chdir "${terraform_working_dir}" --call-module-type "${INPUT_TFLINT_CALL_MODULE_TYPE}" 2>&1
         fi
       else
         echo "Skipping folder ${directory} as it does not exist."
