@@ -25,10 +25,12 @@ runs:
           closed_alerts_filepath: 'closed_alerts.json'
 
       - name: Check number of new alerts
+        shell: bash
         id: get-new-alerts
         run: echo "new_alerts=$(jq 'length' new_alerts.json)" >> "$GITHUB_OUTPUT"
 
       - name: Convert json to plaintext
+        shell: bash
         if: ${{ steps.get-new-alerts.outputs.new_alerts > 0}}
         id: json-to-plaintext
         run: |
