@@ -12,6 +12,7 @@ A collection of GitHub Actions.
 | [malformed-yaml](malformed-yaml)                                 | Reject a PR if it contains malformed YAML files                  |
 | [terraform-static-analysis](terraform-static-analysis)           | Runs TFSec, Checkov and TFlint against Terraform                 |
 | [setup-container-structure-test](setup-container-structure-test) | Installs Google's Container Structure Test                       |
+| [slack-github-secret-scanning-integration](slack-github-secret-scanning-integration) | A Github Action to get alerts from github secret scanning and send them to Slack                       |
 
 <!-- markdownlint-enable MD013 -->
 
