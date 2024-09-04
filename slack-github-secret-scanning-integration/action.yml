@@ -27,19 +27,19 @@ runs:
       - name: Check number of new alerts
         shell: bash
         id: get-new-alerts
-        run: echo "new_alerts=$(jq 'length' new_alerts.json)" >> "$GitHub_OUTPUT"
+        run: echo "new_alerts=$(jq 'length' new_alerts.json)" >> "$GITHUB_OUTPUT"
 
       - name: Convert json to plaintext
         shell: bash
         if: ${{ steps.get-new-alerts.outputs.new_alerts > 0}}
         id: json-to-plaintext
         run: |
-          echo "new-alerts=$(jq -r '.[] | "- \(.secret_type_display_name): \(.html_url)"' new_alerts.json)" >> "$GitHub_OUTPUT"
+          echo "new-alerts=$(jq -r '.[] | "- \(.secret_type_display_name): \(.html_url)"' new_alerts.json)" >> "$GITHUB_OUTPUT"
 
       - name: Send notification to Slack
         id: slack
         if: ${{ steps.json-to-plaintext.outcome == 'success' }}
-        uses: slackapi/slack-GitHub-action@e28cf165c92ffef168d23c5c9000cffc8a25e117 #v1.24.0
+        uses: slackapi/slack-github-action@e28cf165c92ffef168d23c5c9000cffc8a25e117 #v1.24.0
         with:
           payload: |
             {
