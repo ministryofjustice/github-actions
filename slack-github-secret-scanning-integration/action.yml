@@ -14,6 +14,8 @@ inputs:
 runs:
   using: "composite"
   steps:
+      - uses: actions/checkout@v4
+
       - name: Secret Scanning Alerts
         id: secret-scanning
         uses: advanced-security/secret-scanning-notifications@v1
