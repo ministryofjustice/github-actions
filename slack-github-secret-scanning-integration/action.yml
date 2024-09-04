@@ -1,7 +1,7 @@
 name: "Slack - GitHub Secret Scanning Alerts Integration"
 description: "A GitHub Action to get alerts from GitHub secret scanning and send them to Slack"
 inputs:
-  GitHub-token:
+  github-token:
     description: "GitHub token with access to secret scanning"
     required: true
   slack-webhook-url:
