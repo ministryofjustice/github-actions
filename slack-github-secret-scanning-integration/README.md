@@ -5,7 +5,7 @@ A GitHub Action to forward alerts from GitHub secret scanning and send them to S
 ## Usage
 
 ```
-      - uses: ministryofjustice/github-actions/slack-github-secret-scanning-integration@v18.1.3
+      - uses: ministryofjustice/github-actions/slack-github-secret-scanning-integration@v18.1.4
         with:
           github-token: ${{ secrets.SECRET_SCANNING_GitHub_TOKEN }}
           slack-webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}

@@ -55,6 +55,6 @@ runs:
         with:
           status: ${{ job.status }}
           notify_when: "failure"
-          notification_title: "Failed to check for low GitHub actions minutes"
+          notification_title: "Failed to send secret scanning alerts to Slack"
         env:
           SLACK_WEBHOOK_URL: ${{ inputs.slack-webhook-url }}
