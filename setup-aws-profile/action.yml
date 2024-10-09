@@ -22,6 +22,7 @@ runs:
         role-duration-seconds: 900
 
     - name: Create AWS profile
+      shell: bash
       run: |
         aws configure set region ${{ env.AWS_REGION }} --profile ${{ inputs.profile-name }}
         aws configure set aws_access_key_id ${{ env.AWS_ACCESS_KEY_ID }} --profile ${{ inputs.profile-name }}
