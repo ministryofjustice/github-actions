@@ -5,6 +5,10 @@ inputs:
     description: "Files to ignore"
     required: false
     default: ""
+  terraform-version:
+    description: "Version of Terraform to use for formatting"
+    required: false
+    default: "latest"
 runs:
   using: "composite"
   steps:
@@ -107,6 +111,12 @@ runs:
           fi
         fi
       shell: bash
+
+    - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3.1.2  # v3.1.2
+        with:
+          terraform_version: "${{ inputs.terraform-version }}"
+          terraform_wrapper: false
 
     - name: Get PR changed files via Git and code format files
       run: |
