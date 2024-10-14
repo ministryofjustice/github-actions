@@ -86,7 +86,7 @@ runs:
         if [[ ${{ steps.branch-exists.outputs.result }} == 0 ]];
         then
           npm install --location=global prettier
-          pip3 install autopep8
+          pipx install autopep8
           FILE2=Gemfile
           if [ -f "$FILE2" ]; then
             echo "$FILE2 already exists."
@@ -162,7 +162,7 @@ runs:
               if [[ $file == *".github"* ]]; then
                 echo "Cannot format .github/workflow files."
               elif [[ $file == *".py"* ]]; then
-                python3 -m autopep8 --in-place $file
+                ~/.local/bin/autopep8 --in-place $file
               elif [[ $file == *".rb"* ]]; then
                 bundle exec standardrb --fix $file
               elif [[ $file == *".tf" ]] || [[ $file == *".tfvars" ]]; then
