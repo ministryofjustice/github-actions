@@ -113,10 +113,10 @@ runs:
       shell: bash
 
     - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3.1.2  # v3.1.2
-        with:
-          terraform_version: "${{ inputs.terraform-version }}"
-          terraform_wrapper: false
+      uses: hashicorp/setup-terraform@v3.1.2 # v3.1.2
+      with:
+        terraform_version: "${{ inputs.terraform-version }}"
+        terraform_wrapper: false
 
     - name: Get PR changed files via Git and code format files
       run: |
@@ -282,15 +282,15 @@ runs:
               }')
 
             echo "Mutation Payload: $mutation_payload"    
-        
+
             # Send the mutation request to GitHub's GraphQL API and capture the response
             RESPONSE=$(curl -X POST -H "Authorization: bearer $GITHUB_TOKEN" \
               -H "Content-Type: application/json" \
               -d "$mutation_payload" https://api.github.com/graphql)
-        
+
             # Parse the commit OID from the response
             COMMIT_OID=$(echo "$RESPONSE" | jq -r ".data.createCommitOnBranch.commit.oid")
-        
+
             # Check if the commit was successfully created
             if [ "$COMMIT_OID" != "null" ]; then
               echo "Commit successfully created with OID: $COMMIT_OID"
@@ -304,4 +304,3 @@ runs:
           fi
         fi
       shell: bash
-
