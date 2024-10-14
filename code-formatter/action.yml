@@ -162,7 +162,7 @@ runs:
               if [[ $file == *".github"* ]]; then
                 echo "Cannot format .github/workflow files."
               elif [[ $file == *".py"* ]]; then
-                python3 -m autopep8 --in-place $file
+                ~/.local/bin/autopep8 --in-place $file
               elif [[ $file == *".rb"* ]]; then
                 bundle exec standardrb --fix $file
               elif [[ $file == *".tf" ]] || [[ $file == *".tfvars" ]]; then
