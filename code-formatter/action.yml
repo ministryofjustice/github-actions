@@ -86,7 +86,7 @@ runs:
         if [[ ${{ steps.branch-exists.outputs.result }} == 0 ]];
         then
           npm install --location=global prettier
-          pip3 install autopep8
+          pipx install autopep8
           FILE2=Gemfile
           if [ -f "$FILE2" ]; then
             echo "$FILE2 already exists."
