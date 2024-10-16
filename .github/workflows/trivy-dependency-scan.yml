@@ -1,0 +1,108 @@
+name: Trivy Vulnerability Scan
+on:
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+jobs:
+  check-for-vulnerabilities:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+
+      - name: Run Trivy Vulnerability Scanner
+        uses: aquasecurity/trivy-action@062f2592684a31eb3aa050cc61e7ca1451cecd3d #v0.18.0
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: CVE Description escaped extraction and print
+        run: |
+          SCAN_RESULTS=$(jq -r '.runs[0].tool.driver.rules | map(.help.text) | join("\\n")' trivy-results.sarif)
+          {
+            echo "CVE_CRITICAL=$(echo "$SCAN_RESULTS" | grep -o CRITICAL | wc -l)"
+            echo "CVE_HIGH=$(echo "$SCAN_RESULTS" | grep -o HIGH | wc -l)"
+            echo "CVE_MEDIUM=$(echo "$SCAN_RESULTS" | grep -o MEDIUM | wc -l)"
+          } >> "$GITHUB_ENV"
+
+          echo "$SCAN_RESULTS"
+
+      - name: Create an Issue for Detected Vulnerabilities
+        id: issue-creator
+        if: env.CVE_HIGH > 0 || env.CVE_CRITICAL > 0
+        uses: JasonEtco/create-an-issue@1b14a70e4d8dc185e5cc76d3bec9eab20257b2c5 #v2.8.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          update_existing: false
+          filename: .github/ISSUE_TEMPLATE/trivy-vulnerability-template.md
+
+      - name: Fails if CVE HIGH or CRITICAL are detected
+        id: cve-threshold
+        if: env.CVE_HIGH > 0 || env.CVE_CRITICAL > 0
+        run: exit 1
+
+      - name: Send notification to Slack
+        id: slack
+        if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && steps.cve-threshold.outcome == 'failure'
+        uses: slackapi/slack-github-action@e28cf165c92ffef168d23c5c9000cffc8a25e117 #v1.24.0
+        with:
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Vulnerability Scan Report: ${{ github.event.repository.name }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Scan Summary:*"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*CRITICAL:* :rotating_light: ${{ env.CVE_CRITICAL }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*HIGH:* :warning: ${{ env.CVE_HIGH }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*MEDIUM:* :yellow_heart: ${{ env.CVE_MEDIUM }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Please review the detailed scan results and take necessary actions.\n\n<https://github.com/${{ github.repository }}/security/code-scanning|View Details on GitHub>\n\n<https://runbooks.operations-engineering.service.justice.gov.uk/documentation/internal/dependency-alerts.html|Runbook for Responding to Dependency Alerts>\n\n*Issue Created:* <${{ steps.issue-creator.outputs.url }}|View Issue>"
+                  }
+                }
+              ]
+            }
+
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
