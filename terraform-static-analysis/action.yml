@@ -68,7 +68,7 @@ inputs:
   use_trivy_ecr_database:
     description: "Download the Trivy databases from ECR"
     required: false
-    default: "true"
+    default: "false"
 
 runs:
   using: "docker"
