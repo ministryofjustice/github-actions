@@ -38,7 +38,7 @@ else
 fi
 
 # use ECR for Trivy databases
-if [[ "$INPUT_USE_TRIVY_ECR_DATABASE" == "true" ]];
+if [[ "$INPUT_USE_TRIVY_ECR_DATABASE" == "true" ]]; then
   export TRIVY_DB_REPOSITORY="public.ecr.aws/aquasecurity/trivy-db:2"
   export TRIVY_JAVA_DB_REPOSITORY="public.ecr.aws/aquasecurity/trivy-java-db:1"
 fi
