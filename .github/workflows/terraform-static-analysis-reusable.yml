@@ -1,4 +1,4 @@
-name: Terraform static code analysis - reuseable workflow
+name: Terraform static code analysis - reusable workflow
 
 on:
   workflow_call:
@@ -38,7 +38,7 @@ on:
 
 jobs:
   terraform-static-analysis-scan:
-    name: Terraform static code analysis - reuseable workflow
+    name: Terraform static code analysis - reusable workflow
     runs-on: ubuntu-latest
 
     steps:
