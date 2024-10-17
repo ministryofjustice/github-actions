@@ -20,7 +20,9 @@ echo "INPUT_TRIVY_SEVERITY: $INPUT_TRIVY_SEVERITY"
 echo "INPUT_TFSEC_TRIVY: $INPUT_TFSEC_TRIVY"
 echo "INPUT_TRIVY_SKIP_DIR: $INPUT_TRIVY_SKIP_DIR"
 echo "INPUT_MAIN_BRANCH_NAME: $INPUT_MAIN_BRANCH_NAME"
+echo "INPUT_USE_TRIVY_ECR_DATABASE: $INPUT_USE_TRIVY_ECR_DATABASE"
 echo
+
 # install tfsec from GitHub (taken from README.md)
 if [[ -n "$INPUT_TFSEC_VERSION" && "${INPUT_TFSEC_TRIVY}" == "tfsec" ]]; then
   env GO111MODULE=on go install github.com/aquasecurity/tfsec/cmd/tfsec@"${INPUT_TFSEC_VERSION}"
@@ -33,6 +35,12 @@ if [[ -n "$INPUT_TRIVY_VERSION" && "${INPUT_TFSEC_TRIVY}" == "trivy" ]]; then
   curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin "${INPUT_TRIVY_VERSION}"
 else
   curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin latest
+fi
+
+# use ECR for Trivy databases
+if [[ "$INPUT_USE_TRIVY_ECR_DATABASE" == "true" ]];
+  export TRIVY_DB_REPOSITORY="public.ecr.aws/aquasecurity/trivy-db:2"
+  export TRIVY_JAVA_DB_REPOSITORY="public.ecr.aws/aquasecurity/trivy-java-db:1"
 fi
 
 line_break() {
