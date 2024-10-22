@@ -14,7 +14,7 @@ To run the cleanup operation, you will need to explicitly set `confirm: true`, f
 ```yaml
 - name: Clean Actions Runner
   id: clean_actions_runner
-  uses: jacobwoffenden/github-actions-runner-debug/.github/actions/clean-actions-runner@main
+  uses: ministryofjustice/github-actions/clean-actions-runner@main
   with:
     confirm: true
 ```
@@ -24,7 +24,7 @@ To retain a specific piece of software, set its input to `false`, for example:
 ```yaml
 - name: Clean Actions Runner
   id: clean_actions_runner
-  uses: jacobwoffenden/github-actions-runner-debug/.github/actions/clean-actions-runner@main
+  uses: ministryofjustice/github-actions/clean-actions-runner@main
   with:
     confirm: true
     remove_opt_hostedtoolcache: false
