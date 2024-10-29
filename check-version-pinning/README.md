@@ -23,9 +23,9 @@ jobs:
   check-version-pinning:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Check for unpinned Actions
-        uses: ministryofjustice/check-version-pinning-action@v1
+        uses: ministryofjustice/check-version-pinning-action@6b42224f41ee5dfe5395e27c8b2746f1f9955030 # v1.0.0
         with:
           workflow_directory: ".github/workflows"
           scan_mode: "pr_changes"  # Use "full" for a full repo scan
