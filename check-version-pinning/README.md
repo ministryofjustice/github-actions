@@ -66,8 +66,8 @@ jobs:
       - name: Check for unpinned Actions
         uses: ministryofjustice/github-actions/check-version-pinning@ccf9e3a4a828df1ec741f6c8e6ed9d0acaef3490 # v18.5.0
         with:
-          workflow_directory: ".github/workflows"
-          scan_mode: "full"
+          workflow_directory: ".github/workflows" # Or wherever your workflows are stored
+          scan_mode: "full"  # or "pr_changes" for PR-specific scans
 ```
 
 ## Why This Action?
