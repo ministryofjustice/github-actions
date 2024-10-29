@@ -9,5 +9,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY check_version_pinning.py /app/check_version_pinning.py
 
-ENTRYPOINT ["python", "/app/check_version_pinning.py"]
-CMD ["${{ inputs.workflow_directory }}", "${{ inputs.scan_mode }}"]
+COPY entrypoint.sh /entrypoint.sh
+
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
