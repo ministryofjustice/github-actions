@@ -25,4 +25,3 @@ jobs:
           workflow_directory: ".github/workflows"
           scan_mode: "pr_changes"  # Use "full" for a full repo scan
 ```
-```
