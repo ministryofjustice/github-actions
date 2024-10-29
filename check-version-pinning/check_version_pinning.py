@@ -46,9 +46,7 @@ def check_uses_field_in_workflow(workflows, file_path):
         for job in workflows.get("jobs", {}).values():
             for step in job.get("steps", []):
                 uses = step.get("uses", "")
-                if "@v" in uses and not (
-                    "actions/" in uses or "ministryofjustice" in uses
-                ):
+                if "@v" in uses:
                     results.append(f"{file_path}: {uses}")
     return results
 
@@ -72,7 +70,7 @@ def check_version_pinning(workflow_directory=".github/workflows", scan_mode="ful
 
     if all_results:
         print(
-            "The following third-party GitHub Actions are using version pinning rather than SHA hash pinning:\n"
+            "The following GitHub Actions are using version pinning rather than SHA hash pinning:\n"
         )
         for result in all_results:
             print(f"  - {result}")

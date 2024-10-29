@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import mock_open, patch
 
-from bin.check_version_pinning import check_version_pinning
+from check_version_pinning import check_version_pinning
 
 
 class TestCheckVersionPinning(unittest.TestCase):
@@ -57,32 +57,6 @@ class TestCheckVersionPinning(unittest.TestCase):
                 ".github/workflows/workflow.yml: some-org/some-action@v1.0.0"
             )
             self.assertEqual(cm.exception.code, 1)
-
-    @patch("os.walk")
-    @patch("builtins.open", new_callable=mock_open)
-    @patch("yaml.safe_load")
-    def test_workflow_ignoring_actions(
-        self, mock_yaml_load, mock_open_file, mock_os_walk
-    ):
-        _ = mock_open_file
-        # Simulate a workflow file with an action to be ignored
-        mock_os_walk.return_value = [(".github/workflows", [], ["workflow.yml"])]
-        mock_yaml_load.return_value = {
-            "jobs": {
-                "build": {
-                    "steps": [
-                        {"uses": "actions/setup-python@v2"},
-                        {"uses": "ministryofjustice/some-action@v1.0.0"},
-                    ]
-                }
-            }
-        }
-
-        with patch("builtins.print") as mock_print:
-            check_version_pinning()
-            mock_print.assert_called_once_with(
-                "No workflows found with pinned versions (@v)."
-            )
 
     @patch("os.walk")
     @patch("builtins.open", new_callable=mock_open)
