@@ -87,4 +87,6 @@ def check_version_pinning(workflow_directory=".github/workflows", scan_mode="ful
 if __name__ == "__main__":
     workflow_directory = sys.argv[1] if len(sys.argv) > 1 else ".github/workflows"
     scan_mode = sys.argv[2] if len(sys.argv) > 2 else "full"
+    print(f"Scan mode: {scan_mode}")
+
     check_version_pinning(workflow_directory, scan_mode)
