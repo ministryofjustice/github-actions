@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Check for unpinned Actions
-        uses: your-github-username/check-version-pinning-action@v1
+        uses: ministryofjustice/check-version-pinning-action@v1
         with:
           workflow_directory: ".github/workflows"
           scan_mode: "pr_changes"  # Use "full" for a full repo scan
