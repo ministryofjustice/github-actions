@@ -13,6 +13,7 @@ A collection of GitHub Actions.
 | [terraform-static-analysis](terraform-static-analysis)           | Runs TFSec, Checkov and TFlint against Terraform                 |
 | [setup-container-structure-test](setup-container-structure-test) | Installs Google's Container Structure Test                       |
 | [slack-github-secret-scanning-integration](slack-github-secret-scanning-integration) | A Github Action to get alerts from github secret scanning and send them to Slack                       |
+| [check-version-pinning](check-version-pinning) | Scans your workflow files to ensure all GitHub Actions are securely pinned to a SHA hash, rather than a version tag (`@v`).                       |
 
 <!-- markdownlint-enable MD013 -->
 
