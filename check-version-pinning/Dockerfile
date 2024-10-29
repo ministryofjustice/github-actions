@@ -9,4 +9,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY check_version_pinning.py /app/check_version_pinning.py
 
-ENTRYPOINT ["python", "/app/check_version_pinning.py", "${{ inputs.workflow_directory }}", "${{ inputs.scan_mode }}"]
+ENTRYPOINT ["python", "/app/check_version_pinning.py"]
+CMD ["${{ inputs.workflow_directory }}", "${{ inputs.scan_mode }}"]
