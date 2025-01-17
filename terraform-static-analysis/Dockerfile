@@ -1,4 +1,4 @@
-FROM golang:1.23.2-bullseye
+FROM golang:1.23.5-bullseye
 
 #Install Checkov
 RUN apt-get update && apt-get install -y \
