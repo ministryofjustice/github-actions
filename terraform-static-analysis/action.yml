@@ -53,7 +53,7 @@ inputs:
   trivy_version:
     description: "Specify the version of trivy to install"
     required: false
-    default: "v0.57.1"
+    default: "v0.62.1"
   tfsec_trivy:
     description: "Whether or not to run TF Sec or Trivy, defaults to tfsec [tfsec, trivy]"
     required: false
