@@ -1,20 +1,81 @@
-# Github Actions
+# 💣 GitHub Actions
 
-[![repo standards badge](https://img.shields.io/endpoint?labelColor=231f20&color=005ea5&style=for-the-badge&label=MoJ%20Compliant&url=https%3A%2F%2Foperations-engineering-reports.cloud-platform.service.justice.gov.uk%2Fapi%2Fv1%2Fcompliant_public_repositories%2Fendpoint%2Fgithub-actions&logo=data:image/png;base64,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)](https://operations-engineering-reports-prod.cloud-platform.service.justice.gov.uk/public-report/github-actions)
+[![Ministry of Justice Repository Compliance Badge](https://github-community.service.justice.gov.uk/repository-standards/api/github-actions/badge)](https://github-community.service.justice.gov.uk/repository-standards/github-actions)
 
-A collection of GitHub Actions.
+> A single pane of glass for discovering **reusable GitHub Actions and Workflows** maintained across the Ministry of Justice.
 
-<!-- markdownlint-disable MD013 -->
+This repository does **not** host any GitHub Actions or Workflows itself. Instead, it serves as a **discovery hub** for teams across MoJ to advertise their reusable GitHub automation tools, enabling greater collaboration, consistency, and efficiency across projects.
 
-| Action                                                           | Description                                                      |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------- |
-| [code-formatter](code-formatter)                                 | Run various code formatters against a PR, and commit the results |
-| [malformed-yaml](malformed-yaml)                                 | Reject a PR if it contains malformed YAML files                  |
-| [terraform-static-analysis](terraform-static-analysis)           | Runs TFSec, Checkov and TFlint against Terraform                 |
-| [setup-container-structure-test](setup-container-structure-test) | Installs Google's Container Structure Test                       |
-| [slack-github-secret-scanning-integration](slack-github-secret-scanning-integration) | A Github Action to get alerts from github secret scanning and send them to Slack                       |
-| [check-version-pinning](check-version-pinning) | Scans your workflow files to ensure all GitHub Actions are securely pinned to a SHA hash, rather than a version tag (`@v`).                       |
+---
 
-<!-- markdownlint-enable MD013 -->
+## 🧭 Purpose of This Repository
 
-[conftest]: https://www.conftest.dev/
+This repo acts as a **directory** of reusable GitHub Actions and Workflows maintained by MoJ teams. It is designed to:
+
+- Encourage **reuse** of existing automation
+- Avoid duplication of effort
+- Promote **visibility** of automation best practices
+- Help teams **contribute and maintain** shared solutions
+
+---
+
+## 📚 Repositories Hosting Reusable Actions & Workflows
+
+Below is a growing list of repositories that contain reusable Actions or Workflows:
+
+| Repository                                                                                                          | Maintainer             | Description                                                                                                                              |
+| ------------------------------------------------------------------------------------------------------------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| [analytical-platform-github-actions](https://github.com/ministryofjustice/analytical-platform-github-actions)       | Analytical Platform    | Analytical Platform GitHub Actions                                                                                                       |
+| [hmpps-github-actions](https://github.com/ministryofjustice/hmpps-github-actions)                                   | HMPPS                  | Github actions for HMPPS projects                                                                                                        |
+| [laa-reusable-github-actions](https://github.com/ministryofjustice/laa-reusable-github-actions)                     | LAA                    | A collection of re-useable GitHub actions                                                                                                |
+| [modernisation-platform-github-actions](https://github.com/ministryofjustice/modernisation-platform-github-actions) | Modernisation Platform | A collection of reusable GitHub Actions for the Modernisation Platform, designed to streamline and enhance workflows across our projects |
+| [opg-github-actions](https://github.com/ministryofjustice/opg-github-actions)                                       | OPG                    | OPG shared GitHub composite actions for workflows                                                                                        |
+| _Add yours here_                                                                                                    | You?                   | Open a PR to add your repository and reusable components                                                                                 |
+
+> ✨ Want to list your repository? [See how to get involved](#-how-to-contribute)
+
+---
+
+## 🔍 What Are Reusable GitHub Actions?
+
+GitHub Actions can automate workflows for CI/CD, security checks, infrastructure provisioning, and more.
+
+There are two main types of reusable automation:
+
+- **Reusable Actions**: Individual building blocks that perform a specific task (e.g. `setup-terraform`, `slack-notify`)
+- **Reusable Workflows**: Complete pipelines composed of multiple steps, which can be invoked using `workflow_call`
+
+**Learn more:**
+
+- [GitHub Docs: Reusing workflows](https://docs.github.com/en/actions/how-tos/sharing-automations/reuse-workflows)
+- [GitHub Docs: Creating actions](https://docs.github.com/en/actions/how-tos/sharing-automations/creating-actions)
+
+## 🧪 How to Use a Reusable Workflow
+
+You can call reusable workflows from by using the `uses` attribute. Example:
+
+```yaml
+jobs:
+  zizmor:
+    name: Zizmor
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: ministryofjustice/analytical-platform-github-actions/.github/workflows/reusable-zizmor.yml@<commit SHA> # <version>
+```
+
+> Make sure to check each repository’s README for usage instructions and required inputs/secrets.
+
+---
+
+## 🤝 How to Contribute
+
+We welcome contributions from all MoJ teams! Here’s how to get involved:
+
+1. **Host your own GitHub Actions or Workflows** in your team’s repo.
+2. **Document** their purpose, usage, and versioning clearly in the `README.md`.
+3. **Open a pull request** to this repository adding your repo to the directory table above.
+4. Optionally, provide example usages to help others adopt them faster.
+
+> 📌 For new teams: We recommend versioning your actions using tags (e.g. `v1`, `v2.1.0`) to ensure stability.
