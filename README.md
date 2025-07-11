@@ -6,8 +6,6 @@
 
 This repository does **not** host any GitHub Actions or Workflows itself. Instead, it serves as a **discovery hub** for teams across MoJ to advertise their reusable GitHub automation tools, enabling greater collaboration, consistency, and efficiency across projects.
 
----
-
 ## 🧭 Purpose of This Repository
 
 This repo acts as a **directory** of reusable GitHub Actions and Workflows maintained by MoJ teams. It is designed to:
@@ -16,8 +14,6 @@ This repo acts as a **directory** of reusable GitHub Actions and Workflows maint
 - Avoid duplication of effort
 - Promote **visibility** of automation best practices
 - Help teams **contribute and maintain** shared solutions
-
----
 
 ## 📚 Repositories Hosting Reusable Actions & Workflows
 
@@ -33,8 +29,6 @@ Below is a growing list of repositories that contain reusable Actions or Workflo
 | _Add yours here_                                                                                                    | You?                   | Open a PR to add your repository and reusable components                                                                                 |
 
 > ✨ Want to list your repository? [See how to get involved](#-how-to-contribute)
-
----
 
 ## 🔍 What Are Reusable GitHub Actions?
 
@@ -66,8 +60,6 @@ jobs:
 ```
 
 > Make sure to check each repository’s README for usage instructions and required inputs/secrets.
-
----
 
 ## 🤝 How to Contribute
 
