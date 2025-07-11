@@ -1,5 +1,0 @@
-name: "Malformed YAML"
-description: "Detect malformed YAML files in a PR."
-runs:
-  using: "docker"
-  image: "Dockerfile"
