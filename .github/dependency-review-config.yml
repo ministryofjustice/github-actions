@@ -1,0 +1,11 @@
+# Dependency Review Configuration
+# This configuration file controls the behavior of GitHub's Dependency Review action.
+# https://github.com/actions/dependency-review-action
+#
+# comment-summary-in-pr: Controls when dependency review summaries are posted as PR comments
+#   Options:
+#     - always: Post a summary comment on every pull request
+#     - on-failure: Only post when vulnerabilities or issues are detected
+#     - never: Don't post summary comments
+
+comment-summary-in-pr: always

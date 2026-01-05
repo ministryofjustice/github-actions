@@ -1,0 +1,83 @@
+# Software Composition Analysis (SCA) Workflow
+#
+# This workflow performs security analysis of project dependencies to identify
+# vulnerabilities and license compliance issues.
+#
+# Triggers:
+#   - schedule: Runs daily at midnight (00:00 UTC)
+#   - pull_request: On PRs targeting the main branch
+#   - push: On commits to the main branch
+#   - workflow_dispatch: Manual trigger
+#
+# Jobs:
+#   setup:
+#     - Configures the workflow environment
+#     - Sets environment output for downstream jobs
+#
+#   sca:
+#     - Checks out the repository
+#     - Sets up Node.js environment using configured version
+#     - Installs npm dependencies (without running scripts)
+#     - Executes MoJ DevSecOps SCA action for dependency analysis
+#
+# Permissions:
+#   - contents: write - Required for repository access and updates
+#   - pull-requests: write - Required for PR comments and annotations
+#   - issues: write - Required for creating/updating security issues
+#   - security-events: write - Required for uploading SARIF results
+#   - id-token: write - Required for OIDC authentication
+#
+# Configuration:
+#   - Uses dependency-review-config.yml for customizing analysis rules
+#   - References MoJ DevSecOps SCA action on feature branch
+#   - Runs on ubuntu-latest runners
+
+name: SCA ⚡️
+run-name: Software Composition Analysis ⚡️
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+  pull_request:
+    branches: ["main"]
+
+  workflow_dispatch:
+
+permissions: {}
+
+env:
+  environment: base
+
+jobs:
+  # 1. Pre-requisite
+  setup:
+    name: Setup 🔧
+    runs-on: ["ubuntu-latest"]
+    outputs:
+      environment: ${{ env.environment }}
+    steps:
+      - name: Environment 🧪
+        run: echo "Environment set to ${{ env.environment }}"
+
+  # 2. MoJ - SCA
+  sca:
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      security-events: write
+      id-token: read
+
+    name: Execute ⚙️
+    runs-on: ["ubuntu-latest"]
+    needs: setup
+    environment:
+      name: ${{ needs.setup.outputs.environment }}
+
+    steps:
+      - name: ⚡️ SCA
+        uses: ministryofjustice/devsecops-actions/sca@c210b12f1bd77564cee5c5f5c7306cd63dc89867 # frozen: v1.2.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }} # Mandatory
+          dependency-review-config-file: "./.github/dependency-review-config.yml" # Optional
