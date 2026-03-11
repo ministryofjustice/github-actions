@@ -1,0 +1,35 @@
+{
+    "extends": [
+        "config:recommended"
+    ],
+    "dependencyDashboard": true,
+    "pre-commit": {
+        "enabled": true
+    },
+    "packageRules": [
+        {
+            "matchManagers": [
+                "github-actions"
+            ],
+            "groupName": "renovate: github-actions"
+        },
+        {
+            "matchManagers": [
+                "pre-commit"
+            ],
+            "groupName": "renovate: pre-commit"
+        },
+        {
+            "matchDatasources": [
+                "docker"
+            ],
+            "groupName": "renovate: docker"
+        },
+        {
+            "matchDatasources": [
+                "npm"
+            ],
+            "groupName": "renovate: npm"
+        }
+    ]
+}

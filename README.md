@@ -19,16 +19,17 @@ This repo acts as a **directory** of reusable GitHub Actions and Workflows maint
 
 Below is a growing list of repositories that contain reusable Actions or Workflows:
 
-| Repository                                                                                                          | Maintainer             | Description                                                                                                                              |
-| ------------------------------------------------------------------------------------------------------------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| [analytical-platform-github-actions](https://github.com/ministryofjustice/analytical-platform-github-actions)       | Analytical Platform    | Analytical Platform GitHub Actions                                                                                                       |
-| [hmpps-github-actions](https://github.com/ministryofjustice/hmpps-github-actions)                                   | HMPPS                  | Github actions for HMPPS projects                                                                                                        |
-| [laa-reusable-github-actions](https://github.com/ministryofjustice/laa-reusable-github-actions)                     | LAA                    | A collection of re-useable GitHub actions                                                                                                |
-| [modernisation-platform-github-actions](https://github.com/ministryofjustice/modernisation-platform-github-actions) | Modernisation Platform | A collection of reusable GitHub Actions for the Modernisation Platform, designed to streamline and enhance workflows across our projects |
-| [opg-github-actions](https://github.com/ministryofjustice/opg-github-actions)                                       | OPG                    | OPG shared GitHub composite actions for workflows                                                                                        |
-| [cloud-platform-github-workflows](https://github.com/ministryofjustice/cloud-platform-github-workflows)             | Cloud Platform         | A central place to store Cloud Platforms reusable workflows.                                                                             |
-| [data-engineering-github-workflows](https://github.com/ministryofjustice/data-engineering-github-actions)           | Data Engineering       | A central place to store Data Engineering reusable workflows.                                                                            |
-| _Add yours here_                                                                                                    | You?                   | Open a PR to add your repository and reusable components                                                                                 |
+| Repository                                                                                                          | Maintainer             | Description                                                                                                                                         |
+| ------------------------------------------------------------------------------------------------------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [analytical-platform-github-actions](https://github.com/ministryofjustice/analytical-platform-github-actions)       | Analytical Platform    | Analytical Platform GitHub Actions                                                                                                                  |
+| [hmpps-github-actions](https://github.com/ministryofjustice/hmpps-github-actions)                                   | HMPPS                  | Github actions for HMPPS projects                                                                                                                   |
+| [laa-reusable-github-actions](https://github.com/ministryofjustice/laa-reusable-github-actions)                     | LAA                    | A collection of re-useable GitHub actions                                                                                                           |
+| [modernisation-platform-github-actions](https://github.com/ministryofjustice/modernisation-platform-github-actions) | Modernisation Platform | A collection of reusable GitHub Actions for the Modernisation Platform, designed to streamline and enhance workflows across our projects            |
+| [opg-github-actions](https://github.com/ministryofjustice/opg-github-actions)                                       | OPG                    | OPG shared GitHub composite actions for workflows                                                                                                   |
+| [cloud-platform-github-workflows](https://github.com/ministryofjustice/cloud-platform-github-workflows)             | Cloud Platform         | A central place to store Cloud Platforms reusable workflows.                                                                                        |
+| [data-engineering-github-workflows](https://github.com/ministryofjustice/data-engineering-github-actions)           | Data Engineering       | A central place to store Data Engineering reusable workflows.                                                                                       |
+| [devsecops-actions](https://github.com/ministryofjustice/devsecops-actions)                                         | PandA                  | ⚡️A collection of reusable GitHub Actions that standardise DevSecOps security scanning i.e. SCA, SAST, DAST, secrets, IaC, and container security.  |
+| _Add yours here_                                                                                                    | You?                   | Open a PR to add your repository and reusable components                                                                                            |
 
 > ✨ Want to list your repository? [See how to get involved](#-how-to-contribute)
 
@@ -48,6 +49,8 @@ There are two main types of reusable automation:
 
 ## 🧪 How to Use a Reusable Workflow
 
+### Analytical Platform
+
 You can call reusable workflows from by using the `uses` attribute. Example:
 
 ```yaml
@@ -61,7 +64,114 @@ jobs:
     uses: ministryofjustice/analytical-platform-github-actions/.github/workflows/reusable-zizmor.yml@<commit SHA> # <version>
 ```
 
+### SCA
+
+To use the MoJ's central SCA (Software Composition Analysis) composite action in your repository, use the basic snippet:
+
+```yaml
+name: SCA
+run-name: SCA ⚡️
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # Run daily at midnight UTC
+
+  pull_request:
+    branches: ["main"]
+
+permissions: {}
+
+jobs:
+  sca:
+    name: Software Composition Analysis
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      security-events: write
+
+    steps:
+      - name: Run SCA
+        uses: ministryofjustice/devsecops-actions/sca@v1.3.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+```
+
 > Make sure to check each repository’s README for usage instructions and required inputs/secrets.
+
+## 🪝 Git hook
+
+Repository uses [MoJ DevSecOps hooks](https://github.com/ministryofjustice/devsecops-hooks) to ensure `pre-commit` git hook is evaluated for series of checks before pushing the changes from staging area. Engineers should ensure `pre-commit` hook is configured and activated.
+
+1. **Installation**:
+
+   Ensure [prek](https://github.com/j178/prek?tab=readme-ov-file#installation) is installed globally
+
+   Linux / MacOS
+
+   ```bash
+   curl --proto '=https' --tlsv1.2 -LsSf https://raw.githubusercontent.com/ministryofjustice/devsecops-hooks/e85ca6127808ef407bc1e8ff21efed0bbd32bb1a/prek/prek-installer.sh | sh
+   ```
+
+   or
+
+   ```bash
+   brew install prek
+   ```
+
+   Windows
+
+   ```bash
+   powershell -ExecutionPolicy ByPass -c "irm https://raw.githubusercontent.com/ministryofjustice/devsecops-hooks/e85ca6127808ef407bc1e8ff21efed0bbd32bb1a/prek/prek-installer.ps1 | iex"
+   ```
+
+2. **Activation**
+
+   Execute the following command in the repository directory
+
+   ```bash
+   prek install
+   ```
+
+3. **Test**
+
+   To dry-run the hook
+
+   ```bash
+   prek run
+   ```
+
+## 🔧 Configuration
+
+### Exclusion list
+
+One can exclude files and directories by adding them to `exclude` property. Exclude property accepts [regular expression](https://pre-commit.com/#regular-expressions).
+
+Ignore everything under `reports` and `docs` directories for `baseline` hook as an example.
+
+```yaml
+   repos:
+     - repo: https://github.com/ministryofjustice/devsecops-hooks
+       rev: v1.0.0
+       hooks:
+         - id: baseline
+            exclude: |
+            ^reports/|
+            ^docs/
+```
+
+Or one can also create a file with list of exclusions.
+
+```yaml
+repos:
+  - repo: https://github.com/ministryofjustice/devsecops-hooks
+    rev: v1.0.0
+    hooks:
+      - id: baseline
+        exclude: .pre-commit-ignore
+```
 
 ## 🤝 How to Contribute
 
