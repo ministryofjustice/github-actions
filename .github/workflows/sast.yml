@@ -1,0 +1,1399 @@
+name: SAST Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      run_dependency_scan:
+        description: Run dependency and software-composition analysis.
+        required: false
+        default: true
+        type: boolean
+      run_code_scan:
+        description: Run source-code static application security testing.
+        required: false
+        default: true
+        type: boolean
+      run_iac_scan:
+        description: Run infrastructure-as-code scanning.
+        required: false
+        default: false
+        type: boolean
+      run_container_scan:
+        description: Scan an existing container image. This workflow does not build or push images.
+        required: false
+        default: false
+        type: boolean
+      working_directory:
+        description: Repository-relative directory containing the project to scan.
+        required: false
+        default: "."
+        type: string
+      iac_path:
+        description: IaC directory relative to working_directory.
+        required: false
+        default: "."
+        type: string
+      dockerfile_path:
+        description: Optional repository-relative Dockerfile used to provide container context.
+        required: false
+        default: ""
+        type: string
+      image_uri:
+        description: Existing container image reference. An immutable digest is strongly preferred.
+        required: false
+        default: ""
+        type: string
+      severity_threshold:
+        description: Minimum reported severity. One of low, medium, high or critical.
+        required: false
+        default: high
+        type: string
+      upload_sarif:
+        description: Upload valid SARIF results to GitHub Code Scanning.
+        required: false
+        default: true
+        type: boolean
+      fail_build:
+        description: Fail for findings at or above severity_threshold. Operational errors always fail.
+        required: false
+        default: false
+        type: boolean
+      registry_auth_mode:
+        description: Container registry authentication mode. One of none or aws_oidc.
+        required: false
+        default: none
+        type: string
+      registry_region:
+        description: AWS region required only when registry_auth_mode is aws_oidc.
+        required: false
+        default: ""
+        type: string
+    secrets:
+      scanner_client_id:
+        description: Client ID for the approved non-personal scanner identity.
+        required: false
+      scanner_client_secret:
+        description: Client secret for the approved non-personal scanner identity.
+        required: false
+      scanner_token:
+        description: Non-personal static scanner token fallback.
+        required: false
+      registry_role:
+        description: AWS IAM role used only for approved OIDC container registry access.
+        required: false
+
+permissions: {}
+
+jobs:
+  validate-inputs:
+    name: Validate inputs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      trusted: ${{ steps.validate.outputs.trusted }}
+      working_directory: ${{ steps.validate.outputs.working_directory }}
+      iac_directory: ${{ steps.validate.outputs.iac_directory }}
+      dockerfile_path: ${{ steps.validate.outputs.dockerfile_path }}
+      code_severity_threshold: ${{ steps.validate.outputs.code_severity_threshold }}
+    steps:
+      - name: Check out caller repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Validate workflow contract
+        id: validate
+        shell: bash
+        env:
+          RUN_DEPENDENCY_SCAN: ${{ inputs.run_dependency_scan }}
+          RUN_CODE_SCAN: ${{ inputs.run_code_scan }}
+          RUN_IAC_SCAN: ${{ inputs.run_iac_scan }}
+          RUN_CONTAINER_SCAN: ${{ inputs.run_container_scan }}
+          INPUT_WORKING_DIRECTORY: ${{ inputs.working_directory }}
+          INPUT_IAC_PATH: ${{ inputs.iac_path }}
+          INPUT_DOCKERFILE_PATH: ${{ inputs.dockerfile_path }}
+          INPUT_IMAGE_URI: ${{ inputs.image_uri }}
+          INPUT_SEVERITY_THRESHOLD: ${{ inputs.severity_threshold }}
+          INPUT_REGISTRY_AUTH_MODE: ${{ inputs.registry_auth_mode }}
+          INPUT_REGISTRY_REGION: ${{ inputs.registry_region }}
+          HAS_SCANNER_CLIENT_ID: ${{ secrets.scanner_client_id != '' }}
+          HAS_SCANNER_CLIENT_SECRET: ${{ secrets.scanner_client_secret != '' }}
+          HAS_SCANNER_TOKEN: ${{ secrets.scanner_token != '' }}
+          HAS_REGISTRY_ROLE: ${{ secrets.registry_role != '' }}
+          IS_FORK_PULL_REQUEST: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork }}
+          IS_DEPENDABOT: ${{ github.actor == 'dependabot[bot]' }}
+        run: |
+          set -euo pipefail
+
+          fail() {
+            echo "::error::$1"
+            exit 1
+          }
+
+          validate_relative_path() {
+            local candidate="$1"
+            local label="$2"
+            local base="$3"
+            local expected_type="$4"
+            local component
+            local resolved
+
+            [[ -n "$candidate" ]] || fail "$label must not be empty"
+            [[ "$candidate" != /* ]] || fail "$label must be repository-relative"
+
+            IFS='/' read -r -a components <<< "$candidate"
+            for component in "${components[@]}"; do
+              [[ "$component" != ".." ]] || fail "$label must not contain '..' path traversal"
+            done
+
+            resolved="$(realpath -e -- "$base/$candidate")" || fail "$label does not exist: $candidate"
+            case "$resolved" in
+              "$GITHUB_WORKSPACE"|"$GITHUB_WORKSPACE"/*) ;;
+              *) fail "$label resolves outside the caller repository" ;;
+            esac
+
+            if [[ "$expected_type" == "directory" ]]; then
+              [[ -d "$resolved" ]] || fail "$label is not a directory: $candidate"
+            else
+              [[ -f "$resolved" ]] || fail "$label is not a file: $candidate"
+            fi
+
+            printf '%s\n' "$resolved"
+          }
+
+          case "$INPUT_SEVERITY_THRESHOLD" in
+            low|medium|high|critical) ;;
+            *) fail "severity_threshold must be one of: low, medium, high, critical" ;;
+          esac
+
+          case "$INPUT_REGISTRY_AUTH_MODE" in
+            none|aws_oidc) ;;
+            *) fail "registry_auth_mode must be one of: none, aws_oidc" ;;
+          esac
+
+          if [[ "$RUN_DEPENDENCY_SCAN" != "true" && "$RUN_CODE_SCAN" != "true" && "$RUN_IAC_SCAN" != "true" && "$RUN_CONTAINER_SCAN" != "true" ]]; then
+            fail "at least one scan must be enabled"
+          fi
+
+          trusted=true
+          if [[ "$IS_FORK_PULL_REQUEST" == "true" || "$IS_DEPENDABOT" == "true" ]]; then
+            trusted=false
+            echo "::notice::Secret-bearing scans will not run for an untrusted fork or Dependabot pull request"
+          fi
+
+          if [[ "$trusted" == "true" ]]; then
+            if [[ "$HAS_SCANNER_CLIENT_ID" != "$HAS_SCANNER_CLIENT_SECRET" ]]; then
+              fail "scanner_client_id and scanner_client_secret must be provided together"
+            fi
+            if [[ "$HAS_SCANNER_TOKEN" == "true" && "$HAS_SCANNER_CLIENT_ID" == "true" ]]; then
+              fail "provide either the scanner OAuth client pair or scanner_token, not both"
+            fi
+            if [[ "$HAS_SCANNER_TOKEN" != "true" && "$HAS_SCANNER_CLIENT_ID" != "true" ]]; then
+              fail "scanner authentication is required for trusted scan runs"
+            fi
+          fi
+
+          working_directory="$(validate_relative_path "$INPUT_WORKING_DIRECTORY" "working_directory" "$GITHUB_WORKSPACE" "directory")"
+
+          if [[ "$RUN_DEPENDENCY_SCAN" == "true" ]]; then
+            manifest="$(find "$working_directory" \
+              -type d \( -name .git -o -name node_modules -o -name vendor \) -prune -o \
+              -type f \( \
+                -name package.json -o -name pom.xml -o -name build.gradle -o -name build.gradle.kts -o \
+                -name requirements.txt -o -name Pipfile -o -name poetry.lock -o -name pyproject.toml -o \
+                -name go.mod -o -name Gemfile -o -name composer.json -o -name '*.sln' -o -name '*.csproj' \
+              \) -print -quit)"
+            [[ -n "$manifest" ]] || fail "dependency scan requested but no supported manifest was found under working_directory"
+          fi
+
+          iac_directory=""
+          if [[ "$RUN_IAC_SCAN" == "true" ]]; then
+            iac_directory="$(validate_relative_path "$INPUT_IAC_PATH" "iac_path" "$working_directory" "directory")"
+            iac_file="$(find "$iac_directory" -type f \( -name '*.tf' -o -name '*.yaml' -o -name '*.yml' -o -name '*.json' \) -print -quit)"
+            [[ -n "$iac_file" ]] || fail "IaC scan requested but no supported IaC file was found under iac_path"
+          fi
+
+          dockerfile_path=""
+          if [[ "$RUN_CONTAINER_SCAN" == "true" ]]; then
+            [[ -n "$INPUT_IMAGE_URI" ]] || fail "image_uri is required when run_container_scan is true"
+            if [[ "$INPUT_IMAGE_URI" != *@sha256:* ]]; then
+              echo "::warning::image_uri is not pinned to a sha256 digest; immutable image references are strongly preferred"
+            fi
+            if [[ -n "$INPUT_DOCKERFILE_PATH" ]]; then
+              dockerfile_path="$(validate_relative_path "$INPUT_DOCKERFILE_PATH" "dockerfile_path" "$GITHUB_WORKSPACE" "file")"
+            fi
+
+            if [[ "$trusted" == "true" ]]; then
+              if [[ "$INPUT_REGISTRY_AUTH_MODE" == "aws_oidc" ]]; then
+                [[ -n "$INPUT_REGISTRY_REGION" ]] || fail "registry_region is required for aws_oidc registry authentication"
+                [[ "$HAS_REGISTRY_ROLE" == "true" ]] || fail "registry_role is required for aws_oidc registry authentication"
+              elif [[ -n "$INPUT_REGISTRY_REGION" || "$HAS_REGISTRY_ROLE" == "true" ]]; then
+                fail "registry_region and registry_role are only valid when registry_auth_mode is aws_oidc"
+              fi
+            fi
+          elif [[ -n "$INPUT_IMAGE_URI" || -n "$INPUT_DOCKERFILE_PATH" || "$INPUT_REGISTRY_AUTH_MODE" != "none" || -n "$INPUT_REGISTRY_REGION" || "$HAS_REGISTRY_ROLE" == "true" ]]; then
+            fail "container-only inputs must not be provided when run_container_scan is false"
+          fi
+
+          code_severity_threshold="$INPUT_SEVERITY_THRESHOLD"
+          if [[ "$RUN_CODE_SCAN" == "true" && "$INPUT_SEVERITY_THRESHOLD" == "critical" ]]; then
+            code_severity_threshold=high
+            echo "::notice::Snyk Code has no critical severity; it will report high findings while the critical policy threshold remains non-blocking for code findings"
+          fi
+
+          to_repo_relative() {
+            local resolved="$1"
+            if [[ -z "$resolved" ]]; then
+              printf '\n'
+            elif [[ "$resolved" == "$GITHUB_WORKSPACE" ]]; then
+              printf '.\n'
+            else
+              printf '%s\n' "${resolved#"$GITHUB_WORKSPACE/"}"
+            fi
+          }
+
+          {
+            echo "trusted=$trusted"
+            echo "working_directory=$(to_repo_relative "$working_directory")"
+            echo "iac_directory=$(to_repo_relative "$iac_directory")"
+            echo "dockerfile_path=$(to_repo_relative "$dockerfile_path")"
+            echo "code_severity_threshold=$code_severity_threshold"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Summarise scan selection
+        if: always()
+        shell: bash
+        env:
+          VALIDATION_OUTCOME: ${{ steps.validate.outcome }}
+          TRUSTED: ${{ steps.validate.outputs.trusted }}
+          RUN_DEPENDENCY_SCAN: ${{ inputs.run_dependency_scan }}
+          RUN_CODE_SCAN: ${{ inputs.run_code_scan }}
+          RUN_IAC_SCAN: ${{ inputs.run_iac_scan }}
+          RUN_CONTAINER_SCAN: ${{ inputs.run_container_scan }}
+        run: |
+          {
+            echo "### SAST Pipeline input validation"
+            echo
+            echo "| Item | Value |"
+            echo "|---|---|"
+            echo "| Validation | ${VALIDATION_OUTCOME} |"
+            echo "| Trusted context | ${TRUSTED:-not determined} |"
+            echo "| Dependency scan requested | ${RUN_DEPENDENCY_SCAN} |"
+            echo "| Code scan requested | ${RUN_CODE_SCAN} |"
+            echo "| IaC scan requested | ${RUN_IAC_SCAN} |"
+            echo "| Container scan requested | ${RUN_CONTAINER_SCAN} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  dependency-scan:
+    name: Dependency scan
+    if: ${{ needs.validate-inputs.outputs.trusted == 'true' && inputs.run_dependency_scan }}
+    needs: validate-inputs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      SNYK_ORG: octo-Sq42AMT8YK8yMg4AtYeKJ5
+    outputs:
+      status: ${{ steps.scan.outputs.status }}
+      reason: ${{ steps.scan.outputs.reason }}
+      exit_code: ${{ steps.scan.outputs.exit_code }}
+      sarif_valid: ${{ steps.validate-sarif.outputs.sarif_valid }}
+    steps:
+      - name: Check out caller repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Snyk CLI
+        uses: snyk/actions/setup@9adf32b1121593767fc3c057af55b55db032dc04
+        with:
+          snyk-version: 1.1306.4
+
+      - name: Authenticate scanner
+        shell: bash
+        env:
+          SCANNER_CLIENT_ID: ${{ secrets.scanner_client_id }}
+          SCANNER_CLIENT_SECRET: ${{ secrets.scanner_client_secret }}
+          SCANNER_TOKEN: ${{ secrets.scanner_token }}
+        run: |
+          set -euo pipefail
+
+          if [[ -n "$SCANNER_TOKEN" ]]; then
+            echo "::add-mask::$SCANNER_TOKEN"
+            echo "SNYK_TOKEN=$SCANNER_TOKEN" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          umask 077
+          client_id_file="$(mktemp)"
+          client_secret_file="$(mktemp)"
+          response_file="$(mktemp)"
+          trap 'rm -f "$client_id_file" "$client_secret_file" "$response_file"' EXIT
+
+          printf '%s' "$SCANNER_CLIENT_ID" > "$client_id_file"
+          printf '%s' "$SCANNER_CLIENT_SECRET" > "$client_secret_file"
+
+          if ! curl \
+            --fail-with-body \
+            --silent \
+            --show-error \
+            --connect-timeout 10 \
+            --max-time 30 \
+            --retry 3 \
+            --retry-all-errors \
+            --request POST \
+            --header "Content-Type: application/x-www-form-urlencoded" \
+            --data-urlencode "grant_type=client_credentials" \
+            --data-urlencode "client_id@${client_id_file}" \
+            --data-urlencode "client_secret@${client_secret_file}" \
+            --output "$response_file" \
+            "https://api.snyk.io/oauth2/token"; then
+            echo "::error::Failed to obtain a short-lived scanner token"
+            exit 1
+          fi
+
+          oauth_token="$(jq -er '.access_token | strings | select(length > 0)' "$response_file")" || {
+            echo "::error::Scanner authentication response did not contain a valid access token"
+            exit 1
+          }
+
+          echo "::add-mask::$oauth_token"
+          echo "SNYK_OAUTH_TOKEN=$oauth_token" >> "$GITHUB_ENV"
+
+      - name: Run dependency scan
+        id: scan
+        shell: bash
+        env:
+          WORKING_DIRECTORY: ${{ needs.validate-inputs.outputs.working_directory }}
+          SEVERITY_THRESHOLD: ${{ inputs.severity_threshold }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p results/dependency
+          scan_path="$GITHUB_WORKSPACE/$WORKING_DIRECTORY"
+          sarif_file="results/dependency/dependency.sarif"
+
+          set +e
+          snyk test "$scan_path" \
+            --all-projects \
+            --fail-fast \
+            --org="$SNYK_ORG" \
+            --severity-threshold="$SEVERITY_THRESHOLD" \
+            --sarif-file-output="$sarif_file"
+          exit_code=$?
+          set -e
+
+          case "$exit_code" in
+            0)
+              status=clean
+              reason=no_findings
+              ;;
+            1)
+              status=findings
+              reason=findings_at_or_above_threshold
+              ;;
+            2)
+              status=error
+              reason=scanner_error
+              ;;
+            3)
+              status=error
+              reason=no_supported_project
+              ;;
+            *)
+              status=error
+              reason="unexpected_exit_code_${exit_code}"
+              ;;
+          esac
+
+          jq -n \
+            --arg scan dependency \
+            --arg status "$status" \
+            --arg reason "$reason" \
+            --argjson exit_code "$exit_code" \
+            '{scan: $scan, status: $status, reason: $reason, exit_code: $exit_code}' \
+            > results/dependency/result.json
+
+          {
+            echo "status=$status"
+            echo "reason=$reason"
+            echo "exit_code=$exit_code"
+          } >> "$GITHUB_OUTPUT"
+
+          if [[ "$status" == "error" ]]; then
+            echo "::error::Dependency scan failed: $reason (Snyk exit code $exit_code)"
+          fi
+
+      - name: Validate dependency SARIF
+        id: validate-sarif
+        if: ${{ always() }}
+        shell: bash
+        env:
+          SCAN_STATUS: ${{ steps.scan.outputs.status }}
+        run: |
+          set -euo pipefail
+
+          sarif_file="results/dependency/dependency.sarif"
+          echo "sarif_valid=false" >> "$GITHUB_OUTPUT"
+
+          if [[ "$SCAN_STATUS" == "error" ]]; then
+            if [[ -f "$sarif_file" ]]; then
+              mv "$sarif_file" "${sarif_file}.invalid"
+            fi
+            exit 0
+          fi
+
+          [[ -s "$sarif_file" ]] || {
+            echo "::error::Dependency scan completed without a non-empty SARIF result"
+            exit 1
+          }
+
+          jq -e '
+            .version == "2.1.0" and
+            (.runs | type == "array") and
+            (.runs | length > 0)
+          ' "$sarif_file" > /dev/null || {
+            mv "$sarif_file" "${sarif_file}.invalid"
+            echo "::error::Dependency scan produced invalid SARIF"
+            exit 1
+          }
+
+          temporary_file="$(mktemp)"
+          jq '
+            walk(
+              if type == "object" and has("security-severity") and
+                (."security-severity" == "null" or ."security-severity" == "undefined")
+              then ."security-severity" = "0"
+              else .
+              end
+            )
+          ' "$sarif_file" > "$temporary_file"
+          mv "$temporary_file" "$sarif_file"
+
+          jq -e '.version == "2.1.0" and (.runs | type == "array")' "$sarif_file" > /dev/null
+          echo "sarif_valid=true" >> "$GITHUB_OUTPUT"
+
+      - name: Upload dependency result artifact
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: sast-pipeline-dependency-${{ github.run_id }}-${{ github.run_attempt }}
+          path: results/dependency
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Summarise dependency scan
+        if: ${{ always() }}
+        shell: bash
+        env:
+          SCAN_STATUS: ${{ steps.scan.outputs.status }}
+          SCAN_REASON: ${{ steps.scan.outputs.reason }}
+          SARIF_VALID: ${{ steps.validate-sarif.outputs.sarif_valid }}
+        run: |
+          {
+            echo "### Dependency scan"
+            echo
+            echo "| Item | Value |"
+            echo "|---|---|"
+            echo "| Status | ${SCAN_STATUS:-error} |"
+            echo "| Reason | ${SCAN_REASON:-scan did not start} |"
+            echo "| Valid SARIF | ${SARIF_VALID:-false} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail on dependency operational error
+        if: ${{ always() && steps.scan.outputs.status == 'error' }}
+        shell: bash
+        run: exit 1
+
+  code-scan:
+    name: Code scan
+    if: ${{ needs.validate-inputs.outputs.trusted == 'true' && inputs.run_code_scan }}
+    needs: validate-inputs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      SNYK_ORG: octo-Sq42AMT8YK8yMg4AtYeKJ5
+    outputs:
+      status: ${{ steps.scan.outputs.status }}
+      reason: ${{ steps.scan.outputs.reason }}
+      exit_code: ${{ steps.scan.outputs.exit_code }}
+      sarif_valid: ${{ steps.validate-sarif.outputs.sarif_valid }}
+    steps:
+      - name: Check out caller repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Snyk CLI
+        uses: snyk/actions/setup@9adf32b1121593767fc3c057af55b55db032dc04
+        with:
+          snyk-version: 1.1306.4
+
+      - name: Authenticate scanner
+        shell: bash
+        env:
+          SCANNER_CLIENT_ID: ${{ secrets.scanner_client_id }}
+          SCANNER_CLIENT_SECRET: ${{ secrets.scanner_client_secret }}
+          SCANNER_TOKEN: ${{ secrets.scanner_token }}
+        run: |
+          set -euo pipefail
+
+          if [[ -n "$SCANNER_TOKEN" ]]; then
+            echo "::add-mask::$SCANNER_TOKEN"
+            echo "SNYK_TOKEN=$SCANNER_TOKEN" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          umask 077
+          client_id_file="$(mktemp)"
+          client_secret_file="$(mktemp)"
+          response_file="$(mktemp)"
+          trap 'rm -f "$client_id_file" "$client_secret_file" "$response_file"' EXIT
+
+          printf '%s' "$SCANNER_CLIENT_ID" > "$client_id_file"
+          printf '%s' "$SCANNER_CLIENT_SECRET" > "$client_secret_file"
+
+          if ! curl \
+            --fail-with-body \
+            --silent \
+            --show-error \
+            --connect-timeout 10 \
+            --max-time 30 \
+            --retry 3 \
+            --retry-all-errors \
+            --request POST \
+            --header "Content-Type: application/x-www-form-urlencoded" \
+            --data-urlencode "grant_type=client_credentials" \
+            --data-urlencode "client_id@${client_id_file}" \
+            --data-urlencode "client_secret@${client_secret_file}" \
+            --output "$response_file" \
+            "https://api.snyk.io/oauth2/token"; then
+            echo "::error::Failed to obtain a short-lived scanner token"
+            exit 1
+          fi
+
+          oauth_token="$(jq -er '.access_token | strings | select(length > 0)' "$response_file")" || {
+            echo "::error::Scanner authentication response did not contain a valid access token"
+            exit 1
+          }
+
+          echo "::add-mask::$oauth_token"
+          echo "SNYK_OAUTH_TOKEN=$oauth_token" >> "$GITHUB_ENV"
+
+      - name: Run code scan
+        id: scan
+        shell: bash
+        env:
+          WORKING_DIRECTORY: ${{ needs.validate-inputs.outputs.working_directory }}
+          SEVERITY_THRESHOLD: ${{ needs.validate-inputs.outputs.code_severity_threshold }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p results/code
+          scan_path="$GITHUB_WORKSPACE/$WORKING_DIRECTORY"
+          sarif_file="results/code/code.sarif"
+
+          set +e
+          snyk code test "$scan_path" \
+            --org="$SNYK_ORG" \
+            --severity-threshold="$SEVERITY_THRESHOLD" \
+            --sarif-file-output="$sarif_file"
+          exit_code=$?
+          set -e
+
+          case "$exit_code" in
+            0)
+              status=clean
+              reason=no_findings
+              ;;
+            1)
+              status=findings
+              reason=findings_at_or_above_threshold
+              ;;
+            2)
+              status=error
+              reason=code_scanner_or_entitlement_error
+              ;;
+            3)
+              status=error
+              reason=no_supported_code
+              ;;
+            *)
+              status=error
+              reason="unexpected_exit_code_${exit_code}"
+              ;;
+          esac
+
+          jq -n \
+            --arg scan code \
+            --arg status "$status" \
+            --arg reason "$reason" \
+            --argjson exit_code "$exit_code" \
+            '{scan: $scan, status: $status, reason: $reason, exit_code: $exit_code}' \
+            > results/code/result.json
+
+          {
+            echo "status=$status"
+            echo "reason=$reason"
+            echo "exit_code=$exit_code"
+          } >> "$GITHUB_OUTPUT"
+
+          if [[ "$reason" == "code_scanner_or_entitlement_error" ]]; then
+            echo "::error::Snyk Code failed. Confirm that Snyk Code is enabled for the target organisation and that the service account has the required entitlement"
+          elif [[ "$status" == "error" ]]; then
+            echo "::error::Code scan failed: $reason (Snyk exit code $exit_code)"
+          fi
+
+      - name: Validate code SARIF
+        id: validate-sarif
+        if: ${{ always() }}
+        shell: bash
+        env:
+          SCAN_STATUS: ${{ steps.scan.outputs.status }}
+        run: |
+          set -euo pipefail
+
+          sarif_file="results/code/code.sarif"
+          echo "sarif_valid=false" >> "$GITHUB_OUTPUT"
+
+          if [[ "$SCAN_STATUS" == "error" ]]; then
+            if [[ -f "$sarif_file" ]]; then
+              mv "$sarif_file" "${sarif_file}.invalid"
+            fi
+            exit 0
+          fi
+
+          if [[ ! -s "$sarif_file" ]]; then
+            if [[ "$SCAN_STATUS" == "clean" ]]; then
+              echo "::notice::Clean Snyk Code scan produced no SARIF file; nothing will be uploaded"
+              exit 0
+            fi
+            echo "::error::Code findings were reported without a non-empty SARIF result"
+            exit 1
+          fi
+
+          jq -e '
+            .version == "2.1.0" and
+            (.runs | type == "array") and
+            (.runs | length > 0)
+          ' "$sarif_file" > /dev/null || {
+            mv "$sarif_file" "${sarif_file}.invalid"
+            echo "::error::Code scan produced invalid SARIF"
+            exit 1
+          }
+
+          temporary_file="$(mktemp)"
+          jq '
+            walk(
+              if type == "object" and has("security-severity") and
+                (."security-severity" == "null" or ."security-severity" == "undefined")
+              then ."security-severity" = "0"
+              else .
+              end
+            )
+          ' "$sarif_file" > "$temporary_file"
+          mv "$temporary_file" "$sarif_file"
+
+          jq -e '.version == "2.1.0" and (.runs | type == "array")' "$sarif_file" > /dev/null
+          echo "sarif_valid=true" >> "$GITHUB_OUTPUT"
+
+      - name: Upload code result artifact
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: sast-pipeline-code-${{ github.run_id }}-${{ github.run_attempt }}
+          path: results/code
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Summarise code scan
+        if: ${{ always() }}
+        shell: bash
+        env:
+          SCAN_STATUS: ${{ steps.scan.outputs.status }}
+          SCAN_REASON: ${{ steps.scan.outputs.reason }}
+          SARIF_VALID: ${{ steps.validate-sarif.outputs.sarif_valid }}
+        run: |
+          {
+            echo "### Code scan"
+            echo
+            echo "| Item | Value |"
+            echo "|---|---|"
+            echo "| Status | ${SCAN_STATUS:-error} |"
+            echo "| Reason | ${SCAN_REASON:-scan did not start} |"
+            echo "| Valid SARIF | ${SARIF_VALID:-false} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail on code operational error
+        if: ${{ always() && steps.scan.outputs.status == 'error' }}
+        shell: bash
+        run: exit 1
+
+  iac-scan:
+    name: IaC scan
+    if: ${{ needs.validate-inputs.outputs.trusted == 'true' && inputs.run_iac_scan }}
+    needs: validate-inputs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      SNYK_ORG: octo-Sq42AMT8YK8yMg4AtYeKJ5
+    outputs:
+      status: ${{ steps.scan.outputs.status }}
+      reason: ${{ steps.scan.outputs.reason }}
+      exit_code: ${{ steps.scan.outputs.exit_code }}
+      sarif_valid: ${{ steps.validate-sarif.outputs.sarif_valid }}
+    steps:
+      - name: Check out caller repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Snyk CLI
+        uses: snyk/actions/setup@9adf32b1121593767fc3c057af55b55db032dc04
+        with:
+          snyk-version: 1.1306.4
+
+      - name: Authenticate scanner
+        shell: bash
+        env:
+          SCANNER_CLIENT_ID: ${{ secrets.scanner_client_id }}
+          SCANNER_CLIENT_SECRET: ${{ secrets.scanner_client_secret }}
+          SCANNER_TOKEN: ${{ secrets.scanner_token }}
+        run: |
+          set -euo pipefail
+
+          if [[ -n "$SCANNER_TOKEN" ]]; then
+            echo "::add-mask::$SCANNER_TOKEN"
+            echo "SNYK_TOKEN=$SCANNER_TOKEN" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          umask 077
+          client_id_file="$(mktemp)"
+          client_secret_file="$(mktemp)"
+          response_file="$(mktemp)"
+          trap 'rm -f "$client_id_file" "$client_secret_file" "$response_file"' EXIT
+
+          printf '%s' "$SCANNER_CLIENT_ID" > "$client_id_file"
+          printf '%s' "$SCANNER_CLIENT_SECRET" > "$client_secret_file"
+
+          if ! curl \
+            --fail-with-body \
+            --silent \
+            --show-error \
+            --connect-timeout 10 \
+            --max-time 30 \
+            --retry 3 \
+            --retry-all-errors \
+            --request POST \
+            --header "Content-Type: application/x-www-form-urlencoded" \
+            --data-urlencode "grant_type=client_credentials" \
+            --data-urlencode "client_id@${client_id_file}" \
+            --data-urlencode "client_secret@${client_secret_file}" \
+            --output "$response_file" \
+            "https://api.snyk.io/oauth2/token"; then
+            echo "::error::Failed to obtain a short-lived scanner token"
+            exit 1
+          fi
+
+          oauth_token="$(jq -er '.access_token | strings | select(length > 0)' "$response_file")" || {
+            echo "::error::Scanner authentication response did not contain a valid access token"
+            exit 1
+          }
+
+          echo "::add-mask::$oauth_token"
+          echo "SNYK_OAUTH_TOKEN=$oauth_token" >> "$GITHUB_ENV"
+
+      - name: Run IaC scan
+        id: scan
+        shell: bash
+        env:
+          IAC_DIRECTORY: ${{ needs.validate-inputs.outputs.iac_directory }}
+          SEVERITY_THRESHOLD: ${{ inputs.severity_threshold }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p results/iac
+          scan_path="$GITHUB_WORKSPACE/$IAC_DIRECTORY"
+          sarif_file="results/iac/iac.sarif"
+
+          set +e
+          snyk iac test "$scan_path" \
+            --org="$SNYK_ORG" \
+            --severity-threshold="$SEVERITY_THRESHOLD" \
+            --sarif-file-output="$sarif_file"
+          exit_code=$?
+          set -e
+
+          case "$exit_code" in
+            0) status=clean; reason=no_findings ;;
+            1) status=findings; reason=findings_at_or_above_threshold ;;
+            2) status=error; reason=scanner_error ;;
+            3) status=error; reason=no_supported_iac ;;
+            *) status=error; reason="unexpected_exit_code_${exit_code}" ;;
+          esac
+
+          jq -n \
+            --arg scan iac \
+            --arg status "$status" \
+            --arg reason "$reason" \
+            --argjson exit_code "$exit_code" \
+            '{scan: $scan, status: $status, reason: $reason, exit_code: $exit_code}' \
+            > results/iac/result.json
+
+          {
+            echo "status=$status"
+            echo "reason=$reason"
+            echo "exit_code=$exit_code"
+          } >> "$GITHUB_OUTPUT"
+
+          if [[ "$status" == "error" ]]; then
+            echo "::error::IaC scan failed: $reason (Snyk exit code $exit_code)"
+          fi
+
+      - name: Validate IaC SARIF
+        id: validate-sarif
+        if: ${{ always() }}
+        shell: bash
+        env:
+          SCAN_STATUS: ${{ steps.scan.outputs.status }}
+        run: |
+          set -euo pipefail
+
+          sarif_file="results/iac/iac.sarif"
+          echo "sarif_valid=false" >> "$GITHUB_OUTPUT"
+
+          if [[ "$SCAN_STATUS" == "error" ]]; then
+            if [[ -f "$sarif_file" ]]; then
+              mv "$sarif_file" "${sarif_file}.invalid"
+            fi
+            exit 0
+          fi
+
+          [[ -s "$sarif_file" ]] || {
+            echo "::error::IaC scan completed without a non-empty SARIF result"
+            exit 1
+          }
+
+          jq -e '.version == "2.1.0" and (.runs | type == "array") and (.runs | length > 0)' \
+            "$sarif_file" > /dev/null || {
+            mv "$sarif_file" "${sarif_file}.invalid"
+            echo "::error::IaC scan produced invalid SARIF"
+            exit 1
+          }
+
+          echo "sarif_valid=true" >> "$GITHUB_OUTPUT"
+
+      - name: Upload IaC result artifact
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: sast-pipeline-iac-${{ github.run_id }}-${{ github.run_attempt }}
+          path: results/iac
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Summarise IaC scan
+        if: ${{ always() }}
+        shell: bash
+        env:
+          SCAN_STATUS: ${{ steps.scan.outputs.status }}
+          SCAN_REASON: ${{ steps.scan.outputs.reason }}
+          SARIF_VALID: ${{ steps.validate-sarif.outputs.sarif_valid }}
+        run: |
+          {
+            echo "### IaC scan"
+            echo
+            echo "| Item | Value |"
+            echo "|---|---|"
+            echo "| Status | ${SCAN_STATUS:-error} |"
+            echo "| Reason | ${SCAN_REASON:-scan did not start} |"
+            echo "| Valid SARIF | ${SARIF_VALID:-false} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail on IaC operational error
+        if: ${{ always() && steps.scan.outputs.status == 'error' }}
+        shell: bash
+        run: exit 1
+
+  container-scan:
+    name: Container scan
+    if: ${{ needs.validate-inputs.outputs.trusted == 'true' && inputs.run_container_scan }}
+    needs: validate-inputs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      SNYK_ORG: octo-Sq42AMT8YK8yMg4AtYeKJ5
+    outputs:
+      status: ${{ steps.scan.outputs.status }}
+      reason: ${{ steps.scan.outputs.reason }}
+      exit_code: ${{ steps.scan.outputs.exit_code }}
+      sarif_valid: ${{ steps.validate-sarif.outputs.sarif_valid }}
+    steps:
+      - name: Check out caller repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Configure AWS credentials
+        if: ${{ inputs.registry_auth_mode == 'aws_oidc' }}
+        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
+        with:
+          role-to-assume: ${{ secrets.registry_role }}
+          aws-region: ${{ inputs.registry_region }}
+          role-session-name: sast-pipeline-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Log in to Amazon ECR
+        if: ${{ inputs.registry_auth_mode == 'aws_oidc' }}
+        uses: aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419 # v2.1.5
+
+      - name: Pull exact image reference
+        shell: bash
+        env:
+          IMAGE_URI: ${{ inputs.image_uri }}
+        run: |
+          set -euo pipefail
+          docker pull -- "$IMAGE_URI"
+
+      - name: Install Snyk CLI
+        uses: snyk/actions/setup@9adf32b1121593767fc3c057af55b55db032dc04
+        with:
+          snyk-version: 1.1306.4
+
+      - name: Authenticate scanner
+        shell: bash
+        env:
+          SCANNER_CLIENT_ID: ${{ secrets.scanner_client_id }}
+          SCANNER_CLIENT_SECRET: ${{ secrets.scanner_client_secret }}
+          SCANNER_TOKEN: ${{ secrets.scanner_token }}
+        run: |
+          set -euo pipefail
+
+          if [[ -n "$SCANNER_TOKEN" ]]; then
+            echo "::add-mask::$SCANNER_TOKEN"
+            echo "SNYK_TOKEN=$SCANNER_TOKEN" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          umask 077
+          client_id_file="$(mktemp)"
+          client_secret_file="$(mktemp)"
+          response_file="$(mktemp)"
+          trap 'rm -f "$client_id_file" "$client_secret_file" "$response_file"' EXIT
+
+          printf '%s' "$SCANNER_CLIENT_ID" > "$client_id_file"
+          printf '%s' "$SCANNER_CLIENT_SECRET" > "$client_secret_file"
+
+          if ! curl \
+            --fail-with-body \
+            --silent \
+            --show-error \
+            --connect-timeout 10 \
+            --max-time 30 \
+            --retry 3 \
+            --retry-all-errors \
+            --request POST \
+            --header "Content-Type: application/x-www-form-urlencoded" \
+            --data-urlencode "grant_type=client_credentials" \
+            --data-urlencode "client_id@${client_id_file}" \
+            --data-urlencode "client_secret@${client_secret_file}" \
+            --output "$response_file" \
+            "https://api.snyk.io/oauth2/token"; then
+            echo "::error::Failed to obtain a short-lived scanner token"
+            exit 1
+          fi
+
+          oauth_token="$(jq -er '.access_token | strings | select(length > 0)' "$response_file")" || {
+            echo "::error::Scanner authentication response did not contain a valid access token"
+            exit 1
+          }
+
+          echo "::add-mask::$oauth_token"
+          echo "SNYK_OAUTH_TOKEN=$oauth_token" >> "$GITHUB_ENV"
+
+      - name: Run container scan
+        id: scan
+        shell: bash
+        env:
+          IMAGE_URI: ${{ inputs.image_uri }}
+          DOCKERFILE_PATH: ${{ needs.validate-inputs.outputs.dockerfile_path }}
+          SEVERITY_THRESHOLD: ${{ inputs.severity_threshold }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p results/container
+          sarif_file="results/container/container.sarif"
+          arguments=(
+            container test "$IMAGE_URI"
+            "--org=$SNYK_ORG"
+            "--severity-threshold=$SEVERITY_THRESHOLD"
+            "--sarif-file-output=$sarif_file"
+          )
+          if [[ -n "$DOCKERFILE_PATH" ]]; then
+            arguments+=("--file=$GITHUB_WORKSPACE/$DOCKERFILE_PATH")
+          fi
+
+          set +e
+          snyk "${arguments[@]}"
+          exit_code=$?
+          set -e
+
+          case "$exit_code" in
+            0) status=clean; reason=no_findings ;;
+            1) status=findings; reason=findings_at_or_above_threshold ;;
+            2) status=error; reason=scanner_or_image_error ;;
+            3) status=error; reason=no_supported_container_project ;;
+            *) status=error; reason="unexpected_exit_code_${exit_code}" ;;
+          esac
+
+          jq -n \
+            --arg scan container \
+            --arg status "$status" \
+            --arg reason "$reason" \
+            --arg image "$IMAGE_URI" \
+            --argjson exit_code "$exit_code" \
+            '{scan: $scan, status: $status, reason: $reason, exit_code: $exit_code, image: $image}' \
+            > results/container/result.json
+
+          {
+            echo "status=$status"
+            echo "reason=$reason"
+            echo "exit_code=$exit_code"
+          } >> "$GITHUB_OUTPUT"
+
+          if [[ "$status" == "error" ]]; then
+            echo "::error::Container scan failed: $reason (Snyk exit code $exit_code)"
+          fi
+
+      - name: Validate container SARIF
+        id: validate-sarif
+        if: ${{ always() }}
+        shell: bash
+        env:
+          SCAN_STATUS: ${{ steps.scan.outputs.status }}
+        run: |
+          set -euo pipefail
+
+          sarif_file="results/container/container.sarif"
+          echo "sarif_valid=false" >> "$GITHUB_OUTPUT"
+
+          if [[ "$SCAN_STATUS" == "error" ]]; then
+            if [[ -f "$sarif_file" ]]; then
+              mv "$sarif_file" "${sarif_file}.invalid"
+            fi
+            exit 0
+          fi
+
+          [[ -s "$sarif_file" ]] || {
+            echo "::error::Container scan completed without a non-empty SARIF result"
+            exit 1
+          }
+
+          jq -e '.version == "2.1.0" and (.runs | type == "array") and (.runs | length > 0)' \
+            "$sarif_file" > /dev/null || {
+            mv "$sarif_file" "${sarif_file}.invalid"
+            echo "::error::Container scan produced invalid SARIF"
+            exit 1
+          }
+
+          temporary_file="$(mktemp)"
+          jq '
+            walk(
+              if type == "object" and has("security-severity") and
+                (."security-severity" == "null" or ."security-severity" == "undefined")
+              then ."security-severity" = "0"
+              else .
+              end
+            )
+          ' "$sarif_file" > "$temporary_file"
+          mv "$temporary_file" "$sarif_file"
+          echo "sarif_valid=true" >> "$GITHUB_OUTPUT"
+
+      - name: Upload container result artifact
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: sast-pipeline-container-${{ github.run_id }}-${{ github.run_attempt }}
+          path: results/container
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Summarise container scan
+        if: ${{ always() }}
+        shell: bash
+        env:
+          SCAN_STATUS: ${{ steps.scan.outputs.status }}
+          SCAN_REASON: ${{ steps.scan.outputs.reason }}
+          SARIF_VALID: ${{ steps.validate-sarif.outputs.sarif_valid }}
+          IMAGE_URI: ${{ inputs.image_uri }}
+        run: |
+          {
+            echo "### Container scan"
+            echo
+            echo "| Item | Value |"
+            echo "|---|---|"
+            echo "| Status | ${SCAN_STATUS:-error} |"
+            echo "| Reason | ${SCAN_REASON:-scan did not start} |"
+            echo "| Image | \`$IMAGE_URI\` |"
+            echo "| Valid SARIF | ${SARIF_VALID:-false} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail on container operational error
+        if: ${{ always() && steps.scan.outputs.status == 'error' }}
+        shell: bash
+        run: exit 1
+
+  publish-results:
+    name: Publish results
+    if: ${{ always() && inputs.upload_sarif && needs.validate-inputs.outputs.trusted == 'true' }}
+    needs:
+      - validate-inputs
+      - dependency-scan
+      - code-scan
+      - iac-scan
+      - container-scan
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - name: Check out caller repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download dependency SARIF
+        if: ${{ needs.dependency-scan.outputs.sarif_valid == 'true' }}
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: sast-pipeline-dependency-${{ github.run_id }}-${{ github.run_attempt }}
+          path: published/dependency
+
+      - name: Upload dependency SARIF to Code Scanning
+        if: ${{ needs.dependency-scan.outputs.sarif_valid == 'true' }}
+        uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
+        with:
+          sarif_file: published/dependency/dependency.sarif
+          category: sast-pipeline-dependency
+
+      - name: Download code SARIF
+        if: ${{ needs.code-scan.outputs.sarif_valid == 'true' }}
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: sast-pipeline-code-${{ github.run_id }}-${{ github.run_attempt }}
+          path: published/code
+
+      - name: Upload code SARIF to Code Scanning
+        if: ${{ needs.code-scan.outputs.sarif_valid == 'true' }}
+        uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
+        with:
+          sarif_file: published/code/code.sarif
+          category: sast-pipeline-code
+
+      - name: Download IaC SARIF
+        if: ${{ needs.iac-scan.outputs.sarif_valid == 'true' }}
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: sast-pipeline-iac-${{ github.run_id }}-${{ github.run_attempt }}
+          path: published/iac
+
+      - name: Upload IaC SARIF to Code Scanning
+        if: ${{ needs.iac-scan.outputs.sarif_valid == 'true' }}
+        uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
+        with:
+          sarif_file: published/iac/iac.sarif
+          category: sast-pipeline-iac
+
+      - name: Download container SARIF
+        if: ${{ needs.container-scan.outputs.sarif_valid == 'true' }}
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: sast-pipeline-container-${{ github.run_id }}-${{ github.run_attempt }}
+          path: published/container
+
+      - name: Upload container SARIF to Code Scanning
+        if: ${{ needs.container-scan.outputs.sarif_valid == 'true' }}
+        uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
+        with:
+          sarif_file: published/container/container.sarif
+          category: sast-pipeline-container
+
+      - name: Summarise publication
+        if: ${{ always() }}
+        shell: bash
+        env:
+          DEPENDENCY_SARIF: ${{ needs.dependency-scan.outputs.sarif_valid }}
+          CODE_SARIF: ${{ needs.code-scan.outputs.sarif_valid }}
+          IAC_SARIF: ${{ needs.iac-scan.outputs.sarif_valid }}
+          CONTAINER_SARIF: ${{ needs.container-scan.outputs.sarif_valid }}
+        run: |
+          {
+            echo "### SARIF publication"
+            echo
+            echo "Only validated SARIF files are uploaded."
+            echo
+            echo "| Scan | Valid SARIF available |"
+            echo "|---|---|"
+            echo "| Dependency | ${DEPENDENCY_SARIF:-false} |"
+            echo "| Code | ${CODE_SARIF:-false} |"
+            echo "| IaC | ${IAC_SARIF:-false} |"
+            echo "| Container | ${CONTAINER_SARIF:-false} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  policy-result:
+    name: Policy result
+    if: ${{ always() }}
+    needs:
+      - validate-inputs
+      - dependency-scan
+      - code-scan
+      - iac-scan
+      - container-scan
+      - publish-results
+    runs-on: ubuntu-latest
+    permissions: {}
+    outputs:
+      result: ${{ steps.policy.outputs.result }}
+      reason: ${{ steps.policy.outputs.reason }}
+    steps:
+      - name: Enforce scan policy
+        id: policy
+        shell: bash
+        env:
+          VALIDATION_RESULT: ${{ needs.validate-inputs.result }}
+          TRUSTED: ${{ needs.validate-inputs.outputs.trusted }}
+          DEPENDENCY_RESULT: ${{ needs.dependency-scan.result }}
+          DEPENDENCY_STATUS: ${{ needs.dependency-scan.outputs.status }}
+          CODE_RESULT: ${{ needs.code-scan.result }}
+          CODE_STATUS: ${{ needs.code-scan.outputs.status }}
+          IAC_RESULT: ${{ needs.iac-scan.result }}
+          IAC_STATUS: ${{ needs.iac-scan.outputs.status }}
+          CONTAINER_RESULT: ${{ needs.container-scan.result }}
+          CONTAINER_STATUS: ${{ needs.container-scan.outputs.status }}
+          PUBLISH_RESULT: ${{ needs.publish-results.result }}
+          UPLOAD_SARIF: ${{ inputs.upload_sarif }}
+          FAIL_BUILD: ${{ inputs.fail_build }}
+        run: |
+          set -euo pipefail
+
+          result=pass
+          reason=policy_satisfied
+
+          if [[ "$VALIDATION_RESULT" != "success" ]]; then
+            result=fail
+            reason=input_validation_failed
+          elif [[ "$TRUSTED" != "true" ]]; then
+            result=skip
+            reason=untrusted_context
+          else
+            for scan_result in "$DEPENDENCY_RESULT" "$CODE_RESULT" "$IAC_RESULT" "$CONTAINER_RESULT"; do
+              if [[ "$scan_result" == "failure" || "$scan_result" == "cancelled" ]]; then
+                result=fail
+                reason=scan_operational_error
+              fi
+            done
+
+            if [[ "$result" == "pass" && "$UPLOAD_SARIF" == "true" && "$PUBLISH_RESULT" != "success" ]]; then
+              result=fail
+              reason=result_publication_failed
+            fi
+
+            if [[ "$result" == "pass" && "$FAIL_BUILD" == "true" ]]; then
+              for scan_status in "$DEPENDENCY_STATUS" "$CODE_STATUS" "$IAC_STATUS" "$CONTAINER_STATUS"; do
+                if [[ "$scan_status" == "findings" ]]; then
+                  result=fail
+                  reason=findings_exceeded_policy
+                fi
+              done
+            fi
+          fi
+
+          {
+            echo "result=$result"
+            echo "reason=$reason"
+          } >> "$GITHUB_OUTPUT"
+
+          if [[ "$result" == "fail" ]]; then
+            echo "::error::SAST Pipeline policy failed: $reason"
+            exit 1
+          elif [[ "$result" == "skip" ]]; then
+            echo "::notice::SAST Pipeline scans skipped: $reason"
+          fi
+
+  job-summary:
+    name: Job summary
+    if: ${{ always() }}
+    needs:
+      - validate-inputs
+      - dependency-scan
+      - code-scan
+      - iac-scan
+      - container-scan
+      - publish-results
+      - policy-result
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Write final summary
+        shell: bash
+        env:
+          TRUSTED: ${{ needs.validate-inputs.outputs.trusted }}
+          DEPENDENCY_STATUS: ${{ needs.dependency-scan.outputs.status }}
+          DEPENDENCY_REASON: ${{ needs.dependency-scan.outputs.reason }}
+          CODE_STATUS: ${{ needs.code-scan.outputs.status }}
+          CODE_REASON: ${{ needs.code-scan.outputs.reason }}
+          IAC_STATUS: ${{ needs.iac-scan.outputs.status }}
+          IAC_REASON: ${{ needs.iac-scan.outputs.reason }}
+          CONTAINER_STATUS: ${{ needs.container-scan.outputs.status }}
+          CONTAINER_REASON: ${{ needs.container-scan.outputs.reason }}
+          PUBLISH_RESULT: ${{ needs.publish-results.result }}
+          POLICY_RESULT: ${{ needs.policy-result.outputs.result }}
+          POLICY_REASON: ${{ needs.policy-result.outputs.reason }}
+          RUN_DEPENDENCY_SCAN: ${{ inputs.run_dependency_scan }}
+          RUN_CODE_SCAN: ${{ inputs.run_code_scan }}
+          RUN_IAC_SCAN: ${{ inputs.run_iac_scan }}
+          RUN_CONTAINER_SCAN: ${{ inputs.run_container_scan }}
+          UPLOAD_SARIF: ${{ inputs.upload_sarif }}
+        run: |
+          set -euo pipefail
+
+          display_status() {
+            local requested="$1"
+            local status="$2"
+            local reason="$3"
+
+            if [[ "$TRUSTED" != "true" ]]; then
+              printf 'skipped (untrusted context)'
+            elif [[ "$requested" != "true" ]]; then
+              printf 'skipped (not requested)'
+            elif [[ -z "$status" ]]; then
+              printf 'error (scan did not report a result)'
+            else
+              printf '%s (%s)' "$status" "${reason:-no reason reported}"
+            fi
+          }
+
+          {
+            echo "## SAST Pipeline result"
+            echo
+            echo "| Scan | Result |"
+            echo "|---|---|"
+            echo "| Dependency | $(display_status "$RUN_DEPENDENCY_SCAN" "$DEPENDENCY_STATUS" "$DEPENDENCY_REASON") |"
+            echo "| Code | $(display_status "$RUN_CODE_SCAN" "$CODE_STATUS" "$CODE_REASON") |"
+            echo "| IaC | $(display_status "$RUN_IAC_SCAN" "$IAC_STATUS" "$IAC_REASON") |"
+            echo "| Container | $(display_status "$RUN_CONTAINER_SCAN" "$CONTAINER_STATUS" "$CONTAINER_REASON") |"
+            echo
+            echo "| Pipeline item | Result |"
+            echo "|---|---|"
+            echo "| SARIF requested | $UPLOAD_SARIF |"
+            echo "| SARIF publication job | $PUBLISH_RESULT |"
+            echo "| Policy | ${POLICY_RESULT:-fail} (${POLICY_REASON:-no reason reported}) |"
+            echo
+            echo "Review uploaded findings in the repository's **Security > Code scanning** page and detailed scanner evidence in Snyk."
+          } >> "$GITHUB_STEP_SUMMARY"

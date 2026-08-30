@@ -4,7 +4,7 @@
 
 > A single pane of glass for discovering **reusable GitHub Actions and Workflows** maintained across the Ministry of Justice.
 
-This repository does **not** host any GitHub Actions or Workflows itself. Instead, it serves as a **discovery hub** for teams across MoJ to advertise their reusable GitHub automation tools, enabling greater collaboration, consistency, and efficiency across projects.
+This repository is primarily a **discovery hub** for teams across MoJ to advertise their reusable GitHub automation tools. It also hosts centrally owned workflows approved for organisation-wide use, beginning with the [SAST Pipeline](docs/sast-pipeline.md).
 
 ## 🧭 Purpose of This Repository
 
@@ -98,6 +98,12 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+### SAST Pipeline
+
+The centrally owned SAST Pipeline provides dependency, code, infrastructure-as-code and existing-container scanning with consistent SARIF publication and failure behaviour.
+
+See the [consumer contract and pinned example](docs/sast-pipeline.md). Consumers should reference a reviewed release tag or complete commit SHA, never a mutable branch.
 
 > Make sure to check each repository’s README for usage instructions and required inputs/secrets.
 
