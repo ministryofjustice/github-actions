@@ -58,6 +58,10 @@ on:
         required: false
         default: false
         type: boolean
+      scanner_environment:
+        description: Caller environment containing scanner_client_id and scanner_client_secret. Restrict it to trusted refs.
+        required: true
+        type: string
     secrets:
       scanner_client_id:
         description: Client ID for the approved non-personal scanner identity.
@@ -75,6 +79,7 @@ jobs:
   validate-inputs:
     name: Validate inputs
     runs-on: ubuntu-latest
+    environment: ${{ inputs.scanner_environment }}
     permissions:
       contents: read
     outputs:
@@ -275,6 +280,7 @@ jobs:
     if: ${{ needs.validate-inputs.outputs.trusted == 'true' && inputs.run_dependency_scan }}
     needs: validate-inputs
     runs-on: ubuntu-latest
+    environment: ${{ inputs.scanner_environment }}
     permissions:
       contents: read
     env:
@@ -493,6 +499,7 @@ jobs:
     if: ${{ needs.validate-inputs.outputs.trusted == 'true' && inputs.run_code_scan }}
     needs: validate-inputs
     runs-on: ubuntu-latest
+    environment: ${{ inputs.scanner_environment }}
     permissions:
       contents: read
     env:
@@ -715,6 +722,7 @@ jobs:
     if: ${{ needs.validate-inputs.outputs.trusted == 'true' && inputs.run_iac_scan }}
     needs: validate-inputs
     runs-on: ubuntu-latest
+    environment: ${{ inputs.scanner_environment }}
     permissions:
       contents: read
     env:
@@ -900,6 +908,7 @@ jobs:
     if: ${{ needs.validate-inputs.outputs.trusted == 'true' && inputs.run_container_scan }}
     needs: validate-inputs
     runs-on: ubuntu-latest
+    environment: ${{ inputs.scanner_environment }}
     permissions:
       contents: read
     env:
