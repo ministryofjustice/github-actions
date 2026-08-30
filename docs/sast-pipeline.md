@@ -40,6 +40,8 @@ jobs:
 
 The called workflow cannot elevate permissions supplied by the caller.
 
+Every job has an explicit timeout. Validation and publication are limited to 10 minutes, dependency and IaC scans to 15 minutes, code and container scans to 20 minutes, and policy/summary jobs to 5 minutes. A timed-out selected scan is an operational failure and must not be reported as clean.
+
 The caller environment must contain `scanner_client_id` and `scanner_client_secret`, must be restricted to trusted refs, and must not expose those values as repository-level secrets. The approved PoC design permits only `main`. Pull-request workflows do not call the credentialed scanner; they record that scanning is deferred to protected post-merge or authorised manual execution.
 
 ## Inputs

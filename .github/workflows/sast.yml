@@ -78,6 +78,7 @@ jobs:
   validate-inputs:
     name: Validate inputs
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment: ${{ inputs.scanner_environment }}
     permissions:
       contents: read
@@ -279,6 +280,7 @@ jobs:
     if: ${{ needs.validate-inputs.outputs.trusted == 'true' && inputs.run_dependency_scan }}
     needs: validate-inputs
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment: ${{ inputs.scanner_environment }}
     permissions:
       contents: read
@@ -498,6 +500,7 @@ jobs:
     if: ${{ needs.validate-inputs.outputs.trusted == 'true' && inputs.run_code_scan }}
     needs: validate-inputs
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     environment: ${{ inputs.scanner_environment }}
     permissions:
       contents: read
@@ -721,6 +724,7 @@ jobs:
     if: ${{ needs.validate-inputs.outputs.trusted == 'true' && inputs.run_iac_scan }}
     needs: validate-inputs
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment: ${{ inputs.scanner_environment }}
     permissions:
       contents: read
@@ -907,6 +911,7 @@ jobs:
     if: ${{ needs.validate-inputs.outputs.trusted == 'true' && inputs.run_container_scan }}
     needs: validate-inputs
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     environment: ${{ inputs.scanner_environment }}
     permissions:
       contents: read
@@ -1127,6 +1132,7 @@ jobs:
       - iac-scan
       - container-scan
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       actions: read
       contents: read
@@ -1226,6 +1232,7 @@ jobs:
       - container-scan
       - publish-results
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions: {}
     outputs:
       result: ${{ steps.policy.outputs.result }}
@@ -1307,6 +1314,7 @@ jobs:
       - publish-results
       - policy-result
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions: {}
     steps:
       - name: Write final summary
