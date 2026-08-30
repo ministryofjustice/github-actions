@@ -46,7 +46,7 @@ The called workflow cannot elevate permissions supplied by the caller.
 
 | Input | Type | Default | Meaning and validation |
 |---|---|---:|---|
-| `run_dependency_scan` | boolean | `true` | Scan supported dependency manifests under `working_directory`. Fails when no supported manifest exists. |
+| `run_dependency_scan` | boolean | `true` | Scan supported dependency manifests under `working_directory`. Fails when no supported manifest exists. A `package.json` at `working_directory` requires a supported npm, Yarn or pnpm lock file. |
 | `run_code_scan` | boolean | `true` | Scan source under `working_directory`. Requires Snyk Code entitlement. |
 | `run_iac_scan` | boolean | `false` | Scan only `iac_path`. Fails when no supported IaC file exists. |
 | `run_container_scan` | boolean | `false` | Scan an existing image. The workflow never builds or pushes it. |

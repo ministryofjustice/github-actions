@@ -112,7 +112,7 @@ jobs:
           set -euo pipefail
 
           fail() {
-            echo "::error::$1"
+            echo "::error::$1" >&2
             exit 1
           }
 
@@ -189,6 +189,15 @@ jobs:
                 -name go.mod -o -name Gemfile -o -name composer.json -o -name '*.sln' -o -name '*.csproj' \
               \) -print -quit)"
             [[ -n "$manifest" ]] || fail "dependency scan requested but no supported manifest was found under working_directory"
+
+            if [[ -f "$working_directory/package.json" ]]; then
+              if [[ ! -f "$working_directory/package-lock.json" &&
+                    ! -f "$working_directory/npm-shrinkwrap.json" &&
+                    ! -f "$working_directory/yarn.lock" &&
+                    ! -f "$working_directory/pnpm-lock.yaml" ]]; then
+                fail "dependency scan requested for package.json but no supported npm, Yarn or pnpm lock file was found in working_directory"
+              fi
+            fi
           fi
 
           iac_directory=""
@@ -448,7 +457,7 @@ jobs:
           echo "sarif_valid=true" >> "$GITHUB_OUTPUT"
 
       - name: Upload dependency result artifact
-        if: ${{ always() }}
+        if: ${{ steps.validate-sarif.outputs.sarif_valid == 'true' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: sast-pipeline-dependency-${{ github.run_id }}-${{ github.run_attempt }}
@@ -670,7 +679,7 @@ jobs:
           echo "sarif_valid=true" >> "$GITHUB_OUTPUT"
 
       - name: Upload code result artifact
-        if: ${{ always() }}
+        if: ${{ steps.validate-sarif.outputs.sarif_valid == 'true' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: sast-pipeline-code-${{ github.run_id }}-${{ github.run_attempt }}
@@ -855,7 +864,7 @@ jobs:
           echo "sarif_valid=true" >> "$GITHUB_OUTPUT"
 
       - name: Upload IaC result artifact
-        if: ${{ always() }}
+        if: ${{ steps.validate-sarif.outputs.sarif_valid == 'true' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: sast-pipeline-iac-${{ github.run_id }}-${{ github.run_attempt }}
@@ -1067,7 +1076,7 @@ jobs:
           echo "sarif_valid=true" >> "$GITHUB_OUTPUT"
 
       - name: Upload container result artifact
-        if: ${{ always() }}
+        if: ${{ steps.validate-sarif.outputs.sarif_valid == 'true' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: sast-pipeline-container-${{ github.run_id }}-${{ github.run_attempt }}
