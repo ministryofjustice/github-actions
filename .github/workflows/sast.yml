@@ -328,13 +328,8 @@ jobs:
           fi
 
           umask 077
-          client_id_file="$(mktemp)"
-          client_secret_file="$(mktemp)"
           response_file="$(mktemp)"
-          trap 'rm -f "$client_id_file" "$client_secret_file" "$response_file"' EXIT
-
-          printf '%s' "$SCANNER_CLIENT_ID" > "$client_id_file"
-          printf '%s' "$SCANNER_CLIENT_SECRET" > "$client_secret_file"
+          trap 'rm -f "$response_file"' EXIT
 
           if ! curl \
             --fail-with-body \
@@ -347,8 +342,8 @@ jobs:
             --request POST \
             --header "Content-Type: application/x-www-form-urlencoded" \
             --data-urlencode "grant_type=client_credentials" \
-            --data-urlencode "client_id@${client_id_file}" \
-            --data-urlencode "client_secret@${client_secret_file}" \
+            --data-urlencode "client_id=$SCANNER_CLIENT_ID" \
+            --data-urlencode "client_secret=$SCANNER_CLIENT_SECRET" \
             --output "$response_file" \
             "https://api.snyk.io/oauth2/token"; then
             echo "::error::Failed to obtain a short-lived scanner token"
@@ -551,13 +546,8 @@ jobs:
           fi
 
           umask 077
-          client_id_file="$(mktemp)"
-          client_secret_file="$(mktemp)"
           response_file="$(mktemp)"
-          trap 'rm -f "$client_id_file" "$client_secret_file" "$response_file"' EXIT
-
-          printf '%s' "$SCANNER_CLIENT_ID" > "$client_id_file"
-          printf '%s' "$SCANNER_CLIENT_SECRET" > "$client_secret_file"
+          trap 'rm -f "$response_file"' EXIT
 
           if ! curl \
             --fail-with-body \
@@ -570,8 +560,8 @@ jobs:
             --request POST \
             --header "Content-Type: application/x-www-form-urlencoded" \
             --data-urlencode "grant_type=client_credentials" \
-            --data-urlencode "client_id@${client_id_file}" \
-            --data-urlencode "client_secret@${client_secret_file}" \
+            --data-urlencode "client_id=$SCANNER_CLIENT_ID" \
+            --data-urlencode "client_secret=$SCANNER_CLIENT_SECRET" \
             --output "$response_file" \
             "https://api.snyk.io/oauth2/token"; then
             echo "::error::Failed to obtain a short-lived scanner token"
@@ -778,13 +768,8 @@ jobs:
           fi
 
           umask 077
-          client_id_file="$(mktemp)"
-          client_secret_file="$(mktemp)"
           response_file="$(mktemp)"
-          trap 'rm -f "$client_id_file" "$client_secret_file" "$response_file"' EXIT
-
-          printf '%s' "$SCANNER_CLIENT_ID" > "$client_id_file"
-          printf '%s' "$SCANNER_CLIENT_SECRET" > "$client_secret_file"
+          trap 'rm -f "$response_file"' EXIT
 
           if ! curl \
             --fail-with-body \
@@ -797,8 +782,8 @@ jobs:
             --request POST \
             --header "Content-Type: application/x-www-form-urlencoded" \
             --data-urlencode "grant_type=client_credentials" \
-            --data-urlencode "client_id@${client_id_file}" \
-            --data-urlencode "client_secret@${client_secret_file}" \
+            --data-urlencode "client_id=$SCANNER_CLIENT_ID" \
+            --data-urlencode "client_secret=$SCANNER_CLIENT_SECRET" \
             --output "$response_file" \
             "https://api.snyk.io/oauth2/token"; then
             echo "::error::Failed to obtain a short-lived scanner token"
@@ -989,13 +974,8 @@ jobs:
           fi
 
           umask 077
-          client_id_file="$(mktemp)"
-          client_secret_file="$(mktemp)"
           response_file="$(mktemp)"
-          trap 'rm -f "$client_id_file" "$client_secret_file" "$response_file"' EXIT
-
-          printf '%s' "$SCANNER_CLIENT_ID" > "$client_id_file"
-          printf '%s' "$SCANNER_CLIENT_SECRET" > "$client_secret_file"
+          trap 'rm -f "$response_file"' EXIT
 
           if ! curl \
             --fail-with-body \
@@ -1008,8 +988,8 @@ jobs:
             --request POST \
             --header "Content-Type: application/x-www-form-urlencoded" \
             --data-urlencode "grant_type=client_credentials" \
-            --data-urlencode "client_id@${client_id_file}" \
-            --data-urlencode "client_secret@${client_secret_file}" \
+            --data-urlencode "client_id=$SCANNER_CLIENT_ID" \
+            --data-urlencode "client_secret=$SCANNER_CLIENT_SECRET" \
             --output "$response_file" \
             "https://api.snyk.io/oauth2/token"; then
             echo "::error::Failed to obtain a short-lived scanner token"
