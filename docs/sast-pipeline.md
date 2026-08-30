@@ -1,5 +1,7 @@
 # SAST Pipeline consumer contract
 
+Rollout, enforcement and exception rules are defined in the [SAST enforcement and exception policy](sast-enforcement-policy.md).
+
 The SAST Pipeline is a reusable GitHub Actions workflow maintained by OCTO/AppSec. It currently uses Snyk internally, but its consumer interface is product-neutral.
 
 Location: `.github/workflows/sast.yml`
