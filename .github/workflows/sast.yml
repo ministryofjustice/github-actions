@@ -58,16 +58,6 @@ on:
         required: false
         default: false
         type: boolean
-      registry_auth_mode:
-        description: Container registry authentication mode. One of none or aws_oidc.
-        required: false
-        default: none
-        type: string
-      registry_region:
-        description: AWS region required only when registry_auth_mode is aws_oidc.
-        required: false
-        default: ""
-        type: string
     secrets:
       scanner_client_id:
         description: Client ID for the approved non-personal scanner identity.
@@ -77,9 +67,6 @@ on:
         required: false
       scanner_token:
         description: Non-personal static scanner token fallback.
-        required: false
-      registry_role:
-        description: AWS IAM role used only for approved OIDC container registry access.
         required: false
 
 permissions: {}
@@ -115,12 +102,9 @@ jobs:
           INPUT_DOCKERFILE_PATH: ${{ inputs.dockerfile_path }}
           INPUT_IMAGE_URI: ${{ inputs.image_uri }}
           INPUT_SEVERITY_THRESHOLD: ${{ inputs.severity_threshold }}
-          INPUT_REGISTRY_AUTH_MODE: ${{ inputs.registry_auth_mode }}
-          INPUT_REGISTRY_REGION: ${{ inputs.registry_region }}
           HAS_SCANNER_CLIENT_ID: ${{ secrets.scanner_client_id != '' }}
           HAS_SCANNER_CLIENT_SECRET: ${{ secrets.scanner_client_secret != '' }}
           HAS_SCANNER_TOKEN: ${{ secrets.scanner_token != '' }}
-          HAS_REGISTRY_ROLE: ${{ secrets.registry_role != '' }}
           IS_FORK_PULL_REQUEST: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork }}
           IS_DEPENDABOT: ${{ github.actor == 'dependabot[bot]' }}
           IS_PULL_REQUEST_TARGET: ${{ github.event_name == 'pull_request_target' }}
@@ -166,11 +150,6 @@ jobs:
           case "$INPUT_SEVERITY_THRESHOLD" in
             low|medium|high|critical) ;;
             *) fail "severity_threshold must be one of: low, medium, high, critical" ;;
-          esac
-
-          case "$INPUT_REGISTRY_AUTH_MODE" in
-            none|aws_oidc) ;;
-            *) fail "registry_auth_mode must be one of: none, aws_oidc" ;;
           esac
 
           if [[ "$RUN_DEPENDENCY_SCAN" != "true" && "$RUN_CODE_SCAN" != "true" && "$RUN_IAC_SCAN" != "true" && "$RUN_CONTAINER_SCAN" != "true" ]]; then
@@ -229,15 +208,7 @@ jobs:
               dockerfile_path="$(validate_relative_path "$INPUT_DOCKERFILE_PATH" "dockerfile_path" "$GITHUB_WORKSPACE" "file")"
             fi
 
-            if [[ "$trusted" == "true" ]]; then
-              if [[ "$INPUT_REGISTRY_AUTH_MODE" == "aws_oidc" ]]; then
-                [[ -n "$INPUT_REGISTRY_REGION" ]] || fail "registry_region is required for aws_oidc registry authentication"
-                [[ "$HAS_REGISTRY_ROLE" == "true" ]] || fail "registry_role is required for aws_oidc registry authentication"
-              elif [[ -n "$INPUT_REGISTRY_REGION" || "$HAS_REGISTRY_ROLE" == "true" ]]; then
-                fail "registry_region and registry_role are only valid when registry_auth_mode is aws_oidc"
-              fi
-            fi
-          elif [[ -n "$INPUT_IMAGE_URI" || -n "$INPUT_DOCKERFILE_PATH" || "$INPUT_REGISTRY_AUTH_MODE" != "none" || -n "$INPUT_REGISTRY_REGION" || "$HAS_REGISTRY_ROLE" == "true" ]]; then
+          elif [[ -n "$INPUT_IMAGE_URI" || -n "$INPUT_DOCKERFILE_PATH" ]]; then
             fail "container-only inputs must not be provided when run_container_scan is false"
           fi
 
@@ -915,9 +886,9 @@ jobs:
         shell: bash
         run: exit 1
 
-  container-scan-public:
-    name: Container scan (public image)
-    if: ${{ needs.validate-inputs.outputs.trusted == 'true' && inputs.run_container_scan && inputs.registry_auth_mode == 'none' }}
+  container-scan:
+    name: Container scan
+    if: ${{ needs.validate-inputs.outputs.trusted == 'true' && inputs.run_container_scan }}
     needs: validate-inputs
     runs-on: ubuntu-latest
     permissions:
@@ -1128,293 +1099,6 @@ jobs:
         if: ${{ always() && steps.scan.outputs.status == 'error' }}
         shell: bash
         run: exit 1
-
-  container-scan-aws:
-    name: Container scan (AWS OIDC)
-    if: ${{ needs.validate-inputs.outputs.trusted == 'true' && inputs.run_container_scan && inputs.registry_auth_mode == 'aws_oidc' }}
-    needs: validate-inputs
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-    env:
-      SNYK_ORG: octo-Sq42AMT8YK8yMg4AtYeKJ5
-    outputs:
-      status: ${{ steps.scan.outputs.status }}
-      reason: ${{ steps.scan.outputs.reason }}
-      exit_code: ${{ steps.scan.outputs.exit_code }}
-      sarif_valid: ${{ steps.validate-sarif.outputs.sarif_valid }}
-    steps:
-      - name: Check out caller repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Configure AWS credentials
-        if: ${{ inputs.registry_auth_mode == 'aws_oidc' }}
-        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
-        with:
-          role-to-assume: ${{ secrets.registry_role }}
-          aws-region: ${{ inputs.registry_region }}
-          role-session-name: sast-pipeline-${{ github.run_id }}-${{ github.run_attempt }}
-
-      - name: Log in to Amazon ECR
-        if: ${{ inputs.registry_auth_mode == 'aws_oidc' }}
-        uses: aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419 # v2.1.5
-
-      - name: Pull exact image reference
-        shell: bash
-        env:
-          IMAGE_URI: ${{ inputs.image_uri }}
-        run: |
-          set -euo pipefail
-          docker pull -- "$IMAGE_URI"
-
-      - name: Install pinned Snyk CLI
-        shell: bash
-        run: |
-          set -euo pipefail
-          npm install --global snyk@1.1306.4
-          snyk --version
-
-      - name: Authenticate scanner
-        shell: bash
-        env:
-          SCANNER_CLIENT_ID: ${{ secrets.scanner_client_id }}
-          SCANNER_CLIENT_SECRET: ${{ secrets.scanner_client_secret }}
-          SCANNER_TOKEN: ${{ secrets.scanner_token }}
-        run: |
-          set -euo pipefail
-
-          if [[ -n "$SCANNER_TOKEN" ]]; then
-            echo "::add-mask::$SCANNER_TOKEN"
-            echo "SNYK_TOKEN=$SCANNER_TOKEN" >> "$GITHUB_ENV"
-            exit 0
-          fi
-
-          umask 077
-          response_file="$(mktemp)"
-          trap 'rm -f "$response_file"' EXIT
-
-          if ! curl \
-            --fail-with-body \
-            --silent \
-            --show-error \
-            --connect-timeout 10 \
-            --max-time 30 \
-            --retry 3 \
-            --retry-all-errors \
-            --request POST \
-            --header "Content-Type: application/x-www-form-urlencoded" \
-            --data-urlencode "grant_type=client_credentials" \
-            --data-urlencode "client_id=$SCANNER_CLIENT_ID" \
-            --data-urlencode "client_secret=$SCANNER_CLIENT_SECRET" \
-            --output "$response_file" \
-            "https://api.snyk.io/oauth2/token"; then
-            echo "::error::Failed to obtain a short-lived scanner token"
-            exit 1
-          fi
-
-          oauth_token="$(jq -er '.access_token | strings | select(length > 0)' "$response_file")" || {
-            echo "::error::Scanner authentication response did not contain a valid access token"
-            exit 1
-          }
-
-          echo "::add-mask::$oauth_token"
-          echo "SNYK_OAUTH_TOKEN=$oauth_token" >> "$GITHUB_ENV"
-
-      - name: Run container scan
-        id: scan
-        shell: bash
-        env:
-          IMAGE_URI: ${{ inputs.image_uri }}
-          DOCKERFILE_PATH: ${{ needs.validate-inputs.outputs.dockerfile_path }}
-          SEVERITY_THRESHOLD: ${{ inputs.severity_threshold }}
-        run: |
-          set -euo pipefail
-
-          mkdir -p results/container
-          sarif_file="results/container/container.sarif"
-          arguments=(
-            container test "$IMAGE_URI"
-            "--org=$SNYK_ORG"
-            "--severity-threshold=$SEVERITY_THRESHOLD"
-            "--sarif-file-output=$sarif_file"
-          )
-          if [[ -n "$DOCKERFILE_PATH" ]]; then
-            arguments+=("--file=$GITHUB_WORKSPACE/$DOCKERFILE_PATH")
-          fi
-
-          set +e
-          snyk "${arguments[@]}"
-          exit_code=$?
-          set -e
-
-          case "$exit_code" in
-            0) status=clean; reason=no_findings ;;
-            1) status=findings; reason=findings_at_or_above_threshold ;;
-            2) status=error; reason=scanner_or_image_error ;;
-            3) status=error; reason=no_supported_container_project ;;
-            *) status=error; reason="unexpected_exit_code_${exit_code}" ;;
-          esac
-
-          jq -n \
-            --arg scan container \
-            --arg status "$status" \
-            --arg reason "$reason" \
-            --arg image "$IMAGE_URI" \
-            --argjson exit_code "$exit_code" \
-            '{scan: $scan, status: $status, reason: $reason, exit_code: $exit_code, image: $image}' \
-            > results/container/result.json
-
-          {
-            echo "status=$status"
-            echo "reason=$reason"
-            echo "exit_code=$exit_code"
-          } >> "$GITHUB_OUTPUT"
-
-          if [[ "$status" == "error" ]]; then
-            echo "::error::Container scan failed: $reason (Snyk exit code $exit_code)"
-          fi
-
-      - name: Validate container SARIF
-        id: validate-sarif
-        if: ${{ always() }}
-        shell: bash
-        env:
-          SCAN_STATUS: ${{ steps.scan.outputs.status }}
-        run: |
-          set -euo pipefail
-
-          sarif_file="results/container/container.sarif"
-          echo "sarif_valid=false" >> "$GITHUB_OUTPUT"
-
-          if [[ "$SCAN_STATUS" == "error" ]]; then
-            if [[ -f "$sarif_file" ]]; then
-              mv "$sarif_file" "${sarif_file}.invalid"
-            fi
-            exit 0
-          fi
-
-          [[ -s "$sarif_file" ]] || {
-            echo "::error::Container scan completed without a non-empty SARIF result"
-            exit 1
-          }
-
-          jq -e '.version == "2.1.0" and (.runs | type == "array") and (.runs | length > 0)' \
-            "$sarif_file" > /dev/null || {
-            mv "$sarif_file" "${sarif_file}.invalid"
-            echo "::error::Container scan produced invalid SARIF"
-            exit 1
-          }
-
-          temporary_file="$(mktemp)"
-          jq '
-            walk(
-              if type == "object" and has("security-severity") and
-                (."security-severity" == "null" or ."security-severity" == "undefined")
-              then ."security-severity" = "0"
-              else .
-              end
-            )
-          ' "$sarif_file" > "$temporary_file"
-          mv "$temporary_file" "$sarif_file"
-          echo "sarif_valid=true" >> "$GITHUB_OUTPUT"
-
-      - name: Upload container result artifact
-        if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: sast-pipeline-container-${{ github.run_id }}-${{ github.run_attempt }}
-          path: results/container
-          if-no-files-found: error
-          retention-days: 7
-
-      - name: Summarise container scan
-        if: ${{ always() }}
-        shell: bash
-        env:
-          SCAN_STATUS: ${{ steps.scan.outputs.status }}
-          SCAN_REASON: ${{ steps.scan.outputs.reason }}
-          SARIF_VALID: ${{ steps.validate-sarif.outputs.sarif_valid }}
-          IMAGE_URI: ${{ inputs.image_uri }}
-        run: |
-          {
-            echo "### Container scan"
-            echo
-            echo "| Item | Value |"
-            echo "|---|---|"
-            echo "| Status | ${SCAN_STATUS:-error} |"
-            echo "| Reason | ${SCAN_REASON:-scan did not start} |"
-            echo "| Image | \`$IMAGE_URI\` |"
-            echo "| Valid SARIF | ${SARIF_VALID:-false} |"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Fail on container operational error
-        if: ${{ always() && steps.scan.outputs.status == 'error' }}
-        shell: bash
-        run: exit 1
-
-  container-scan-result:
-    name: Normalise container scan result
-    if: ${{ always() }}
-    needs:
-      - validate-inputs
-      - container-scan-public
-      - container-scan-aws
-    runs-on: ubuntu-latest
-    permissions: {}
-    outputs:
-      result: ${{ steps.result.outputs.result }}
-      status: ${{ steps.result.outputs.status }}
-      reason: ${{ steps.result.outputs.reason }}
-      exit_code: ${{ steps.result.outputs.exit_code }}
-      sarif_valid: ${{ steps.result.outputs.sarif_valid }}
-    steps:
-      - name: Select container scan result
-        id: result
-        shell: bash
-        env:
-          CONTAINER_REQUESTED: ${{ inputs.run_container_scan }}
-          REGISTRY_AUTH_MODE: ${{ inputs.registry_auth_mode }}
-          PUBLIC_RESULT: ${{ needs.container-scan-public.result }}
-          PUBLIC_STATUS: ${{ needs.container-scan-public.outputs.status }}
-          PUBLIC_REASON: ${{ needs.container-scan-public.outputs.reason }}
-          PUBLIC_EXIT_CODE: ${{ needs.container-scan-public.outputs.exit_code }}
-          PUBLIC_SARIF_VALID: ${{ needs.container-scan-public.outputs.sarif_valid }}
-          AWS_RESULT: ${{ needs.container-scan-aws.result }}
-          AWS_STATUS: ${{ needs.container-scan-aws.outputs.status }}
-          AWS_REASON: ${{ needs.container-scan-aws.outputs.reason }}
-          AWS_EXIT_CODE: ${{ needs.container-scan-aws.outputs.exit_code }}
-          AWS_SARIF_VALID: ${{ needs.container-scan-aws.outputs.sarif_valid }}
-        run: |
-          set -euo pipefail
-
-          if [[ "$CONTAINER_REQUESTED" != "true" ]]; then
-            {
-              echo "result=skipped"
-              echo "status=skipped"
-              echo "reason=container scan was not requested"
-              echo "exit_code="
-              echo "sarif_valid=false"
-            } >> "$GITHUB_OUTPUT"
-          elif [[ "$REGISTRY_AUTH_MODE" == "aws_oidc" ]]; then
-            {
-              echo "result=$AWS_RESULT"
-              echo "status=$AWS_STATUS"
-              echo "reason=$AWS_REASON"
-              echo "exit_code=$AWS_EXIT_CODE"
-              echo "sarif_valid=${AWS_SARIF_VALID:-false}"
-            } >> "$GITHUB_OUTPUT"
-          else
-            {
-              echo "result=$PUBLIC_RESULT"
-              echo "status=$PUBLIC_STATUS"
-              echo "reason=$PUBLIC_REASON"
-              echo "exit_code=$PUBLIC_EXIT_CODE"
-              echo "sarif_valid=${PUBLIC_SARIF_VALID:-false}"
-            } >> "$GITHUB_OUTPUT"
-          fi
 
   publish-results:
     name: Publish results
@@ -1424,7 +1108,7 @@ jobs:
       - dependency-scan
       - code-scan
       - iac-scan
-      - container-scan-result
+      - container-scan
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -1479,14 +1163,14 @@ jobs:
           category: sast-pipeline-iac
 
       - name: Download container SARIF
-        if: ${{ needs.container-scan-result.outputs.sarif_valid == 'true' }}
+        if: ${{ needs.container-scan.outputs.sarif_valid == 'true' }}
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: sast-pipeline-container-${{ github.run_id }}-${{ github.run_attempt }}
           path: published/container
 
       - name: Upload container SARIF to Code Scanning
-        if: ${{ needs.container-scan-result.outputs.sarif_valid == 'true' }}
+        if: ${{ needs.container-scan.outputs.sarif_valid == 'true' }}
         uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
         with:
           sarif_file: published/container/container.sarif
@@ -1499,7 +1183,7 @@ jobs:
           DEPENDENCY_SARIF: ${{ needs.dependency-scan.outputs.sarif_valid }}
           CODE_SARIF: ${{ needs.code-scan.outputs.sarif_valid }}
           IAC_SARIF: ${{ needs.iac-scan.outputs.sarif_valid }}
-          CONTAINER_SARIF: ${{ needs.container-scan-result.outputs.sarif_valid }}
+          CONTAINER_SARIF: ${{ needs.container-scan.outputs.sarif_valid }}
         run: |
           {
             echo "### SARIF publication"
@@ -1522,7 +1206,7 @@ jobs:
       - dependency-scan
       - code-scan
       - iac-scan
-      - container-scan-result
+      - container-scan
       - publish-results
     runs-on: ubuntu-latest
     permissions: {}
@@ -1542,8 +1226,8 @@ jobs:
           CODE_STATUS: ${{ needs.code-scan.outputs.status }}
           IAC_RESULT: ${{ needs.iac-scan.result }}
           IAC_STATUS: ${{ needs.iac-scan.outputs.status }}
-          CONTAINER_RESULT: ${{ needs.container-scan-result.outputs.result }}
-          CONTAINER_STATUS: ${{ needs.container-scan-result.outputs.status }}
+          CONTAINER_RESULT: ${{ needs.container-scan.result }}
+          CONTAINER_STATUS: ${{ needs.container-scan.outputs.status }}
           PUBLISH_RESULT: ${{ needs.publish-results.result }}
           UPLOAD_SARIF: ${{ inputs.upload_sarif }}
           FAIL_BUILD: ${{ inputs.fail_build }}
@@ -1602,7 +1286,7 @@ jobs:
       - dependency-scan
       - code-scan
       - iac-scan
-      - container-scan-result
+      - container-scan
       - publish-results
       - policy-result
     runs-on: ubuntu-latest
@@ -1618,8 +1302,8 @@ jobs:
           CODE_REASON: ${{ needs.code-scan.outputs.reason }}
           IAC_STATUS: ${{ needs.iac-scan.outputs.status }}
           IAC_REASON: ${{ needs.iac-scan.outputs.reason }}
-          CONTAINER_STATUS: ${{ needs.container-scan-result.outputs.status }}
-          CONTAINER_REASON: ${{ needs.container-scan-result.outputs.reason }}
+          CONTAINER_STATUS: ${{ needs.container-scan.outputs.status }}
+          CONTAINER_REASON: ${{ needs.container-scan.outputs.reason }}
           PUBLISH_RESULT: ${{ needs.publish-results.result }}
           POLICY_RESULT: ${{ needs.policy-result.outputs.result }}
           POLICY_REASON: ${{ needs.policy-result.outputs.reason }}
