@@ -4,9 +4,10 @@
 
 | Field | Value |
 |---|---|
-| Owner | Central SAST pipeline owners |
+| Technical owner | Wilfred Okogie |
 | Initial rollout | Release 1 — Observe |
-| Approval | Proposed for service-owner and OCTO/AppSec review |
+| Technical decision | Approved for Release 1 — Observe on 2026-08-30 |
+| Independent governance review | Pending OCTO/AppSec or delegated security-owner review |
 | Review | At each promotion and at least every six months |
 
 The scanner identifies issues; this policy decides whether findings or operational failures block delivery. It covers dependency, code, infrastructure-as-code (IaC) and container scanning.
@@ -123,5 +124,11 @@ The first production release is **Release 1 — Observe**:
 - keep SARIF publication enabled;
 - preserve fail-closed classification for validation, scanner and publication errors;
 - do not activate organisation-wide finding enforcement until Release 3 gates pass.
+
+### Technical-owner approval
+
+> As technical owner, Wilfred Okogie approves Release 1 — Observe as the initial SAST enforcement policy. Findings will be published but will not block delivery. Operational failures will be reported honestly and must not be represented as clean scans. Enforcement of new high and critical findings will be introduced only after baselining, exception handling, rollback and production regression testing are complete.
+
+This approval authorises the Observe configuration and policy implementation. It does not waive the remaining Stage 9 conditions or substitute for independent governance review where required.
 
 Stage 10 is approved when service ownership and OCTO/AppSec approve this policy, exception ownership/evidence storage are named, rollout gates are accepted, workflow exit codes match the selected release, and branch protection matches the approved policy-check design.
