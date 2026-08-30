@@ -62,6 +62,16 @@ on:
         description: Caller environment containing scanner_client_id and scanner_client_secret. Restrict it to trusted refs.
         required: true
         type: string
+    secrets:
+      SCANNER_CLIENT_ID:
+        description: Environment-scoped client ID for the approved non-personal scanner identity.
+        required: false
+      SCANNER_CLIENT_SECRET:
+        description: Environment-scoped client secret for the approved non-personal scanner identity.
+        required: false
+      SCANNER_TOKEN:
+        description: Optional environment-scoped non-personal static scanner token fallback.
+        required: false
 permissions: {}
 
 jobs:
