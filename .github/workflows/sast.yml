@@ -305,10 +305,12 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install Snyk CLI
-        uses: snyk/actions/setup@9adf32b1121593767fc3c057af55b55db032dc04
-        with:
-          snyk-version: 1.1306.4
+      - name: Install pinned Snyk CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --global snyk@1.1306.4
+          snyk --version
 
       - name: Authenticate scanner
         shell: bash
@@ -526,10 +528,12 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install Snyk CLI
-        uses: snyk/actions/setup@9adf32b1121593767fc3c057af55b55db032dc04
-        with:
-          snyk-version: 1.1306.4
+      - name: Install pinned Snyk CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --global snyk@1.1306.4
+          snyk --version
 
       - name: Authenticate scanner
         shell: bash
@@ -751,10 +755,12 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install Snyk CLI
-        uses: snyk/actions/setup@9adf32b1121593767fc3c057af55b55db032dc04
-        with:
-          snyk-version: 1.1306.4
+      - name: Install pinned Snyk CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --global snyk@1.1306.4
+          snyk --version
 
       - name: Authenticate scanner
         shell: bash
@@ -960,10 +966,12 @@ jobs:
           set -euo pipefail
           docker pull -- "$IMAGE_URI"
 
-      - name: Install Snyk CLI
-        uses: snyk/actions/setup@9adf32b1121593767fc3c057af55b55db032dc04
-        with:
-          snyk-version: 1.1306.4
+      - name: Install pinned Snyk CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --global snyk@1.1306.4
+          snyk --version
 
       - name: Authenticate scanner
         shell: bash
