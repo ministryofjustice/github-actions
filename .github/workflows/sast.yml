@@ -123,6 +123,7 @@ jobs:
           HAS_REGISTRY_ROLE: ${{ secrets.registry_role != '' }}
           IS_FORK_PULL_REQUEST: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork }}
           IS_DEPENDABOT: ${{ github.actor == 'dependabot[bot]' }}
+          IS_PULL_REQUEST_TARGET: ${{ github.event_name == 'pull_request_target' }}
         run: |
           set -euo pipefail
 
@@ -174,6 +175,10 @@ jobs:
 
           if [[ "$RUN_DEPENDENCY_SCAN" != "true" && "$RUN_CODE_SCAN" != "true" && "$RUN_IAC_SCAN" != "true" && "$RUN_CONTAINER_SCAN" != "true" ]]; then
             fail "at least one scan must be enabled"
+          fi
+
+          if [[ "$IS_PULL_REQUEST_TARGET" == "true" ]]; then
+            fail "pull_request_target is not supported because privileged credentials must not be combined with pull-request execution"
           fi
 
           trusted=true
