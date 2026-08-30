@@ -8,13 +8,14 @@ This review covers `.github/workflows/sast.yml` in `ministryofjustice/github-act
 
 | Invocation | Secret-bearing scans | Behaviour |
 |---|---:|---|
-| Internal branch | Allowed | Runs the selected scans after input validation. |
-| Same-repository pull request | Allowed | Runs the selected scans using the repository's normal pull-request controls. |
-| Dependabot pull request | Denied | Validation marks the context untrusted; scanner jobs do not run. |
-| Forked pull request | Denied | GitHub does not provide repository secrets and validation marks the context untrusted. |
+| Protected `main` execution | Allowed | Runs selected scans using credentials from a `main`-restricted caller environment. |
+| Other internal branch | Denied | Environment deployment policy rejects the job before scanner credentials are released. |
+| Same-repository pull request | Denied | A no-secret boundary workflow records that credentialed scanning is deferred to protected execution. |
+| Dependabot pull request | Denied | No repository-level scanner credentials exist and the protected environment rejects the ref. |
+| Forked pull request | Denied | No repository-level scanner credentials exist and the protected environment rejects the ref. |
 | `pull_request_target` | Denied | Validation fails explicitly. This prevents privileged credentials being combined with pull-request execution. |
 
-Consumers must pass only the documented scanner credentials explicitly. `secrets: inherit` is not part of the approved contract.
+Consumers name a protected caller environment and do not pass scanner credentials. `secrets: inherit` is not part of the approved contract. Scanner credentials must not also exist at repository level.
 
 ## Token permissions
 
@@ -69,16 +70,20 @@ The workflow does not upload source archives, complete workspaces, environment d
 - SARIF can contain file paths, finding descriptions and code-location context; access must remain limited to authorised repository and security users.
 - A compromised scanner or action dependency remains a software-supply-chain risk; immutable SHA pins, release review and Dependabot reduce this risk.
 - The exact Snyk CLI version requires a documented update cadence because Dependabot cannot update a version embedded in shell code.
-- Same-repository pull requests are treated as trusted. Repository write access and branch protection therefore remain part of the security boundary.
+- Credentialed pull-request scanning is deferred until a separately approved protected-environment or GitHub App design can scan untrusted changes without exposing long-lived credentials.
+- The PoC environment currently allows administrator bypass. Production adoption must decide whether to disable bypass and add approved reviewers without creating an unavailable single-maintainer dependency.
 - Private container registries require a separately reviewed workflow. They must not cause the primary workflow to request OIDC permissions for consumers that scan public images.
 
 ## Evidence
 
 - PoC run `33312597313`: all four scans passed without `id-token: write`.
 - PoC run `33312933607`: all four scans and SARIF publication passed using reviewed Node.js 24 artifact actions.
+- PoC run `33330195801`: controlled presence-only test found repository-level credentials available to same-repository PR code; no values were disclosed.
+- PoC run `33330786400`: protected environment rejected the feature ref before validation or scanning.
+- PoC run `33330915899`: repeated presence-only test passed after repository secrets were removed and environment protection was applied.
 - External actions are pinned to complete commit SHAs with readable release comments.
 - Snyk CLI `1.1306.4` version, tarball and integrity value were recorded during review.
 
 ## Review conclusion
 
-The primary workflow applies job-level least privilege, prevents protected credentials reaching forked and Dependabot pull requests, rejects `pull_request_target`, uses GitHub-hosted runners, limits artifact scope and retention, and controls external dependencies with immutable pins and update review.
+The primary workflow applies job-level least privilege, requires scanner credentials from a protected caller environment, prevents protected credentials reaching pull-request-controlled code, rejects `pull_request_target`, uses GitHub-hosted runners, limits artifact scope and retention, and controls external dependencies with immutable pins and update review.

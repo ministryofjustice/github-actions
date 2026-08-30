@@ -35,12 +35,12 @@ jobs:
       severity_threshold: high
       upload_sarif: true
       fail_build: false
-    secrets:
-      scanner_client_id: ${{ secrets.SNYK_CLIENT_ID }}
-      scanner_client_secret: ${{ secrets.SNYK_CLIENT_SECRET }}
+      scanner_environment: "sast-pipeline-production"
 ```
 
 The called workflow cannot elevate permissions supplied by the caller.
+
+The caller environment must contain `scanner_client_id` and `scanner_client_secret`, must be restricted to trusted refs, and must not expose those values as repository-level secrets. The approved PoC design permits only `main`. Pull-request workflows do not call the credentialed scanner; they record that scanning is deferred to protected post-merge or authorised manual execution.
 
 ## Inputs
 
@@ -57,12 +57,13 @@ The called workflow cannot elevate permissions supplied by the caller.
 | `severity_threshold` | string | `high` | One of `low`, `medium`, `high` or `critical`. Code maps `critical` to `high` because Snyk Code has no critical severity. |
 | `upload_sarif` | boolean | `true` | Upload only validated SARIF to GitHub Code Scanning. |
 | `fail_build` | boolean | `false` | Fail when findings meet the threshold. Operational errors always fail. |
+| `scanner_environment` | string | none | Required protected caller environment containing scanner credentials. Restrict deployment to trusted refs such as `main`. |
 
 At least one scan must be selected. Container-only inputs are rejected unless the container scan is enabled.
 
-## Secrets
+## Secrets and protected environment
 
-Pass secrets explicitly. Do not use `secrets: inherit`.
+Do not pass scanner credentials from the caller and do not use `secrets: inherit`. Store credentials only as secrets in the protected environment named by `scanner_environment`.
 
 | Secret | Required | Purpose |
 |---|---:|---|
@@ -70,7 +71,7 @@ Pass secrets explicitly. Do not use `secrets: inherit`.
 | `scanner_client_secret` | conditional | Client secret for the approved non-personal OAuth service account. |
 | `scanner_token` | conditional | Non-personal static-token fallback. Do not provide it together with the OAuth pair. |
 
-Trusted runs require either the OAuth pair or `scanner_token`. Secret-bearing scans do not run for forked or Dependabot pull requests.
+Trusted runs require either the OAuth pair or `scanner_token` in the selected protected environment. Do not duplicate these values as repository-level secrets. Credentialed scans must not run from pull-request-controlled workflow code, including same-repository, forked and Dependabot pull requests.
 
 ## Permissions
 
