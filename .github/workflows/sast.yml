@@ -62,17 +62,6 @@ on:
         description: Caller environment containing scanner_client_id and scanner_client_secret. Restrict it to trusted refs.
         required: true
         type: string
-    secrets:
-      scanner_client_id:
-        description: Client ID for the approved non-personal scanner identity.
-        required: false
-      scanner_client_secret:
-        description: Client secret for the approved non-personal scanner identity.
-        required: false
-      scanner_token:
-        description: Non-personal static scanner token fallback.
-        required: false
-
 permissions: {}
 
 jobs:
@@ -107,9 +96,9 @@ jobs:
           INPUT_DOCKERFILE_PATH: ${{ inputs.dockerfile_path }}
           INPUT_IMAGE_URI: ${{ inputs.image_uri }}
           INPUT_SEVERITY_THRESHOLD: ${{ inputs.severity_threshold }}
-          HAS_SCANNER_CLIENT_ID: ${{ secrets.scanner_client_id != '' }}
-          HAS_SCANNER_CLIENT_SECRET: ${{ secrets.scanner_client_secret != '' }}
-          HAS_SCANNER_TOKEN: ${{ secrets.scanner_token != '' }}
+          HAS_SCANNER_CLIENT_ID: ${{ secrets.SCANNER_CLIENT_ID != '' }}
+          HAS_SCANNER_CLIENT_SECRET: ${{ secrets.SCANNER_CLIENT_SECRET != '' }}
+          HAS_SCANNER_TOKEN: ${{ secrets.SCANNER_TOKEN != '' }}
           IS_FORK_PULL_REQUEST: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork }}
           IS_DEPENDABOT: ${{ github.actor == 'dependabot[bot]' }}
           IS_PULL_REQUEST_TARGET: ${{ github.event_name == 'pull_request_target' }}
@@ -306,9 +295,9 @@ jobs:
       - name: Authenticate scanner
         shell: bash
         env:
-          SCANNER_CLIENT_ID: ${{ secrets.scanner_client_id }}
-          SCANNER_CLIENT_SECRET: ${{ secrets.scanner_client_secret }}
-          SCANNER_TOKEN: ${{ secrets.scanner_token }}
+          SCANNER_CLIENT_ID: ${{ secrets.SCANNER_CLIENT_ID }}
+          SCANNER_CLIENT_SECRET: ${{ secrets.SCANNER_CLIENT_SECRET }}
+          SCANNER_TOKEN: ${{ secrets.SCANNER_TOKEN }}
         run: |
           set -euo pipefail
 
@@ -525,9 +514,9 @@ jobs:
       - name: Authenticate scanner
         shell: bash
         env:
-          SCANNER_CLIENT_ID: ${{ secrets.scanner_client_id }}
-          SCANNER_CLIENT_SECRET: ${{ secrets.scanner_client_secret }}
-          SCANNER_TOKEN: ${{ secrets.scanner_token }}
+          SCANNER_CLIENT_ID: ${{ secrets.SCANNER_CLIENT_ID }}
+          SCANNER_CLIENT_SECRET: ${{ secrets.SCANNER_CLIENT_SECRET }}
+          SCANNER_TOKEN: ${{ secrets.SCANNER_TOKEN }}
         run: |
           set -euo pipefail
 
@@ -748,9 +737,9 @@ jobs:
       - name: Authenticate scanner
         shell: bash
         env:
-          SCANNER_CLIENT_ID: ${{ secrets.scanner_client_id }}
-          SCANNER_CLIENT_SECRET: ${{ secrets.scanner_client_secret }}
-          SCANNER_TOKEN: ${{ secrets.scanner_token }}
+          SCANNER_CLIENT_ID: ${{ secrets.SCANNER_CLIENT_ID }}
+          SCANNER_CLIENT_SECRET: ${{ secrets.SCANNER_CLIENT_SECRET }}
+          SCANNER_TOKEN: ${{ secrets.SCANNER_TOKEN }}
         run: |
           set -euo pipefail
 
@@ -943,9 +932,9 @@ jobs:
       - name: Authenticate scanner
         shell: bash
         env:
-          SCANNER_CLIENT_ID: ${{ secrets.scanner_client_id }}
-          SCANNER_CLIENT_SECRET: ${{ secrets.scanner_client_secret }}
-          SCANNER_TOKEN: ${{ secrets.scanner_token }}
+          SCANNER_CLIENT_ID: ${{ secrets.SCANNER_CLIENT_ID }}
+          SCANNER_CLIENT_SECRET: ${{ secrets.SCANNER_CLIENT_SECRET }}
+          SCANNER_TOKEN: ${{ secrets.SCANNER_TOKEN }}
         run: |
           set -euo pipefail
 
