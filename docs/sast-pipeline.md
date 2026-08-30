@@ -24,8 +24,6 @@ jobs:
       actions: read
       contents: read
       security-events: write
-      # Required only when registry_auth_mode is aws_oidc.
-      id-token: write
     uses: ministryofjustice/github-actions/.github/workflows/sast.yml@<full-commit-sha>
     with:
       run_dependency_scan: true
@@ -55,12 +53,10 @@ The called workflow cannot elevate permissions supplied by the caller.
 | `working_directory` | string | `.` | Existing repository-relative directory. Absolute paths and traversal are rejected. |
 | `iac_path` | string | `.` | Existing directory relative to `working_directory`. |
 | `dockerfile_path` | string | empty | Optional repository-relative Dockerfile providing container context. |
-| `image_uri` | string | empty | Required for a container scan. An immutable digest is strongly preferred. |
+| `image_uri` | string | empty | Required for a container scan. The image must be publicly pullable and an immutable digest is strongly preferred. |
 | `severity_threshold` | string | `high` | One of `low`, `medium`, `high` or `critical`. Code maps `critical` to `high` because Snyk Code has no critical severity. |
 | `upload_sarif` | boolean | `true` | Upload only validated SARIF to GitHub Code Scanning. |
 | `fail_build` | boolean | `false` | Fail when findings meet the threshold. Operational errors always fail. |
-| `registry_auth_mode` | string | `none` | One of `none` or `aws_oidc`. |
-| `registry_region` | string | empty | Required with `aws_oidc`; invalid otherwise. |
 
 At least one scan must be selected. Container-only inputs are rejected unless the container scan is enabled.
 
@@ -73,7 +69,6 @@ Pass secrets explicitly. Do not use `secrets: inherit`.
 | `scanner_client_id` | conditional | Client ID for the approved non-personal OAuth service account. Must be paired with `scanner_client_secret`. |
 | `scanner_client_secret` | conditional | Client secret for the approved non-personal OAuth service account. |
 | `scanner_token` | conditional | Non-personal static-token fallback. Do not provide it together with the OAuth pair. |
-| `registry_role` | conditional | AWS IAM role required only for `aws_oidc` container registry authentication. |
 
 Trusted runs require either the OAuth pair or `scanner_token`. Secret-bearing scans do not run for forked or Dependabot pull requests.
 
@@ -84,9 +79,8 @@ Trusted runs require either the OAuth pair or `scanner_token`. Secret-bearing sc
 | `contents: read` | Checkout and all repository scans. |
 | `actions: read` | Download validated artifacts before SARIF publication. |
 | `security-events: write` | Upload SARIF to GitHub Code Scanning. |
-| `id-token: write` | Only for `registry_auth_mode: aws_oidc`. |
 
-The workflow does not require `contents: write`.
+The workflow does not require `contents: write` or `id-token: write`. Private-registry authentication requires a separately reviewed workflow and permission contract.
 
 ## Results and failure rules
 
