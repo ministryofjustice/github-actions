@@ -105,6 +105,13 @@ The centrally owned SAST Pipeline provides dependency, code, infrastructure-as-c
 
 See the [consumer contract and pinned example](docs/sast-pipeline.md). Consumers should reference a reviewed release tag or complete commit SHA, never a mutable branch.
 
+Additional documentation:
+
+- [Maintainer guide](docs/sast-maintainers.md)
+- [Migration from the LAA workflow](docs/sast-migration.md)
+- [Enforcement and exception policy](docs/sast-enforcement-policy.md)
+- [Architecture decisions](docs/adr/README.md)
+
 > Make sure to check each repository’s README for usage instructions and required inputs/secrets.
 
 ## 🪝 Git hook

@@ -8,14 +8,14 @@ This review covers `.github/workflows/sast.yml` in `ministryofjustice/github-act
 
 | Invocation | Secret-bearing scans | Behaviour |
 |---|---:|---|
-| Protected `main` execution | Allowed | Runs selected scans using credentials from a `main`-restricted caller environment. |
+| Protected `main` execution | Allowed | Runs selected scans using credentials from an approved `main`-restricted central environment. |
 | Other internal branch | Denied | Environment deployment policy rejects the job before scanner credentials are released. |
 | Same-repository pull request | Denied | A no-secret boundary workflow records that credentialed scanning is deferred to protected execution. |
 | Dependabot pull request | Denied | No repository-level scanner credentials exist and the protected environment rejects the ref. |
 | Forked pull request | Denied | No repository-level scanner credentials exist and the protected environment rejects the ref. |
 | `pull_request_target` | Denied | Validation fails explicitly. This prevents privileged credentials being combined with pull-request execution. |
 
-Consumers name a protected caller environment and do not pass scanner credentials. `secrets: inherit` is not part of the approved contract. Scanner credentials must not also exist at repository level.
+Consumers name an approved protected central environment and do not pass scanner credentials. `secrets: inherit` is not part of the approved contract. Scanner credentials must not also exist at consumer repository level.
 
 ## Token permissions
 
@@ -86,4 +86,4 @@ The workflow does not upload source archives, complete workspaces, environment d
 
 ## Review conclusion
 
-The primary workflow applies job-level least privilege, requires scanner credentials from a protected caller environment, prevents protected credentials reaching pull-request-controlled code, rejects `pull_request_target`, uses GitHub-hosted runners, limits artifact scope and retention, and controls external dependencies with immutable pins and update review.
+The primary workflow applies job-level least privilege, requires scanner credentials from an approved protected central environment, prevents protected credentials reaching pull-request-controlled code, rejects `pull_request_target`, uses GitHub-hosted runners, limits artifact scope and retention, and controls external dependencies with immutable pins and update review.

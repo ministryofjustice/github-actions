@@ -59,7 +59,7 @@ on:
         default: false
         type: boolean
       scanner_environment:
-        description: Caller environment containing scanner_client_id and scanner_client_secret. Restrict it to trusted refs.
+        description: Approved central environment containing SCANNER_CLIENT_ID and SCANNER_CLIENT_SECRET. Restrict it to trusted refs.
         required: true
         type: string
     secrets:
